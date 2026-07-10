@@ -58,3 +58,19 @@ Oriflux is the source of truth for traffic classification (single crawler/AI-age
 - PRD and product-facing docs are written in French; UI is trilingual FR/EN/ES from V1 (AudiGEO i18n pattern — translate everything, including status enums).
 - Reuse existing Sponge Theory patterns rather than inventing: Zeus `/api/metrics` middleware, ClipHaven auth (JWT + OAuth Google) and Resend email, Rayonne security hardening, cliphaven/neokanban multi-arch build + `deploy-portainer.sh` deployment.
 - Open questions live in PRD §15 (license, AudiGEO Bot Analytics migration, status pages, default retention, trademark clearance) — don't silently decide them in code.
+
+## Agent skills
+
+### Issue tracker
+
+Issues live in GitHub Issues on `ezeeFlop/oriflux` (private), operated via the `gh` CLI;
+external PRs are not a triage surface. See `docs/agents/issue-tracker.md`.
+
+### Triage labels
+
+The five canonical triage labels are used verbatim (`needs-triage`, `needs-info`,
+`ready-for-agent`, `ready-for-human`, `wontfix`). See `docs/agents/triage-labels.md`.
+
+### Domain docs
+
+Single-context: one `CONTEXT.md` + `docs/adr/` at the repo root. See `docs/agents/domain.md`.
