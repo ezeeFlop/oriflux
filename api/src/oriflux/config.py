@@ -16,11 +16,15 @@ class Settings(BaseSettings):
 
     database_url: str = "postgresql+asyncpg://oriflux:oriflux-dev@localhost:5432/oriflux"
 
-    # Dashboard auth (JWT + Google OAuth, ClipHaven pattern)
+    # Dashboard auth (JWT + Google OAuth, ClipHaven pattern).
+    # The client id is a public identifier; it is also the verified token
+    # audience, so it must never be empty in a deployment with login.
     jwt_secret: str = "dev-jwt-secret-change-me"
     jwt_algorithm: str = "HS256"
     jwt_expire_minutes: int = 720
-    google_client_id: str = ""
+    google_client_id: str = (
+        "1031899381936-8g3t4qvikt248nfe76lm5kmcs39ahesq.apps.googleusercontent.com"
+    )
 
     # Ingest protection (PRD §9): per-key and per-IP rate limits, events/minute
     api_key_cache_ttl_s: float = 30.0
