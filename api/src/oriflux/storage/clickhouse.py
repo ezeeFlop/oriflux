@@ -1,0 +1,118 @@
+"""ClickHouse access: schema, event sink (batcher side), query executor (API side).
+
+`events` schema per PRD §8.4 — every column exists from the first event
+(traffic_class included, populated by issue #4). ReplacingMergeTree keyed on
+(org_id, project_id, timestamp, event_id) makes re-inserted event UUIDs
+collapse: at-least-once delivery upstream, exactly-once counts downstream
+(queries read FINAL).
+"""
+
+import json
+import time
+from typing import Any, Self
+
+import clickhouse_connect
+from clickhouse_connect.driver.client import Client
+
+from oriflux.config import Settings
+from oriflux.models.events import EnrichedEvent
+
+EVENTS_DDL = """
+CREATE TABLE IF NOT EXISTS events (
+    event_id UUID,
+    timestamp DateTime64(3, 'UTC'),
+    org_id LowCardinality(String),
+    project_id LowCardinality(String),
+    source_type LowCardinality(String),
+    event_name LowCardinality(String),
+    visitor_hash String,
+    session_id String,
+    user_pseudo_id String,
+    tenant_id String,
+    url_path String,
+    referrer String,
+    utm_source String,
+    utm_medium String,
+    utm_campaign String,
+    utm_term String,
+    utm_content String,
+    country LowCardinality(String),
+    region LowCardinality(String),
+    city String,
+    asn UInt32,
+    device LowCardinality(String),
+    os LowCardinality(String),
+    browser LowCardinality(String),
+    locale LowCardinality(String),
+    traffic_class LowCardinality(String),
+    props String
+)
+ENGINE = ReplacingMergeTree
+PARTITION BY toYYYYMM(timestamp)
+ORDER BY (org_id, project_id, timestamp, event_id)
+TTL toDateTime(timestamp) + INTERVAL 13 MONTH
+"""
+
+# One source of truth for the column set: the EnrichedEvent model. Only the
+# DDL above repeats it (ClickHouse types can't be derived from annotations).
+_COLUMNS = list(EnrichedEvent.model_fields)
+_PROPS_INDEX = _COLUMNS.index("props")  # props is JSON-encoded to a String column
+
+
+def get_client(settings: Settings) -> Client:
+    return clickhouse_connect.get_client(
+        host=settings.clickhouse_host,
+        port=settings.clickhouse_port,
+        username=settings.clickhouse_user,
+        password=settings.clickhouse_password,
+        database=settings.clickhouse_database,
+    )
+
+
+def ensure_schema(client: Client) -> None:
+    client.command(EVENTS_DDL)
+
+
+def wait_for_clickhouse(settings: Settings, *, attempts: int = 30, delay_s: float = 2.0) -> Client:
+    last_error: Exception | None = None
+    for _ in range(attempts):
+        try:
+            client = get_client(settings)
+            client.command("SELECT 1")
+            return client
+        except Exception as exc:  # noqa: BLE001 — any startup error means "not ready yet"
+            last_error = exc
+            time.sleep(delay_s)
+    raise RuntimeError(f"ClickHouse unreachable after {attempts} attempts") from last_error
+
+
+class ClickHouseSink:
+    """EventSink implementation used by the batcher."""
+
+    def __init__(self, client: Client) -> None:
+        self._client = client
+
+    def insert(self, events: list[EnrichedEvent]) -> None:
+        rows = []
+        for event in events:
+            row = [getattr(event, column) for column in _COLUMNS]
+            row[_PROPS_INDEX] = json.dumps(event.props)
+            rows.append(row)
+        self._client.insert("events", rows, column_names=_COLUMNS)
+
+
+class ClickHouseExecutor:
+    """QueryExecutor implementation used by the API service."""
+
+    def __init__(self, client: Client) -> None:
+        self._client = client
+
+    @classmethod
+    def from_settings(cls, settings: Settings) -> Self:
+        return cls(get_client(settings))
+
+    def execute(self, sql: str, params: dict[str, Any]) -> list[dict[str, Any]]:
+        result = self._client.query(sql, parameters=params)
+        return [
+            dict(zip(result.column_names, row, strict=True)) for row in result.result_rows
+        ]

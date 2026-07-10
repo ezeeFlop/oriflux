@@ -4,7 +4,22 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 ## Repository state
 
-Greenfield: the only content is `docs/PRD.md` (v1.1, 2026-07-10, in French) — the single source of truth for scope and architecture. The PRD was validated in a design-review session on 2026-07-10; decisions from that session are marked *[Décision 2026-07-10]* in the text and are settled — don't reopen them without the user asking. There is no code, build system, or test suite yet. When implementation starts, update this file with real build/test/run commands.
+`docs/PRD.md` (v1.1, 2026-07-10, in French) is the single source of truth for scope and architecture. The PRD was validated in a design-review session on 2026-07-10; decisions from that session are marked *[Décision 2026-07-10]* in the text and are settled — don't reopen them without the user asking.
+
+The walking skeleton (issue #1) is implemented: one pageview travels ingest → Redis Streams → batcher → ClickHouse → `/api/v1/query`. Work continues issue by issue on GitHub (`ready-for-agent` labels).
+
+### Build / test / run
+
+```bash
+cd deploy && docker compose up --build -d   # ClickHouse + PG16 + Redis (host port 6380) + ingest:8100 / api:8101 / workers:8102
+cd api
+uv sync                                     # deps (uv-managed, py3.11+)
+uv run pytest tests/unit                    # unit tests, no services needed
+uv run pytest -m integration                # needs the compose stack up (skips otherwise)
+uv run mypy && uv run ruff check            # strict typing + lint — keep both clean
+```
+
+Dev credentials (skeleton only, replaced by issue #3): ingest key `dev-ingest-key`, read key `dev-read-key`, org `org-dev` / project `proj-dev`.
 
 ## Planned repo layout (decided)
 

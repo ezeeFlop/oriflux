@@ -1,0 +1,106 @@
+# Dev environment for the walking skeleton (issue #1).
+# Production Swarm stack (spt-oriflux, Traefik/NPM, multi-arch) is issue #2.
+name: oriflux-dev
+
+x-service-env: &service-env
+  ORIFLUX_REDIS_URL: redis://redis:6379/0
+  ORIFLUX_CLICKHOUSE_HOST: clickhouse
+  ORIFLUX_CLICKHOUSE_PORT: "8123"
+  ORIFLUX_CLICKHOUSE_USER: oriflux
+  ORIFLUX_CLICKHOUSE_PASSWORD: oriflux-dev
+  ORIFLUX_CLICKHOUSE_DATABASE: oriflux
+
+x-healthz: &healthz
+  test: ["CMD", "python", "-c", "import urllib.request; urllib.request.urlopen('http://localhost:8000/healthz')"]
+  interval: 5s
+  timeout: 3s
+  retries: 12
+
+services:
+  clickhouse:
+    image: clickhouse/clickhouse-server:24.8  # pinned LTS (PRD §8.3)
+    environment:
+      CLICKHOUSE_DB: oriflux
+      CLICKHOUSE_USER: oriflux
+      CLICKHOUSE_PASSWORD: oriflux-dev
+    ports:
+      - "8123:8123"
+    volumes:
+      - clickhouse-data:/var/lib/clickhouse
+    ulimits:
+      nofile: 262144
+    healthcheck:
+      test: ["CMD", "wget", "--spider", "-q", "http://localhost:8123/ping"]
+      interval: 5s
+      timeout: 3s
+      retries: 24
+
+  postgres:
+    image: postgres:16
+    environment:
+      POSTGRES_USER: oriflux
+      POSTGRES_PASSWORD: oriflux-dev
+      POSTGRES_DB: oriflux
+    ports:
+      - "5432:5432"
+    volumes:
+      - postgres-data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U oriflux"]
+      interval: 5s
+      timeout: 3s
+      retries: 12
+
+  redis:
+    image: redis:7
+    # AOF everysec: ≤ 1 s loss window on Redis crash, accepted per PRD §8.3
+    command: ["redis-server", "--appendonly", "yes", "--appendfsync", "everysec"]
+    ports:
+      - "6380:6379"  # 6380 on the host: 6379 is commonly taken by a local Redis
+    volumes:
+      - redis-data:/data
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 5s
+      timeout: 3s
+      retries: 12
+
+  ingest:
+    build: ../api
+    command: ["uvicorn", "oriflux.ingest.main:app", "--host", "0.0.0.0", "--port", "8000"]
+    environment: *service-env
+    ports:
+      - "8100:8000"
+    depends_on:
+      redis:
+        condition: service_healthy
+    healthcheck: *healthz
+
+  api:
+    build: ../api
+    command: ["uvicorn", "oriflux.api.main:app", "--host", "0.0.0.0", "--port", "8000"]
+    environment: *service-env
+    ports:
+      - "8101:8000"
+    depends_on:
+      clickhouse:
+        condition: service_healthy
+    healthcheck: *healthz
+
+  workers:
+    build: ../api
+    command: ["uvicorn", "oriflux.workers.main:app", "--host", "0.0.0.0", "--port", "8000"]
+    environment: *service-env
+    ports:
+      - "8102:8000"
+    depends_on:
+      clickhouse:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+    healthcheck: *healthz
+
+volumes:
+  clickhouse-data:
+  postgres-data:
+  redis-data:
