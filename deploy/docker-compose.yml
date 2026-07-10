@@ -117,6 +117,8 @@ services:
 
   web:
     build: ../web
+    environment:
+      API_UPSTREAM: api:8000  # compose network: the short name is unambiguous here
     ports:
       - "8103:80"
     depends_on:

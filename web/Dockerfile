@@ -9,5 +9,7 @@ ENV VITE_GOOGLE_CLIENT_ID=${VITE_GOOGLE_CLIENT_ID}
 RUN npm run build
 
 FROM nginx:1.27-alpine
-COPY nginx.conf /etc/nginx/conf.d/default.conf
+# templated config: the entrypoint envsubsts ${API_UPSTREAM} at startup
+COPY nginx.conf.template /etc/nginx/templates/default.conf.template
+ENV API_UPSTREAM=oriflux_api:8000
 COPY --from=build /app/dist /usr/share/nginx/html

@@ -5,9 +5,12 @@ server {
     gzip on;
     gzip_types text/css application/javascript application/json image/svg+xml;
 
-    # single origin: the SPA and its API share the host, no CORS involved
+    # Single origin: the SPA and its API share the host, no CORS involved.
+    # The upstream MUST be the stack-qualified service name in Swarm: bare
+    # short names (`api`) are aliases shared across every stack on the
+    # webfacing network and can resolve to another product's API.
     location /api/ {
-        proxy_pass http://api:8000;
+        proxy_pass http://${API_UPSTREAM};
         proxy_set_header Host $host;
         proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
     }
