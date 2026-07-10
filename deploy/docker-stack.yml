@@ -39,6 +39,9 @@ x-oriflux-env: &oriflux-env
   ORIFLUX_DATABASE_URL: postgresql+asyncpg://${POSTGRES_USER:-oriflux}:${POSTGRES_PASSWORD:?POSTGRES_PASSWORD is required}@postgres:5432/${POSTGRES_DB:-oriflux}
   ORIFLUX_JWT_SECRET: ${ORIFLUX_JWT_SECRET:?ORIFLUX_JWT_SECRET is required}
   ORIFLUX_GOOGLE_CLIENT_ID: ${ORIFLUX_GOOGLE_CLIENT_ID:-}
+  ORIFLUX_GEOIP_DIR: /var/lib/oriflux/geoip
+  ORIFLUX_MAXMIND_LICENSE_KEY: ${MAXMIND_LICENSE_KEY:-}
+  ORIFLUX_OPS_WEBHOOK_URL: ${OPS_WEBHOOK_URL:-}
 
 x-healthz: &healthz
   test: ["CMD", "python", "-c", "import urllib.request; urllib.request.urlopen('http://localhost:8000/healthz')"]
@@ -51,9 +54,11 @@ services:
   # ── Stateless app services (multi-arch image: any node) ────────────────
   ingest:
     image: registry.sponge-theory.dev/oriflux-api:${TAG:-latest}
-    command: ["uvicorn", "oriflux.ingest.main:app", "--host", "0.0.0.0", "--port", "8000"]
+    command: ["uvicorn", "oriflux.ingest.main:app", "--host", "0.0.0.0", "--port", "8000", "--no-access-log"]
     environment: *oriflux-env
     healthcheck: *healthz
+    volumes:
+      - /data/oriflux/prod/geoip:/var/lib/oriflux/geoip
     networks:
       - webfacing
       - oriflux
@@ -100,6 +105,8 @@ services:
     command: ["uvicorn", "oriflux.workers.main:app", "--host", "0.0.0.0", "--port", "8000"]
     environment: *oriflux-env
     healthcheck: *healthz
+    volumes:
+      - /data/oriflux/prod/geoip:/var/lib/oriflux/geoip  # writer (weekly refresh job)
     networks:
       - oriflux
     deploy:

@@ -11,6 +11,7 @@ this path with issue #4.
 from collections.abc import AsyncIterator
 from contextlib import asynccontextmanager
 from datetime import UTC, datetime
+from typing import Any
 
 from fastapi import Depends, FastAPI, HTTPException, Request
 from fastapi.security import HTTPAuthorizationCredentials, HTTPBearer
@@ -19,12 +20,27 @@ from sqlalchemy.ext.asyncio import AsyncSession, async_sessionmaker
 
 from oriflux.config import Settings, get_settings
 from oriflux.db import create_engine, create_session_factory
+from oriflux.enrichment.crawlers import classify_traffic
+from oriflux.enrichment.geo import GeoResolver
+from oriflux.enrichment.ua import parse_ua
+from oriflux.enrichment.visitor import VisitorHasher
 from oriflux.ingest.auth import IngestKeyResolver, ResolvedIngestKey, UnknownKey, WrongScope
 from oriflux.models.events import EnrichedEvent, PageviewIn
 from oriflux.ratelimit import RateLimited, RateLimiter
 from oriflux.storage.redis_stream import publish_event
 
 _bearer = HTTPBearer(auto_error=False)
+
+
+def _do_not_track(request: Request) -> bool:
+    """DNT/GPC honored at ingestion (PRD §9)."""
+    return request.headers.get("dnt") == "1" or request.headers.get("sec-gpc") == "1"
+
+
+def _locale(request: Request) -> str:
+    accept = request.headers.get("accept-language", "")
+    first = accept.split(",")[0].strip()
+    return first.split(";")[0].strip()
 
 
 def _client_ip(request: Request) -> str:
@@ -44,40 +60,40 @@ def create_app(
 ) -> FastAPI:
     settings = settings or get_settings()
 
+    def wire_state(
+        app: FastAPI, redis_client: Redis, factory: async_sessionmaker[AsyncSession]
+    ) -> None:
+        app.state.redis = redis_client
+        app.state.resolver = IngestKeyResolver(
+            factory, cache_ttl_s=settings.api_key_cache_ttl_s
+        )
+        app.state.rate_limiter = RateLimiter(
+            redis_client,
+            per_key=settings.ingest_rate_limit_per_key,
+            per_ip=settings.ingest_rate_limit_per_ip,
+        )
+        app.state.geo = GeoResolver(settings.geoip_dir)
+        app.state.visitor_hasher = VisitorHasher(redis_client)
+
     @asynccontextmanager
     async def lifespan(app: FastAPI) -> AsyncIterator[None]:
-        app.state.redis = redis or Redis.from_url(settings.redis_url)
+        redis_client = redis or Redis.from_url(settings.redis_url)
         engine = None
         if session_factory is None:
             engine = create_engine(settings)
             factory = create_session_factory(engine)
         else:
             factory = session_factory
-        app.state.resolver = IngestKeyResolver(
-            factory, cache_ttl_s=settings.api_key_cache_ttl_s
-        )
-        app.state.rate_limiter = RateLimiter(
-            app.state.redis,
-            per_key=settings.ingest_rate_limit_per_key,
-            per_ip=settings.ingest_rate_limit_per_ip,
-        )
+        wire_state(app, redis_client, factory)
         yield
-        await app.state.redis.aclose()
+        await redis_client.aclose()
         if engine is not None:
             await engine.dispose()
 
     app = FastAPI(title="oriflux_ingest", lifespan=lifespan)
     # For test transports that skip lifespan, wire the injected boundaries anyway.
     if redis is not None and session_factory is not None:
-        app.state.redis = redis
-        app.state.resolver = IngestKeyResolver(
-            session_factory, cache_ttl_s=settings.api_key_cache_ttl_s
-        )
-        app.state.rate_limiter = RateLimiter(
-            redis,
-            per_key=settings.ingest_rate_limit_per_key,
-            per_ip=settings.ingest_rate_limit_per_ip,
-        )
+        wire_state(app, redis, session_factory)
 
     async def authenticate(
         request: Request,
@@ -111,12 +127,28 @@ def create_app(
         pageview: PageviewIn,
         request: Request,
         key: ResolvedIngestKey = Depends(authenticate),
-    ) -> dict[str, str]:
+    ) -> dict[str, Any]:
+        if _do_not_track(request):
+            return {"tracked": False}
+
+        now = datetime.now(tz=UTC)
+        # The IP lives only in these two local variables: resolved to geo and
+        # hashed into the daily visitor id, then discarded (PRD §9).
+        ip = _client_ip(request)
+        user_agent = request.headers.get("user-agent", "")
+        traffic_class, _ = classify_traffic(user_agent)
         event = EnrichedEvent.from_pageview(
             pageview,
             org_id=key.org_id,
             project_id=key.project_id,
-            timestamp=datetime.now(tz=UTC),
+            timestamp=now,
+            geo=request.app.state.geo.resolve(ip),
+            ua=parse_ua(user_agent),
+            traffic_class=traffic_class,
+            visitor_hash=await request.app.state.visitor_hasher.visitor_hash(
+                key.project_id, ip, user_agent, day=now.date()
+            ),
+            locale=_locale(request),
         )
         await publish_event(request.app.state.redis, event)
         return {"event_id": str(event.event_id)}

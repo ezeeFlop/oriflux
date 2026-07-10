@@ -16,7 +16,7 @@ webhook (cliphaven/neokanban pattern).
 1. **Data directories** — on the `/data` share (visible from the NODE==2 host):
 
    ```bash
-   mkdir -p /data/oriflux/prod/{clickhouse,postgres,redis,minio,backups}
+   mkdir -p /data/oriflux/prod/{clickhouse,postgres,redis,minio,backups,geoip}
    ```
 
 2. **Push the image**:
@@ -37,6 +37,7 @@ webhook (cliphaven/neokanban pattern).
    | `POSTGRES_PASSWORD` | generate |
    | `MINIO_SECRET_KEY` | generate |
    | `ORIFLUX_GOOGLE_CLIENT_ID` | Google OAuth client id (dashboard login; optional until web ships) |
+   | `MAXMIND_LICENSE_KEY` | SPT MaxMind key — without it geo dimensions stay empty and the weekly refresh alerts |
    | `OPS_WEBHOOK_URL` | Slack/ntfy webhook for backup-failure alerts (optional but wanted from day 1) |
 
    Then seed tenancy (idempotent; prints the API keys **once** — store them):

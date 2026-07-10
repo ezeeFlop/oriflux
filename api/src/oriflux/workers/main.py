@@ -10,13 +10,24 @@ import asyncio
 import socket
 from collections.abc import AsyncIterator
 from contextlib import asynccontextmanager
+from functools import partial
 
 from fastapi import FastAPI
 from redis.asyncio import Redis
 
-from oriflux.config import get_settings
+from oriflux.alerts import ops_alert
+from oriflux.config import Settings, get_settings
 from oriflux.storage.clickhouse import ClickHouseSink, ensure_schema, wait_for_clickhouse
 from oriflux.workers.batcher import Batcher
+from oriflux.workers.geoip_refresh import REFRESH_INTERVAL_S, RETRY_INTERVAL_S, refresh_geoip
+
+
+async def run_geoip_refresh_forever(settings: Settings) -> None:
+    while True:
+        refreshed = await asyncio.to_thread(
+            refresh_geoip, settings, alert=partial(ops_alert, settings)
+        )
+        await asyncio.sleep(REFRESH_INTERVAL_S if refreshed else RETRY_INTERVAL_S)
 
 
 def create_app() -> FastAPI:
@@ -34,9 +45,13 @@ def create_app() -> FastAPI:
             batch_size=settings.batch_size,
             block_ms=settings.batch_block_ms,
         )
-        task = asyncio.create_task(batcher.run_forever())
+        tasks = [
+            asyncio.create_task(batcher.run_forever()),
+            asyncio.create_task(run_geoip_refresh_forever(settings)),
+        ]
         yield
-        task.cancel()
+        for task in tasks:
+            task.cancel()
         await redis.aclose()
 
     app = FastAPI(title="oriflux_workers", lifespan=lifespan)

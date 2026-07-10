@@ -10,6 +10,8 @@ x-service-env: &service-env
   ORIFLUX_CLICKHOUSE_PASSWORD: oriflux-dev
   ORIFLUX_CLICKHOUSE_DATABASE: oriflux
   ORIFLUX_DATABASE_URL: postgresql+asyncpg://oriflux:oriflux-dev@postgres:5432/oriflux
+  ORIFLUX_GEOIP_DIR: /var/lib/oriflux/geoip
+  ORIFLUX_MAXMIND_LICENSE_KEY: ${MAXMIND_LICENSE_KEY:-}  # empty in dev: geo stays blank
 
 x-healthz: &healthz
   test: ["CMD", "python", "-c", "import urllib.request; urllib.request.urlopen('http://localhost:8000/healthz')"]
@@ -83,10 +85,12 @@ services:
 
   ingest:
     build: ../api
-    command: ["uvicorn", "oriflux.ingest.main:app", "--host", "0.0.0.0", "--port", "8000"]
+    command: ["uvicorn", "oriflux.ingest.main:app", "--host", "0.0.0.0", "--port", "8000", "--no-access-log"]
     environment: *service-env
     ports:
       - "8100:8000"
+    volumes:
+      - geoip-data:/var/lib/oriflux/geoip
     depends_on:
       redis:
         condition: service_healthy
@@ -102,6 +106,8 @@ services:
     environment: *service-env
     ports:
       - "8102:8000"
+    volumes:
+      - geoip-data:/var/lib/oriflux/geoip
     depends_on:
       clickhouse:
         condition: service_healthy
@@ -113,3 +119,4 @@ volumes:
   clickhouse-data:
   postgres-data:
   redis-data:
+  geoip-data:

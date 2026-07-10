@@ -9,10 +9,12 @@ no backfill is ever needed.
 
 from datetime import datetime
 from typing import Any, Literal, Self
-from urllib.parse import urlsplit
+from urllib.parse import parse_qs, urlsplit
 from uuid import UUID, uuid4
 
 from pydantic import BaseModel, Field, field_validator
+
+from oriflux.models.enrichment import GeoInfo, UAInfo
 
 
 class PageviewIn(BaseModel):
@@ -34,6 +36,15 @@ class PageviewIn(BaseModel):
     @property
     def url_path(self) -> str:
         return urlsplit(self.url).path or "/"
+
+    def utm_params(self) -> dict[str, str]:
+        """First value of each utm_* query param, parsed once."""
+        query = parse_qs(urlsplit(self.url).query)
+        return {
+            param: values[0]
+            for param, values in query.items()
+            if param.startswith("utm_") and values
+        }
 
 
 class EnrichedEvent(BaseModel):
@@ -76,7 +87,15 @@ class EnrichedEvent(BaseModel):
         org_id: str,
         project_id: str,
         timestamp: datetime,
+        geo: GeoInfo | None = None,
+        ua: UAInfo | None = None,
+        traffic_class: Literal["", "human", "bot", "ai_agent"] = "",
+        visitor_hash: str = "",
+        locale: str = "",
     ) -> Self:
+        geo = geo or GeoInfo()
+        ua = ua or UAInfo()
+        utm = wire.utm_params()
         return cls(
             event_id=uuid4(),
             timestamp=timestamp,
@@ -86,5 +105,20 @@ class EnrichedEvent(BaseModel):
             event_name="pageview",
             url_path=wire.url_path,
             referrer=wire.referrer,
+            utm_source=utm.get("utm_source", ""),
+            utm_medium=utm.get("utm_medium", ""),
+            utm_campaign=utm.get("utm_campaign", ""),
+            utm_term=utm.get("utm_term", ""),
+            utm_content=utm.get("utm_content", ""),
+            country=geo.country,
+            region=geo.region,
+            city=geo.city,
+            asn=geo.asn,
+            device=ua.device,
+            os=ua.os,
+            browser=ua.browser,
+            locale=locale,
+            traffic_class=traffic_class,
+            visitor_hash=visitor_hash,
             props=wire.props,
         )

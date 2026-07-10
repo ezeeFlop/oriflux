@@ -27,6 +27,11 @@ class Settings(BaseSettings):
     ingest_rate_limit_per_key: int = 600
     ingest_rate_limit_per_ip: int = 1200
 
+    # Enrichment (issue #4): local GeoLite2 databases + weekly refresh
+    geoip_dir: str = "./geoip"
+    maxmind_license_key: str = ""
+    ops_webhook_url: str = ""  # backup/refresh failure alerts (same as stack sidecars)
+
     batch_size: int = 500
     batch_block_ms: int = 1000
 

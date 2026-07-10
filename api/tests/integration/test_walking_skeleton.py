@@ -155,6 +155,46 @@ class TestAtLeastOnceDedup:
         assert count_pageviews(tenant.read_key) == 1
 
 
+class TestEnrichmentPrivacy:
+    def test_the_raw_ip_is_nowhere_in_clickhouse(
+        self, settings: Settings, tenant: Tenant
+    ) -> None:
+        """Issue #4 acceptance: the IP is resolved at ingestion then
+        discarded — grep every column of the stored row for it."""
+        marker = f"/ip-check-{uuid.uuid4()}"
+        test_ip = "81.2.69.142"
+        response = httpx.post(
+            f"{INGEST_URL}/api/v1/events",
+            json={"type": "pageview", "url": f"https://a.io{marker}"},
+            headers={
+                **auth(tenant.ingest_key),
+                "X-Forwarded-For": test_ip,
+                "User-Agent": "Mozilla/5.0 (compatible; GPTBot/1.2)",
+            },
+            timeout=5,
+        )
+        assert response.status_code == 202
+
+        client = get_client(settings)
+        deadline = time.monotonic() + 10.0
+        rows: list[tuple] = []
+        while not rows:
+            if time.monotonic() > deadline:
+                pytest.fail("event never reached ClickHouse")
+            rows = list(
+                client.query(
+                    "SELECT * FROM events FINAL WHERE url_path = {p:String}",
+                    parameters={"p": marker},
+                ).result_rows
+            )
+            time.sleep(0.25)
+
+        flattened = " ".join(str(value) for value in rows[0])
+        assert test_ip not in flattened
+        # and the UA classification survived the whole pipeline
+        assert "ai_agent" in flattened
+
+
 class TestSchemaDeclaration:
     def test_events_table_declares_prd_columns_partitioning_and_ttl(
         self, settings: Settings

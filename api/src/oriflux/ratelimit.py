@@ -5,6 +5,7 @@ ingest replicas, one round-trip per dimension, ~2× burst at window edges —
 fine for abuse protection (this is not billing metering).
 """
 
+import hashlib
 import time
 
 from redis.asyncio import Redis
@@ -31,8 +32,11 @@ class RateLimiter:
         return int(count)
 
     async def check_ip(self, ip: str) -> None:
-        """Runs before authentication — meters every request, valid key or not."""
-        if await self._count(f"ip:{ip}") > self._per_ip:
+        """Runs before authentication — meters every request, valid key or not.
+        The bucket key hashes the IP so the raw address never sits in Redis
+        (PRD §9: IP resolved at ingestion then discarded)."""
+        digest = hashlib.sha256(ip.encode()).hexdigest()[:16]
+        if await self._count(f"ip:{digest}") > self._per_ip:
             raise RateLimited("ip")
 
     async def check_key(self, key_id: str) -> None:
