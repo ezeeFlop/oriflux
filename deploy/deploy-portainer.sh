@@ -30,6 +30,7 @@ REGISTRY=${REGISTRY:-"registry.sponge-theory.dev"}
 TARGET_PLATFORM=${TARGET_PLATFORM:-"linux/amd64,linux/arm64"}
 BUILDX_BUILDER=${BUILDX_BUILDER:-"oriflux-multiarch"}
 PORTAINER_WEBHOOK=${PORTAINER_WEBHOOK:-"https://portainer.sponge-theory.dev/api/stacks/webhooks/15e09df5-ebc6-45e5-90e7-96884ce96815"}
+VITE_GOOGLE_CLIENT_ID=${VITE_GOOGLE_CLIENT_ID:-"1031899381936-8g3t4qvikt248nfe76lm5kmcs39ahesq.apps.googleusercontent.com"}
 MAX_RETRIES=${MAX_RETRIES:-5}
 
 DO_PUSH="true"; DO_DEPLOY="true"; NO_CACHE=""; TAG=${TAG:-"latest"}
