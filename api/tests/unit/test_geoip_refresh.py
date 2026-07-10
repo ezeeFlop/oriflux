@@ -7,12 +7,14 @@ survives any failure with an alert, not a crash.
 
 import gzip
 import io
+import os
 import tarfile
+import time
 from datetime import UTC, datetime
 from pathlib import Path
 
 from oriflux.config import Settings
-from oriflux.workers.geoip_refresh import refresh_geoip
+from oriflux.workers.geoip_refresh import REFRESH_INTERVAL_S, maybe_refresh_geoip, refresh_geoip
 
 
 def tarball_with(edition: str, content: bytes) -> bytes:
@@ -105,6 +107,56 @@ class TestRefreshMaxmind:
         assert (tmp_path / "GeoLite2-City.mmdb").read_bytes() == b"mmdb-bytes-GeoLite2-City"
         assert (tmp_path / "GeoLite2-ASN.mmdb").read_bytes() == b"mmdb-bytes-GeoLite2-ASN"
         assert alert.messages == []
+
+
+class TestMaybeRefreshGeoip:
+    """The 6 h beat tick calls this: refresh only when the databases are stale.
+
+    Preserves the two cadences from the asyncio loop (issue #16): a failure
+    is retried at the next 6 h tick, a success keeps files fresh for a month.
+    """
+
+    def _touch_databases(self, geoip_dir: Path, age_s: float) -> None:
+        stamp = time.time() - age_s
+        for name in ("GeoLite2-City.mmdb", "GeoLite2-ASN.mmdb"):
+            path = geoip_dir / name
+            path.write_bytes(b"mmdb")
+            os.utime(path, (stamp, stamp))
+
+    def test_fresh_databases_skip_the_download(self, tmp_path: Path) -> None:
+        self._touch_databases(tmp_path, age_s=3600)
+        settings = Settings(geoip_dir=str(tmp_path))
+        alert = RecordingAlert()
+        calls: list[str] = []
+
+        def download(url: str) -> bytes:
+            calls.append(url)
+            return gzip.compress(b"x")
+
+        assert maybe_refresh_geoip(settings, alert=alert, download=download) is True
+        assert calls == []
+        assert alert.messages == []
+
+    def test_stale_databases_trigger_a_refresh(self, tmp_path: Path) -> None:
+        self._touch_databases(tmp_path, age_s=REFRESH_INTERVAL_S + 3600)
+        settings = Settings(geoip_dir=str(tmp_path))
+        alert = RecordingAlert()
+
+        def download(url: str) -> bytes:
+            return gzip.compress(b"fresh")
+
+        assert maybe_refresh_geoip(settings, alert=alert, download=download) is True
+        assert (tmp_path / "GeoLite2-City.mmdb").read_bytes() == b"fresh"
+
+    def test_missing_databases_trigger_a_refresh(self, tmp_path: Path) -> None:
+        settings = Settings(geoip_dir=str(tmp_path))
+        alert = RecordingAlert()
+
+        def download(url: str) -> bytes:
+            return gzip.compress(b"fresh")
+
+        assert maybe_refresh_geoip(settings, alert=alert, download=download) is True
+        assert (tmp_path / "GeoLite2-ASN.mmdb").read_bytes() == b"fresh"
 
 
 class TestUnknownProvider:

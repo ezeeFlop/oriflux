@@ -1,45 +1,32 @@
 """oriflux_workers — background processing entrypoint.
 
-For the walking skeleton this runs the Redis Streams → ClickHouse batcher
-as an asyncio task next to a minimal FastAPI app (so /healthz responds like
-on the other services). Celery (anomalies, insights, digests, webhooks)
-replaces the naked loop when those workloads arrive.
+Runs the Redis Streams → ClickHouse batchers as asyncio tasks (they are
+continuous consumers) next to a minimal FastAPI app so /healthz responds
+like on the other services. Periodic jobs — GeoIP refresh, alert
+evaluation, and the phase-2 workloads — live in the Celery app
+(oriflux.workers.celery_app), launched as a sibling process by the
+service entrypoint (issue #16).
 """
 
 import asyncio
 import socket
 from collections.abc import AsyncIterator
 from contextlib import asynccontextmanager
-from functools import partial
 
 from fastapi import FastAPI
 from redis.asyncio import Redis
 
-from oriflux.alerting.evaluator import Evaluator
-from oriflux.alerting.notify import AlertNotifier
-from oriflux.alerts import ops_alert
-from oriflux.config import Settings, get_settings
-from oriflux.db import create_engine, create_session_factory
+from oriflux.config import get_settings
 from oriflux.logs import setup_logging
 from oriflux.models.api_metrics import ApiMinuteRow
 from oriflux.storage.clickhouse import (
     ApiMinutelySink,
-    ClickHouseExecutor,
     ClickHouseSink,
     ensure_schema,
     wait_for_clickhouse,
 )
 from oriflux.storage.redis_stream import API_CONSUMER_GROUP, API_METRICS_STREAM
 from oriflux.workers.batcher import Batcher
-from oriflux.workers.geoip_refresh import REFRESH_INTERVAL_S, RETRY_INTERVAL_S, refresh_geoip
-
-
-async def run_geoip_refresh_forever(settings: Settings) -> None:
-    while True:
-        refreshed = await asyncio.to_thread(
-            refresh_geoip, settings, alert=partial(ops_alert, settings)
-        )
-        await asyncio.sleep(REFRESH_INTERVAL_S if refreshed else RETRY_INTERVAL_S)
 
 
 def create_app() -> FastAPI:
@@ -68,23 +55,14 @@ def create_app() -> FastAPI:
             group=API_CONSUMER_GROUP,
             model=ApiMinuteRow,
         )
-        engine = create_engine(settings)
-        evaluator = Evaluator(
-            create_session_factory(engine),
-            ClickHouseExecutor(clickhouse),
-            AlertNotifier(settings),
-        )
         tasks = [
             asyncio.create_task(events_batcher.run_forever()),
             asyncio.create_task(api_batcher.run_forever()),
-            asyncio.create_task(run_geoip_refresh_forever(settings)),
-            asyncio.create_task(evaluator.run_forever()),
         ]
         yield
         for task in tasks:
             task.cancel()
         await redis.aclose()
-        await engine.dispose()
 
     app = FastAPI(title="oriflux_workers", lifespan=lifespan)
 

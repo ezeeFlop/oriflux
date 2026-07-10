@@ -19,6 +19,7 @@ dependencies = [
     "geoip2>=4.8",
     "ua-parser>=1.0",
     "fastapi-mcp>=0.3",
+    "celery[redis]>=5.4",
 ]
 
 [dependency-groups]
@@ -30,6 +31,7 @@ dev = [
     "ruff>=0.5",
     "fakeredis>=2.36.2",
     "aiosqlite>=0.20",
+    "celery-types>=0.26.0",
 ]
 
 [build-system]

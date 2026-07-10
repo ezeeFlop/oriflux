@@ -103,7 +103,7 @@ services:
 
   workers:
     image: registry.sponge-theory.dev/oriflux-api:${TAG:-latest}
-    command: ["uvicorn", "oriflux.workers.main:app", "--host", "0.0.0.0", "--port", "8000"]
+    command: ["bash", "workers-entrypoint.sh"]  # uvicorn + celery worker --beat (#16)
     environment: *oriflux-env
     healthcheck: *healthz
     volumes:

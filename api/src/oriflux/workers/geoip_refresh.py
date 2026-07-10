@@ -15,6 +15,7 @@ import io
 import logging
 import tarfile
 import tempfile
+import time
 from collections.abc import Callable
 from datetime import UTC, datetime
 from pathlib import Path
@@ -34,6 +35,34 @@ _DBIP_KINDS = (("city", "GeoLite2-City.mmdb"), ("asn", "GeoLite2-ASN.mmdb"))
 
 REFRESH_INTERVAL_S = 30 * 24 * 3600  # DB-IP publishes one file per month
 RETRY_INTERVAL_S = 6 * 3600  # a transient failure must not mean a month of staleness
+
+_TARGET_FILES = ("GeoLite2-City.mmdb", "GeoLite2-ASN.mmdb")
+
+
+def _databases_fresh(geoip_dir: Path) -> bool:
+    try:
+        return all(
+            (time.time() - (geoip_dir / name).stat().st_mtime) < REFRESH_INTERVAL_S
+            for name in _TARGET_FILES
+        )
+    except OSError:
+        return False
+
+
+def maybe_refresh_geoip(
+    settings: Settings,
+    *,
+    alert: Callable[[str], None],
+    download: Callable[[str], bytes] | None = None,
+) -> bool:
+    """The 6 h beat tick: refresh only when a database is missing or stale.
+
+    One schedule carries both cadences of the old asyncio loop — a failure
+    retries at the next tick, a success stays fresh for REFRESH_INTERVAL_S.
+    """
+    if _databases_fresh(Path(settings.geoip_dir)):
+        return True
+    return refresh_geoip(settings, alert=alert, download=download)
 
 
 def _download(url: str) -> bytes:

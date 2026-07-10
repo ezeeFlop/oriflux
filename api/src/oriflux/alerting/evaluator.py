@@ -1,10 +1,8 @@
-"""Threshold-rule evaluation (issue #11).
+"""Threshold-rule evaluation (issue #11; Celery since #16).
 
-Deliberate deviation from the issue text: this runs as a 60 s asyncio task
-inside the workers service (like the batchers) rather than a Celery beat
-task — Celery arrives with the phase-2 workloads (digests, anomalies,
-billing webhooks) that actually need distributed queues. The evaluation
-path is the point and it is registry-only: rule → typed QueryRequest →
+Runs as a 60 s Celery beat task (oriflux.workers.celery_app), which
+resolved the asyncio deviation noted on #11. The evaluation path is the
+point and it is registry-only: rule → typed QueryRequest →
 build_query → executor. Never bespoke SQL.
 
 State machine per rule:
@@ -110,13 +108,3 @@ class Evaluator:
                     open_event.resolved_at = now
                     await session.commit()
                     await asyncio.to_thread(self._notify, rule, "resolved", value)
-
-    async def run_forever(self) -> None:
-        from datetime import UTC
-
-        while True:
-            try:
-                await self.run_once(now=datetime.now(tz=UTC))
-            except Exception:  # noqa: BLE001
-                logger.exception("alert evaluation cycle failed")
-            await asyncio.sleep(EVALUATION_INTERVAL_S)
