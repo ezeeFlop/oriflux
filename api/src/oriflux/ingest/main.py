@@ -11,9 +11,11 @@ this path with issue #4.
 from collections.abc import AsyncIterator
 from contextlib import asynccontextmanager
 from datetime import UTC, datetime
+from importlib.resources import files
 from typing import Any
 
-from fastapi import Depends, FastAPI, HTTPException, Request
+from fastapi import Depends, FastAPI, HTTPException, Request, Response
+from fastapi.middleware.cors import CORSMiddleware
 from fastapi.security import HTTPAuthorizationCredentials, HTTPBearer
 from redis.asyncio import Redis
 from sqlalchemy.ext.asyncio import AsyncSession, async_sessionmaker
@@ -30,6 +32,11 @@ from oriflux.ratelimit import RateLimited, RateLimiter
 from oriflux.storage.redis_stream import publish_event
 
 _bearer = HTTPBearer(auto_error=False)
+
+# oriflux.js is bundled with the ingest package and served at a versioned
+# path (no npm in V1, PRD §5.1); the version lives in the URL, so the body
+# is immutable-cacheable.
+_SDK_SCRIPT = (files("oriflux.ingest") / "static" / "oriflux.js").read_bytes()
 
 
 def _do_not_track(request: Request) -> bool:
@@ -91,6 +98,16 @@ def create_app(
             await engine.dispose()
 
     app = FastAPI(title="oriflux_ingest", lifespan=lifespan)
+    # Cross-origin collection from any instrumented site: auth is the Bearer
+    # key (no cookies/credentials), so a wildcard origin is safe. Preflights
+    # are cached a day to keep the per-pageview cost at one request.
+    app.add_middleware(
+        CORSMiddleware,
+        allow_origins=["*"],
+        allow_methods=["POST"],
+        allow_headers=["Authorization", "Content-Type"],
+        max_age=86400,
+    )
     # For test transports that skip lifespan, wire the injected boundaries anyway.
     if redis is not None and session_factory is not None:
         wire_state(app, redis, session_factory)
@@ -152,6 +169,14 @@ def create_app(
         )
         await publish_event(request.app.state.redis, event)
         return {"event_id": str(event.event_id)}
+
+    @app.get("/v1/oriflux.js")
+    async def sdk_script() -> Response:
+        return Response(
+            content=_SDK_SCRIPT,
+            media_type="application/javascript",
+            headers={"Cache-Control": "public, max-age=604800, immutable"},
+        )
 
     @app.get("/healthz")
     async def healthz() -> dict[str, str]:
