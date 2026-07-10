@@ -6,17 +6,19 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 `docs/PRD.md` (v1.1, 2026-07-10, in French) is the single source of truth for scope and architecture. The PRD was validated in a design-review session on 2026-07-10; decisions from that session are marked *[Décision 2026-07-10]* in the text and are settled — don't reopen them without the user asking.
 
-Implemented so far: the walking skeleton (issue #1 — one pageview travels ingest → Redis Streams → batcher → ClickHouse → `/api/v1/query`), the production Swarm stack + deploy tooling (issue #2 — final Portainer click is human-owned), and multi-tenancy/auth (issue #3 — PostgreSQL metadata layer via SQLAlchemy 2 async + alembic, per-source ingest keys and org-wide read keys hashed at rest, Google OAuth → JWT, RBAC owner/admin/viewer, per-key/per-IP rate limiting, org-scoped queries). Work continues issue by issue on GitHub (`ready-for-agent` labels).
+Phase 1 (MVP) is implemented: walking skeleton (#1), Swarm stack + deploy tooling (#2 — final Portainer click is human-owned), multi-tenancy/auth (#3), ingest enrichment incl. the canonical crawler list seeded from AudiGEO (#4), oriflux.js served at `/v1/oriflux.js` (#5), the full metric/dimension registry with cookieless sessionization (#6), oriflux-sdk + api_minutely pipeline (#8 — PyPI upload awaits one human command), threshold alerting (#11 — evaluator is asyncio, not Celery yet, deviation noted on the issue), read-only MCP server at `/mcp` (#12, see docs/mcp.md), and the React dashboard (#7/#9/#10 — web/, "oriflamme" design system, FR/EN, all numbers through `/api/v1/query`). Remaining: #13 (instrument the pilots) gated on the #2 production deployment.
 
 ### Build / test / run
 
 ```bash
-cd deploy && docker compose up --build -d   # ClickHouse + PG16 + Redis (host port 6380) + ingest:8100 / api:8101 / workers:8102
+cd deploy && docker compose up --build -d   # ClickHouse + PG16 + Redis (host port 6380) + ingest:8100 / api:8101 / workers:8102 / web:8103
 cd api
 uv sync                                     # deps (uv-managed, py3.11+)
 uv run pytest tests/unit                    # unit tests, no services needed
 uv run pytest -m integration                # needs the compose stack up (skips otherwise)
 uv run mypy && uv run ruff check            # strict typing + lint — keep both clean
+cd ../web && npm install && npm run dev     # dashboard dev server (proxies /api → :8101)
+cd ../sdk/python && uv run pytest           # oriflux-sdk (separate uv project)
 ```
 
 Dev tenancy: `docker compose exec api python -m oriflux.bootstrap` seeds the Sponge Theory org + pilot projects and prints the API keys once (idempotent). Keys are `ofx_ing_*` (per source) / `ofx_read_*` (org-wide), stored as sha256 hashes in PostgreSQL.
