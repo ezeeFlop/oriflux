@@ -10,6 +10,12 @@ dependencies = [
     "pydantic-settings>=2.3",
     "redis>=5.0",
     "clickhouse-connect>=0.7",
+    "sqlalchemy[asyncio]>=2.0",
+    "asyncpg>=0.29",
+    "alembic>=1.13",
+    "python-jose[cryptography]>=3.3",
+    "google-auth>=2.27",
+    "requests>=2.31",
 ]
 
 [dependency-groups]
@@ -20,6 +26,7 @@ dev = [
     "mypy>=1.10",
     "ruff>=0.5",
     "fakeredis>=2.36.2",
+    "aiosqlite>=0.20",
 ]
 
 [build-system]
@@ -46,9 +53,14 @@ mypy_path = "src"
 module = "clickhouse_connect.*"
 ignore_missing_imports = true
 
+[[tool.mypy.overrides]]
+module = ["jose.*", "google.auth.*", "google.oauth2.*"]
+ignore_missing_imports = true
+
 [tool.ruff]
 line-length = 100
 src = ["src", "tests"]
+extend-exclude = ["src/oriflux/db/migrations/versions"]  # alembic-generated
 
 [tool.ruff.lint]
 select = ["E", "F", "I", "UP", "B", "SIM"]

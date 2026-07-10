@@ -1,8 +1,4 @@
-"""Runtime settings for all three entrypoints (env-driven, ORIFLUX_ prefix).
-
-The single hardcoded API key pair is walking-skeleton scope only; real
-scoped API keys stored in PostgreSQL arrive with issue #3.
-"""
+"""Runtime settings for all three entrypoints (env-driven, ORIFLUX_ prefix)."""
 
 from pydantic_settings import BaseSettings, SettingsConfigDict
 
@@ -18,11 +14,18 @@ class Settings(BaseSettings):
     clickhouse_password: str = "oriflux-dev"
     clickhouse_database: str = "oriflux"
 
-    # Walking-skeleton auth: one ingest key and one read key, mapped to one org/project.
-    ingest_api_key: str = "dev-ingest-key"
-    read_api_key: str = "dev-read-key"
-    org_id: str = "org-dev"
-    project_id: str = "proj-dev"
+    database_url: str = "postgresql+asyncpg://oriflux:oriflux-dev@localhost:5432/oriflux"
+
+    # Dashboard auth (JWT + Google OAuth, ClipHaven pattern)
+    jwt_secret: str = "dev-jwt-secret-change-me"
+    jwt_algorithm: str = "HS256"
+    jwt_expire_minutes: int = 720
+    google_client_id: str = ""
+
+    # Ingest protection (PRD §9): per-key and per-IP rate limits, events/minute
+    api_key_cache_ttl_s: float = 30.0
+    ingest_rate_limit_per_key: int = 600
+    ingest_rate_limit_per_ip: int = 1200
 
     batch_size: int = 500
     batch_block_ms: int = 1000

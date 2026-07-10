@@ -32,12 +32,18 @@ webhook (cliphaven/neokanban pattern).
 
    | Var | Value |
    |---|---|
-   | `ORIFLUX_INGEST_API_KEY` | generate (`openssl rand -hex 24`) — skeleton-scope, replaced by issue #3 |
-   | `ORIFLUX_READ_API_KEY` | generate |
+   | `ORIFLUX_JWT_SECRET` | generate (`openssl rand -hex 32`) — dashboard JWT signing |
    | `CLICKHOUSE_PASSWORD` | generate |
    | `POSTGRES_PASSWORD` | generate |
    | `MINIO_SECRET_KEY` | generate |
+   | `ORIFLUX_GOOGLE_CLIENT_ID` | Google OAuth client id (dashboard login; optional until web ships) |
    | `OPS_WEBHOOK_URL` | Slack/ntfy webhook for backup-failure alerts (optional but wanted from day 1) |
+
+   Then seed tenancy (idempotent; prints the API keys **once** — store them):
+
+   ```bash
+   docker exec $(docker ps -q -f name=oriflux_api) python -m oriflux.bootstrap
+   ```
 
 4. **Webhook** — in the Portainer stack, enable the webhook and export it locally:
 
@@ -61,13 +67,13 @@ webhook (cliphaven/neokanban pattern).
 curl -s https://in.oriflux.sponge-theory.dev/healthz
 curl -s https://api.oriflux.sponge-theory.dev/healthz
 
-# walking-skeleton demo end-to-end
+# walking-skeleton demo end-to-end (keys printed by the bootstrap step)
 curl -s -X POST https://in.oriflux.sponge-theory.dev/api/v1/events \
-  -H "Authorization: Bearer $ORIFLUX_INGEST_API_KEY" -H 'Content-Type: application/json' \
+  -H "Authorization: Bearer ofx_ing_…" -H 'Content-Type: application/json' \
   -d '{"type":"pageview","url":"https://sponge-theory.ai/prod-check"}'
 sleep 3
 curl -s -X POST https://api.oriflux.sponge-theory.dev/api/v1/query \
-  -H "Authorization: Bearer $ORIFLUX_READ_API_KEY" -H 'Content-Type: application/json' \
+  -H "Authorization: Bearer ofx_read_…" -H 'Content-Type: application/json' \
   -d "{\"metric\":\"pageviews\",\"period\":{\"start\":\"$(date -u -v-1d +%FT%TZ)\",\"end\":\"$(date -u -v+1d +%FT%TZ)\"}}"
 ```
 

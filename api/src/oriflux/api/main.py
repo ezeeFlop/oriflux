@@ -1,20 +1,29 @@
-"""oriflux_api — REST /api/v1 + query engine.
+"""oriflux_api — REST /api/v1: auth, admin (tenancy), and the query engine.
 
 POST /api/v1/query is the one query surface: a typed query object compiled
-through the registry (PRD §8.3). The response echoes the executed SQL for
-auditability — the same property Ask Oriflux will rely on in phase 3.
+through the registry (PRD §8.3), authenticated by a read-scoped API key and
+always scoped to that key's org (row-level isolation). The response echoes
+the executed SQL for auditability — the same property Ask Oriflux will rely
+on in phase 3.
 """
 
 import asyncio
+from collections.abc import AsyncIterator
+from contextlib import asynccontextmanager
 from typing import Any, Protocol
 
 from fastapi import Depends, FastAPI
 from pydantic import BaseModel
+from sqlalchemy.ext.asyncio import AsyncSession, async_sessionmaker
 
-from oriflux.auth import require_bearer_key
+from oriflux.api import admin, auth
+from oriflux.api.deps import require_read_key_org
 from oriflux.config import Settings, get_settings
+from oriflux.db import create_engine, create_session_factory
+from oriflux.db.migrate import run_migrations
 from oriflux.query.engine import build_query
 from oriflux.query.models import Period, QueryRequest
+from oriflux.security.google import GoogleVerifier, make_google_verifier
 
 
 class QueryExecutor(Protocol):
@@ -34,9 +43,35 @@ def _previous_period(period: Period) -> Period:
     return Period(start=period.start - duration, end=period.start)
 
 
-def create_app(executor: QueryExecutor | None = None, settings: Settings | None = None) -> FastAPI:
+def create_app(
+    executor: QueryExecutor | None = None,
+    settings: Settings | None = None,
+    session_factory: async_sessionmaker[AsyncSession] | None = None,
+    google_verifier: GoogleVerifier | None = None,
+) -> FastAPI:
     settings = settings or get_settings()
-    app = FastAPI(title="oriflux_api")
+
+    @asynccontextmanager
+    async def lifespan(app: FastAPI) -> AsyncIterator[None]:
+        if session_factory is None:
+            await asyncio.to_thread(run_migrations, settings)
+            engine = create_engine(settings)
+            app.state.session_factory = create_session_factory(engine)
+            yield
+            await engine.dispose()
+        else:
+            yield
+
+    app = FastAPI(title="oriflux_api", lifespan=lifespan)
+    app.state.settings = settings
+    app.state.google_verifier = google_verifier or make_google_verifier(
+        settings.google_client_id
+    )
+    if session_factory is not None:
+        app.state.session_factory = session_factory
+
+    app.include_router(auth.router)
+    app.include_router(admin.router)
 
     def get_executor() -> QueryExecutor:
         if executor is not None:
@@ -45,13 +80,13 @@ def create_app(executor: QueryExecutor | None = None, settings: Settings | None 
 
         return ClickHouseExecutor.from_settings(settings)
 
-    require_read_key = require_bearer_key(settings.read_api_key)
-
-    @app.post("/api/v1/query", dependencies=[Depends(require_read_key)])
+    @app.post("/api/v1/query")
     async def query(
-        request: QueryRequest, executor: QueryExecutor = Depends(get_executor)
+        request: QueryRequest,
+        org_id: str = Depends(require_read_key_org),
+        executor: QueryExecutor = Depends(get_executor),
     ) -> QueryResponse:
-        sql, params = build_query(request, org_id=settings.org_id)
+        sql, params = build_query(request, org_id=org_id)
         results = await asyncio.to_thread(executor.execute, sql, params)
 
         compare_results = None

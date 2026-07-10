@@ -6,7 +6,7 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 `docs/PRD.md` (v1.1, 2026-07-10, in French) is the single source of truth for scope and architecture. The PRD was validated in a design-review session on 2026-07-10; decisions from that session are marked *[Décision 2026-07-10]* in the text and are settled — don't reopen them without the user asking.
 
-The walking skeleton (issue #1) is implemented: one pageview travels ingest → Redis Streams → batcher → ClickHouse → `/api/v1/query`. Work continues issue by issue on GitHub (`ready-for-agent` labels).
+Implemented so far: the walking skeleton (issue #1 — one pageview travels ingest → Redis Streams → batcher → ClickHouse → `/api/v1/query`), the production Swarm stack + deploy tooling (issue #2 — final Portainer click is human-owned), and multi-tenancy/auth (issue #3 — PostgreSQL metadata layer via SQLAlchemy 2 async + alembic, per-source ingest keys and org-wide read keys hashed at rest, Google OAuth → JWT, RBAC owner/admin/viewer, per-key/per-IP rate limiting, org-scoped queries). Work continues issue by issue on GitHub (`ready-for-agent` labels).
 
 ### Build / test / run
 
@@ -19,7 +19,7 @@ uv run pytest -m integration                # needs the compose stack up (skips 
 uv run mypy && uv run ruff check            # strict typing + lint — keep both clean
 ```
 
-Dev credentials (skeleton only, replaced by issue #3): ingest key `dev-ingest-key`, read key `dev-read-key`, org `org-dev` / project `proj-dev`.
+Dev tenancy: `docker compose exec api python -m oriflux.bootstrap` seeds the Sponge Theory org + pilot projects and prints the API keys once (idempotent). Keys are `ofx_ing_*` (per source) / `ofx_read_*` (org-wide), stored as sha256 hashes in PostgreSQL.
 
 ## Planned repo layout (decided)
 

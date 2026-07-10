@@ -18,13 +18,15 @@ Models. See `docs/PRD.md` (source of truth) and `CLAUDE.md`.
 
 ```bash
 cd deploy && docker compose up --build -d   # ClickHouse + PostgreSQL 16 + Redis + 3 services
-# send a pageview
+# seed tenancy (Sponge Theory org + pilot projects) — prints the API keys ONCE
+docker compose exec api python -m oriflux.bootstrap
+# send a pageview (ingest keys are per source)
 curl -s -X POST http://localhost:8100/api/v1/events \
-  -H 'Authorization: Bearer dev-ingest-key' -H 'Content-Type: application/json' \
+  -H 'Authorization: Bearer ofx_ing_…' -H 'Content-Type: application/json' \
   -d '{"type":"pageview","url":"https://sponge-theory.ai/","referrer":""}'
-# query it
+# query it (read keys are org-wide; queries are scoped to the key's org)
 curl -s -X POST http://localhost:8101/api/v1/query \
-  -H 'Authorization: Bearer dev-read-key' -H 'Content-Type: application/json' \
+  -H 'Authorization: Bearer ofx_read_…' -H 'Content-Type: application/json' \
   -d '{"metric":"pageviews","period":{"start":"2026-07-01T00:00:00Z","end":"2026-08-01T00:00:00Z"}}'
 ```
 
