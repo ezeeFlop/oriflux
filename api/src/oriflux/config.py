@@ -32,6 +32,11 @@ class Settings(BaseSettings):
     maxmind_license_key: str = ""
     ops_webhook_url: str = ""  # backup/refresh failure alerts (same as stack sidecars)
 
+    # Alerting (issue #11)
+    resend_api_key: str = ""  # empty → email channel disabled
+    alert_email_from: str = "oriflux@sponge-theory.io"
+    allow_private_webhooks: bool = False  # dev/test sinks only — NEVER in prod
+
     batch_size: int = 500
     batch_block_ms: int = 1000
 

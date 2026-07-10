@@ -15,11 +15,15 @@ from functools import partial
 from fastapi import FastAPI
 from redis.asyncio import Redis
 
+from oriflux.alerting.evaluator import Evaluator
+from oriflux.alerting.notify import AlertNotifier
 from oriflux.alerts import ops_alert
 from oriflux.config import Settings, get_settings
+from oriflux.db import create_engine, create_session_factory
 from oriflux.models.api_metrics import ApiMinuteRow
 from oriflux.storage.clickhouse import (
     ApiMinutelySink,
+    ClickHouseExecutor,
     ClickHouseSink,
     ensure_schema,
     wait_for_clickhouse,
@@ -62,15 +66,23 @@ def create_app() -> FastAPI:
             group=API_CONSUMER_GROUP,
             model=ApiMinuteRow,
         )
+        engine = create_engine(settings)
+        evaluator = Evaluator(
+            create_session_factory(engine),
+            ClickHouseExecutor(clickhouse),
+            AlertNotifier(settings),
+        )
         tasks = [
             asyncio.create_task(events_batcher.run_forever()),
             asyncio.create_task(api_batcher.run_forever()),
             asyncio.create_task(run_geoip_refresh_forever(settings)),
+            asyncio.create_task(evaluator.run_forever()),
         ]
         yield
         for task in tasks:
             task.cancel()
         await redis.aclose()
+        await engine.dispose()
 
     app = FastAPI(title="oriflux_workers", lifespan=lifespan)
 

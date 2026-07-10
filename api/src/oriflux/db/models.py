@@ -9,8 +9,20 @@ with their features.
 import enum
 import uuid
 from datetime import UTC, datetime
+from typing import Any
 
-from sqlalchemy import DateTime, Enum, ForeignKey, String, UniqueConstraint, Uuid
+from sqlalchemy import (
+    JSON,
+    Boolean,
+    DateTime,
+    Enum,
+    Float,
+    ForeignKey,
+    Integer,
+    String,
+    UniqueConstraint,
+    Uuid,
+)
 from sqlalchemy.orm import DeclarativeBase, Mapped, mapped_column, relationship
 
 
@@ -93,6 +105,47 @@ class Source(Base):
     created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), default=_utcnow)
 
     project: Mapped[Project] = relationship(back_populates="sources")
+
+
+class AlertCondition(enum.StrEnum):
+    gt = "gt"
+    lt = "lt"
+
+
+class AlertRule(Base):
+    """Threshold alert (PRD §5.5): registry metric + condition + window.
+
+    Evaluated every minute by the workers service through the SAME typed
+    query contract as everything else — never bespoke SQL."""
+
+    __tablename__ = "alert_rules"
+
+    id: Mapped[uuid.UUID] = mapped_column(Uuid, primary_key=True, default=uuid.uuid4)
+    org_id: Mapped[uuid.UUID] = mapped_column(ForeignKey("organizations.id"))
+    project_id: Mapped[uuid.UUID | None] = mapped_column(ForeignKey("projects.id"))
+    name: Mapped[str] = mapped_column(String(255))
+    metric: Mapped[str] = mapped_column(String(64))
+    filters: Mapped[list[dict[str, Any]]] = mapped_column(JSON, default=list)
+    condition: Mapped[AlertCondition] = mapped_column(
+        Enum(AlertCondition, native_enum=False, length=4)
+    )
+    threshold: Mapped[float] = mapped_column(Float)
+    window_minutes: Mapped[int] = mapped_column(Integer, default=5)
+    slack_webhook_url: Mapped[str | None] = mapped_column(String(1024))
+    email: Mapped[str | None] = mapped_column(String(320))
+    enabled: Mapped[bool] = mapped_column(Boolean, default=True)
+    created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), default=_utcnow)
+
+
+class AlertEvent(Base):
+    __tablename__ = "alert_events"
+
+    id: Mapped[uuid.UUID] = mapped_column(Uuid, primary_key=True, default=uuid.uuid4)
+    rule_id: Mapped[uuid.UUID] = mapped_column(ForeignKey("alert_rules.id"))
+    org_id: Mapped[uuid.UUID] = mapped_column(ForeignKey("organizations.id"))
+    value: Mapped[float] = mapped_column(Float)
+    fired_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), default=_utcnow)
+    resolved_at: Mapped[datetime | None] = mapped_column(DateTime(timezone=True))
 
 
 class ApiKey(Base):
