@@ -24,6 +24,7 @@ from oriflux.config import Settings, get_settings
 from oriflux.db import create_engine, create_session_factory
 from oriflux.enrichment.crawlers import classify_traffic
 from oriflux.enrichment.geo import GeoResolver
+from oriflux.enrichment.sessions import SessionTracker
 from oriflux.enrichment.ua import parse_ua
 from oriflux.enrichment.visitor import VisitorHasher
 from oriflux.ingest.auth import IngestKeyResolver, ResolvedIngestKey, UnknownKey, WrongScope
@@ -81,6 +82,7 @@ def create_app(
         )
         app.state.geo = GeoResolver(settings.geoip_dir)
         app.state.visitor_hasher = VisitorHasher(redis_client)
+        app.state.session_tracker = SessionTracker(redis_client)
 
     @asynccontextmanager
     async def lifespan(app: FastAPI) -> AsyncIterator[None]:
@@ -154,6 +156,9 @@ def create_app(
         ip = _client_ip(request)
         user_agent = request.headers.get("user-agent", "")
         traffic_class, _ = classify_traffic(user_agent)
+        visitor_hash = await request.app.state.visitor_hasher.visitor_hash(
+            key.project_id, ip, user_agent, day=now.date()
+        )
         event = EnrichedEvent.from_pageview(
             pageview,
             org_id=key.org_id,
@@ -162,9 +167,8 @@ def create_app(
             geo=request.app.state.geo.resolve(ip),
             ua=parse_ua(user_agent),
             traffic_class=traffic_class,
-            visitor_hash=await request.app.state.visitor_hasher.visitor_hash(
-                key.project_id, ip, user_agent, day=now.date()
-            ),
+            visitor_hash=visitor_hash,
+            session_id=await request.app.state.session_tracker.session_for(visitor_hash),
             locale=_locale(request),
         )
         await publish_event(request.app.state.redis, event)

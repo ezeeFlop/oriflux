@@ -38,9 +38,19 @@ class QueryResponse(BaseModel):
     sql: str
 
 
-def _previous_period(period: Period) -> Period:
-    duration = period.end - period.start
-    return Period(start=period.start - duration, end=period.start)
+def _comparison_period(period: Period, compare_to: str) -> Period:
+    if compare_to == "previous_period":
+        duration = period.end - period.start
+        return Period(start=period.start - duration, end=period.start)
+
+    # previous_year: same calendar dates one year earlier (Feb 29 → Feb 28)
+    def one_year_back(moment: Any) -> Any:
+        try:
+            return moment.replace(year=moment.year - 1)
+        except ValueError:
+            return moment.replace(year=moment.year - 1, day=28)
+
+    return Period(start=one_year_back(period.start), end=one_year_back(period.end))
 
 
 def create_app(
@@ -90,8 +100,8 @@ def create_app(
         results = await asyncio.to_thread(executor.execute, sql, params)
 
         compare_results = None
-        if request.compare_to == "previous_period":
-            previous = _previous_period(request.period)
+        if request.compare_to is not None:
+            previous = _comparison_period(request.period, request.compare_to)
             compare_params: dict[str, Any] = {
                 **params,
                 "start": previous.start,

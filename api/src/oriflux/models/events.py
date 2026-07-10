@@ -91,6 +91,7 @@ class EnrichedEvent(BaseModel):
         ua: UAInfo | None = None,
         traffic_class: Literal["", "human", "bot", "ai_agent"] = "",
         visitor_hash: str = "",
+        session_id: str = "",
         locale: str = "",
     ) -> Self:
         geo = geo or GeoInfo()
@@ -120,5 +121,6 @@ class EnrichedEvent(BaseModel):
             locale=locale,
             traffic_class=traffic_class,
             visitor_hash=visitor_hash,
+            session_id=session_id,
             props=wire.props,
         )

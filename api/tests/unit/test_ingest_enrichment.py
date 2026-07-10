@@ -139,6 +139,18 @@ class TestEnrichedDimensions:
         entries = await redis.xrange(EVENTS_STREAM)
         events = [EnrichedEvent.model_validate_json(e[1][b"payload"]) for e in entries]
         assert events[0].visitor_hash == events[1].visitor_hash
+        # …and within the 30-min gap they belong to the same session (issue #6)
+        assert events[0].session_id != ""
+        assert events[0].session_id == events[1].session_id
+
+    async def test_distinct_visitors_get_distinct_sessions(
+        self, client: httpx.AsyncClient, redis: FakeAsyncRedis, seeded: Seeded
+    ) -> None:
+        await collect(client, seeded, headers={"X-Forwarded-For": LONDON_IP})
+        await collect(client, seeded, headers={"X-Forwarded-For": "1.128.0.1"})
+        entries = await redis.xrange(EVENTS_STREAM)
+        events = [EnrichedEvent.model_validate_json(e[1][b"payload"]) for e in entries]
+        assert events[0].session_id != events[1].session_id
 
 
 class TestIpIsDiscarded:
