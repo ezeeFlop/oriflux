@@ -75,6 +75,9 @@ else
     docker buildx use "${BUILDX_BUILDER}"
 fi
 
+WEB_IMAGE="${REGISTRY}/oriflux-web"
+WEB_DIR="${REPO_ROOT}/web"
+
 if [ "${DO_PUSH}" = "true" ]; then
     echo -e "${CYAN}Building + pushing ${IMAGE} for ${TARGET_PLATFORM}...${NC}"
     attempt=1; delay=10
@@ -94,6 +97,18 @@ if [ "${DO_PUSH}" = "true" ]; then
         sleep ${delay}; delay=$(( delay * 2 > 60 ? 60 : delay * 2 ))
     done
     echo -e "${GREEN}✓ pushed ${IMAGE}:${TAG}${NC}"
+
+    echo -e "${CYAN}Building + pushing ${WEB_IMAGE} for ${TARGET_PLATFORM}...${NC}"
+    docker buildx build \
+        --platform "${TARGET_PLATFORM}" \
+        ${NO_CACHE} \
+        --push \
+        --build-arg VITE_GOOGLE_CLIENT_ID="${VITE_GOOGLE_CLIENT_ID:-}" \
+        -f "${WEB_DIR}/Dockerfile" \
+        -t "${WEB_IMAGE}:${TAG}" \
+        -t "${WEB_IMAGE}:${APP_VERSION}" \
+        "${WEB_DIR}"
+    echo -e "${GREEN}✓ pushed ${WEB_IMAGE}:${TAG}${NC}"
 else
     echo -e "${CYAN}Building ${IMAGE} for ${TARGET_PLATFORM} (no push)...${NC}"
     docker buildx build \

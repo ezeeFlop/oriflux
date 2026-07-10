@@ -118,6 +118,31 @@ services:
         condition: on-failure
         delay: 5s
 
+  web:
+    image: registry.sponge-theory.dev/oriflux-web:${TAG:-latest}
+    healthcheck:
+      test: ["CMD", "wget", "--spider", "-q", "http://localhost/healthz"]
+      interval: 15s
+      timeout: 5s
+      retries: 5
+    networks:
+      - webfacing
+      - oriflux
+    deploy:
+      replicas: 1
+      resources:
+        limits: { cpus: "0.25", memory: 128M }
+        reservations: { memory: 32M }
+      restart_policy:
+        condition: on-failure
+        delay: 5s
+      labels:
+        - "traefik.enable=true"
+        - "traefik.http.routers.oriflux-web.rule=Host(`${WEB_HOST:-oriflux.sponge-theory.dev}`)"
+        - "traefik.http.routers.oriflux-web.entrypoints=websecure"
+        - "traefik.http.routers.oriflux-web.tls.certresolver=letsencrypt"
+        - "traefik.http.services.oriflux-web.loadbalancer.server.port=80"
+
   # ── ClickHouse (pinned LTS, PRD §8.3) ───────────────────────────────────
   clickhouse:
     image: clickhouse/clickhouse-server:24.8

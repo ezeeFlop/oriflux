@@ -126,6 +126,28 @@ async def create_project(
     )
 
 
+@router.get("/orgs/{org_id}/projects")
+async def list_org_projects(
+    org_id: uuid.UUID,
+    user: User = Depends(get_current_user),
+    session: AsyncSession = Depends(get_session),
+) -> list[ProjectOut]:
+    await require_role(session, user, org_id, Role.viewer)
+    projects = (
+        (
+            await session.execute(
+                select(Project).where(Project.org_id == org_id).order_by(Project.slug)
+            )
+        )
+        .scalars()
+        .all()
+    )
+    return [
+        ProjectOut(id=str(p.id), org_id=str(org_id), slug=p.slug, name=p.name)
+        for p in projects
+    ]
+
+
 @router.post("/projects/{project_id}/sources", status_code=201)
 async def create_source(
     project_id: uuid.UUID,

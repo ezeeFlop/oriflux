@@ -72,3 +72,39 @@ async def require_read_key_org(
     if key.scope != KeyScope.read:
         raise HTTPException(status_code=403, detail="key lacks read scope")
     return str(key.org_id)
+
+
+async def require_read_org(
+    request: Request,
+    credentials: HTTPAuthorizationCredentials | None = Depends(bearer),
+    session: AsyncSession = Depends(get_session),
+    settings: Settings = Depends(get_settings_dep),
+) -> str:
+    """Read access for the query surface, either caller (issue #7):
+
+    - a read-scoped API key (org implied by the key), or
+    - a dashboard JWT + `X-Oriflux-Org` header (membership checked,
+      viewer is enough — reading is what viewers are for).
+    """
+    if credentials is None:
+        raise HTTPException(status_code=401, detail="missing credentials")
+    token = credentials.credentials
+    if token.startswith("ofx_"):
+        return await require_read_key_org(credentials, session)
+
+    try:
+        user_id = decode_access_token(token, settings)
+    except InvalidToken as exc:
+        raise HTTPException(status_code=401, detail="invalid token") from exc
+    org_header = request.headers.get("x-oriflux-org")
+    if not org_header:
+        raise HTTPException(status_code=400, detail="X-Oriflux-Org header required with a JWT")
+    try:
+        org_id = uuid.UUID(org_header)
+    except ValueError as exc:
+        raise HTTPException(status_code=400, detail="X-Oriflux-Org must be an org id") from exc
+    user = await session.get(User, user_id)
+    if user is None:
+        raise HTTPException(status_code=401, detail="unknown user")
+    await require_role(session, user, org_id, Role.viewer)
+    return str(org_id)

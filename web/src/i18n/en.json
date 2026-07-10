@@ -1,0 +1,100 @@
+{
+  "app": { "name": "Oriflux", "tagline": "The origin of flows" },
+  "login": {
+    "title": "Sign in",
+    "subtitle": "The Sponge Theory analytics control plane",
+    "google": "Continue with Google",
+    "missingClientId": "Google client id not configured (VITE_GOOGLE_CLIENT_ID)."
+  },
+  "nav": { "home": "Portfolio", "web": "Web", "api": "API", "logout": "Sign out" },
+  "period": {
+    "label": "Period",
+    "24h": "24 hours",
+    "7d": "7 days",
+    "30d": "30 days",
+    "90d": "90 days",
+    "12m": "12 months",
+    "compare": "Compare",
+    "vsPrevious": "vs previous period"
+  },
+  "metric": {
+    "visitors": "Visitors",
+    "pageviews": "Pageviews",
+    "sessions": "Sessions",
+    "bounce_rate": "Bounce rate",
+    "session_duration": "Session duration",
+    "api_requests": "API requests",
+    "api_error_rate_4xx": "4xx errors",
+    "api_error_rate_5xx": "5xx errors",
+    "api_latency_p50": "p50 latency",
+    "api_latency_p95": "p95 latency",
+    "api_latency_p99": "p99 latency",
+    "visitDaysNote": "Multi-day totals are visit-days (daily rotating hash)"
+  },
+  "trafficClass": {
+    "label": "Traffic",
+    "all": "All",
+    "human": "Humans",
+    "bot": "Bots",
+    "ai_agent": "AI agents",
+    "": "Unclassified"
+  },
+  "web": {
+    "title": "Web analytics",
+    "timeseries": "Trend",
+    "topPages": "Pages",
+    "topReferrers": "Referrers",
+    "utm": "Campaigns",
+    "utm_source": "Source",
+    "utm_medium": "Medium",
+    "utm_campaign": "Campaign",
+    "geo": "Geography",
+    "devices": "Devices",
+    "device": "Device",
+    "os": "OS",
+    "browser": "Browser",
+    "country": "Country",
+    "region": "Region",
+    "city": "City",
+    "page": "Page",
+    "referrer": "Referrer",
+    "direct": "Direct / none",
+    "empty": "No data for this period",
+    "worldTotal": "Worldwide"
+  },
+  "api": {
+    "title": "API analytics",
+    "endpoints": "Endpoints",
+    "endpoint": "Endpoint",
+    "volume": "Volume",
+    "errorRate": "5xx rate",
+    "p95": "p95",
+    "statusClasses": "Status codes",
+    "consumers": "Consumers",
+    "consumer": "Consumer",
+    "callerGeo": "Caller geography",
+    "unresolved": "unresolved",
+    "anonymous": "anonymous"
+  },
+  "home": {
+    "title": "Portfolio",
+    "liveVisitors": "live visitors",
+    "trend7d": "7-day trend",
+    "apiErrors": "API 5xx errors (24 h)",
+    "liveNow": "Right now",
+    "topPagesNow": "Active pages (30 min)",
+    "topCountriesNow": "Active countries (30 min)",
+    "noProjects": "No projects yet — create one through the admin API.",
+    "updated": "refreshed every 10 s"
+  },
+  "common": {
+    "loading": "Loading…",
+    "error": "Failed to load",
+    "theme": "Theme",
+    "language": "Language",
+    "organization": "Organization",
+    "project": "Project",
+    "back": "Back",
+    "others": "others"
+  }
+}

@@ -1,0 +1,100 @@
+{
+  "app": { "name": "Oriflux", "tagline": "L'origine des flux" },
+  "login": {
+    "title": "Connexion",
+    "subtitle": "Le plan de contrôle analytics de Sponge Theory",
+    "google": "Continuer avec Google",
+    "missingClientId": "Identifiant client Google non configuré (VITE_GOOGLE_CLIENT_ID)."
+  },
+  "nav": { "home": "Portefeuille", "web": "Web", "api": "API", "logout": "Se déconnecter" },
+  "period": {
+    "label": "Période",
+    "24h": "24 heures",
+    "7d": "7 jours",
+    "30d": "30 jours",
+    "90d": "90 jours",
+    "12m": "12 mois",
+    "compare": "Comparer",
+    "vsPrevious": "vs période précédente"
+  },
+  "metric": {
+    "visitors": "Visiteurs",
+    "pageviews": "Pages vues",
+    "sessions": "Sessions",
+    "bounce_rate": "Taux de rebond",
+    "session_duration": "Durée de session",
+    "api_requests": "Requêtes API",
+    "api_error_rate_4xx": "Erreurs 4xx",
+    "api_error_rate_5xx": "Erreurs 5xx",
+    "api_latency_p50": "Latence p50",
+    "api_latency_p95": "Latence p95",
+    "api_latency_p99": "Latence p99",
+    "visitDaysNote": "Total multi-jours = visites-jours (hash quotidien rotatif)"
+  },
+  "trafficClass": {
+    "label": "Trafic",
+    "all": "Tout",
+    "human": "Humains",
+    "bot": "Bots",
+    "ai_agent": "Agents IA",
+    "": "Non classé"
+  },
+  "web": {
+    "title": "Analytics web",
+    "timeseries": "Évolution",
+    "topPages": "Pages",
+    "topReferrers": "Référents",
+    "utm": "Campagnes",
+    "utm_source": "Source",
+    "utm_medium": "Médium",
+    "utm_campaign": "Campagne",
+    "geo": "Géographie",
+    "devices": "Appareils",
+    "device": "Appareil",
+    "os": "OS",
+    "browser": "Navigateur",
+    "country": "Pays",
+    "region": "Région",
+    "city": "Ville",
+    "page": "Page",
+    "referrer": "Référent",
+    "direct": "Direct / aucun",
+    "empty": "Aucune donnée sur cette période",
+    "worldTotal": "Monde entier"
+  },
+  "api": {
+    "title": "Analytics API",
+    "endpoints": "Points d'accès",
+    "endpoint": "Point d'accès",
+    "volume": "Volume",
+    "errorRate": "Taux 5xx",
+    "p95": "p95",
+    "statusClasses": "Codes statut",
+    "consumers": "Consommateurs",
+    "consumer": "Consommateur",
+    "callerGeo": "Géographie des appelants",
+    "unresolved": "non résolu",
+    "anonymous": "anonyme"
+  },
+  "home": {
+    "title": "Portefeuille",
+    "liveVisitors": "visiteurs en direct",
+    "trend7d": "tendance 7 jours",
+    "apiErrors": "erreurs API 5xx (24 h)",
+    "liveNow": "En ce moment",
+    "topPagesNow": "Pages actives (30 min)",
+    "topCountriesNow": "Pays actifs (30 min)",
+    "noProjects": "Aucun projet — créez-en un via l'API d'administration.",
+    "updated": "actualisé toutes les 10 s"
+  },
+  "common": {
+    "loading": "Chargement…",
+    "error": "Erreur de chargement",
+    "theme": "Thème",
+    "language": "Langue",
+    "organization": "Organisation",
+    "project": "Projet",
+    "back": "Retour",
+    "others": "autres"
+  }
+}

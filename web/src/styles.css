@@ -1,0 +1,90 @@
+@import "tailwindcss";
+@import "@fontsource-variable/bricolage-grotesque";
+@import "@fontsource-variable/instrument-sans";
+
+/* ── Oriflux design tokens — "l'oriflamme" ─────────────────────────────
+   Warm paper & ink surfaces, a single vermilion accent (the oriflamme
+   banner), tabular figures everywhere numbers live. Calm, dense, legible. */
+
+@theme {
+  --font-display: "Bricolage Grotesque Variable", ui-sans-serif, sans-serif;
+  --font-sans: "Instrument Sans Variable", ui-sans-serif, system-ui, sans-serif;
+
+  --color-flame: #d64524;
+  --color-flame-strong: #b8351a;
+  --color-flame-soft: #d6452414;
+
+  /* semantic surfaces (overridden in .dark below) */
+  --color-paper: var(--paper);
+  --color-surface: var(--surface);
+  --color-ink: var(--ink);
+  --color-ink-soft: var(--ink-soft);
+  --color-line: var(--line);
+  --color-up: #2c7a4b;
+  --color-down: #b8351a;
+
+  --color-class-human: #d64524;
+  --color-class-bot: #8a8378;
+  --color-class-ai: #6d5bd0;
+}
+
+:root {
+  --paper: #faf8f4;
+  --surface: #ffffff;
+  --ink: #211d18;
+  --ink-soft: #7d766b;
+  --line: #e8e2d7;
+  color-scheme: light;
+}
+
+.dark {
+  --paper: #171310;
+  --surface: #201b17;
+  --ink: #ede7dd;
+  --ink-soft: #9a9285;
+  --line: #322c26;
+  color-scheme: dark;
+}
+
+body {
+  @apply bg-paper text-ink font-sans antialiased;
+  font-feature-settings: "tnum" 0;
+}
+
+.font-display {
+  font-family: var(--font-display);
+}
+
+.tnum {
+  font-variant-numeric: tabular-nums;
+}
+
+/* ranked-row fill bar used by breakdown tables */
+.rank-fill {
+  background: linear-gradient(to right, var(--color-flame-soft), var(--color-flame-soft));
+}
+
+/* subtle grain on the paper background, oriflamme editorial feel */
+.paper-grain::before {
+  content: "";
+  position: fixed;
+  inset: 0;
+  pointer-events: none;
+  opacity: 0.35;
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='120' height='120'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='2'/%3E%3CfeColorMatrix values='0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0.02 0'/%3E%3C/filter%3E%3Crect width='120' height='120' filter='url(%23n)'/%3E%3C/svg%3E");
+}
+
+/* staggered load-in for panels */
+@keyframes rise {
+  from {
+    opacity: 0;
+    transform: translateY(6px);
+  }
+  to {
+    opacity: 1;
+    transform: none;
+  }
+}
+.rise {
+  animation: rise 0.35s cubic-bezier(0.2, 0.7, 0.2, 1) both;
+}
