@@ -20,6 +20,7 @@ from oriflux.alerting.notify import AlertNotifier
 from oriflux.alerts import ops_alert
 from oriflux.config import Settings, get_settings
 from oriflux.db import create_engine, create_session_factory
+from oriflux.logs import setup_logging
 from oriflux.models.api_metrics import ApiMinuteRow
 from oriflux.storage.clickhouse import (
     ApiMinutelySink,
@@ -42,6 +43,7 @@ async def run_geoip_refresh_forever(settings: Settings) -> None:
 
 
 def create_app() -> FastAPI:
+    setup_logging()
     settings = get_settings()
 
     @asynccontextmanager

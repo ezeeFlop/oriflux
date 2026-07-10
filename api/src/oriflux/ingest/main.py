@@ -29,6 +29,7 @@ from oriflux.enrichment.sessions import SessionTracker
 from oriflux.enrichment.ua import parse_ua
 from oriflux.enrichment.visitor import VisitorHasher
 from oriflux.ingest.auth import IngestKeyResolver, ResolvedIngestKey, UnknownKey, WrongScope
+from oriflux.logs import setup_logging
 from oriflux.models.api_metrics import ApiMetricsIn, ApiMinuteRow
 from oriflux.models.enrichment import GeoInfo
 from oriflux.models.events import EnrichedEvent, PageviewIn
@@ -77,6 +78,7 @@ def create_app(
     settings: Settings | None = None,
     session_factory: async_sessionmaker[AsyncSession] | None = None,
 ) -> FastAPI:
+    setup_logging()
     settings = settings or get_settings()
 
     def wire_state(

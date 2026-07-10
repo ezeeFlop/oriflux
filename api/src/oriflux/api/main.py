@@ -22,6 +22,7 @@ from oriflux.api.deps import require_read_org
 from oriflux.config import Settings, get_settings
 from oriflux.db import create_engine, create_session_factory
 from oriflux.db.migrate import run_migrations
+from oriflux.logs import setup_logging
 from oriflux.query.engine import build_query
 from oriflux.query.models import Period, QueryRequest
 from oriflux.security.google import GoogleVerifier, make_google_verifier
@@ -60,6 +61,7 @@ def create_app(
     session_factory: async_sessionmaker[AsyncSession] | None = None,
     google_verifier: GoogleVerifier | None = None,
 ) -> FastAPI:
+    setup_logging()
     settings = settings or get_settings()
 
     @asynccontextmanager
