@@ -33,20 +33,27 @@ class TestUnauthenticatedFloodIsMetered:
     async def test_spoofed_leftmost_forwarded_for_does_not_reset_the_budget(
         self, db_sessionmaker: async_sessionmaker[AsyncSession]
     ) -> None:
-        """Only the proxy-appended (rightmost) X-Forwarded-For hop counts."""
+        """The rightmost GLOBAL X-Forwarded-For hop counts (appended by our
+        trusted proxy chain); rotating leftmost junk must not reset it."""
         seeded: Seeded = await seed(db_sessionmaker)
         redis = FakeAsyncRedis()
         async with make_client(redis, db_sessionmaker, ingest_rate_limit_per_ip=1) as client:
             first = await client.post(
                 "/api/v1/events",
                 json=VALID_EVENT,
-                headers={**auth(seeded.ingest_key), "X-Forwarded-For": "6.6.6.1, 10.0.0.9"},
+                headers={
+                    **auth(seeded.ingest_key),
+                    "X-Forwarded-For": "6.6.6.1, 89.64.10.7, 10.0.0.9",
+                },
             )
             assert first.status_code == 202
             spoofed = await client.post(
                 "/api/v1/events",
                 json=VALID_EVENT,
-                headers={**auth(seeded.ingest_key), "X-Forwarded-For": "6.6.6.2, 10.0.0.9"},
+                headers={
+                    **auth(seeded.ingest_key),
+                    "X-Forwarded-For": "6.6.6.2, 89.64.10.7, 10.0.0.9",
+                },
             )
             assert spoofed.status_code == 429
 

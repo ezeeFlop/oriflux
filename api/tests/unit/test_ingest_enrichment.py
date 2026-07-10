@@ -188,3 +188,31 @@ class TestIpIsDiscarded:
         keys = [k.decode() for k in await redis.keys("oriflux:rl:*")]
         assert keys, "rate limiting must have recorded the request"
         assert all(LONDON_IP not in k for k in keys)
+
+
+class TestForwardedChainThroughFirstPartyProxy:
+    """Décision 2026-07-10: the first-party /of proxy adds internal hops to
+    X-Forwarded-For. The caller IP is the rightmost GLOBAL address — every
+    hop to its right is our own infrastructure (private ranges)."""
+
+    async def test_private_hops_are_skipped_from_the_right(
+        self, client: httpx.AsyncClient, redis: FakeAsyncRedis, seeded: Seeded
+    ) -> None:
+        await collect(
+            client, seeded,
+            headers={"X-Forwarded-For": f"6.6.6.6, {LONDON_IP}, 10.0.2.8, 172.18.0.4"},
+        )
+        event = await buffered_event(redis)
+        assert event.country == "GB"  # geo of the London IP, not empty
+
+    async def test_spoofed_leftmost_values_still_do_not_win(
+        self, client: httpx.AsyncClient, redis: FakeAsyncRedis, seeded: Seeded
+    ) -> None:
+        # attacker puts junk on the left; the rightmost global IP is what our
+        # own proxy chain vouches for
+        await collect(
+            client, seeded,
+            headers={"X-Forwarded-For": f"{LONDON_IP}, 1.128.0.1"},
+        )
+        event = await buffered_event(redis)
+        assert event.asn == 1221  # 1.128.0.1 (rightmost global), not London

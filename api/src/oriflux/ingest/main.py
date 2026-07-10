@@ -8,6 +8,7 @@ payload. Enrichment (geo, UA, bot classification, visitor hash) plugs into
 this path with issue #4.
 """
 
+import ipaddress
 from collections.abc import AsyncIterator
 from contextlib import asynccontextmanager
 from datetime import UTC, datetime
@@ -54,12 +55,20 @@ def _locale(request: Request) -> str:
 
 
 def _client_ip(request: Request) -> str:
-    # Take the RIGHTMOST X-Forwarded-For element: it is the one appended by
-    # our own proxy (Traefik). Leftmost values are attacker-controlled and
-    # would let callers rotate around the per-IP limit.
+    # Walk X-Forwarded-For from the RIGHT and return the first globally
+    # routable address. Everything to the right of the caller was appended
+    # by our own trusted hops (NPM, the products' first-party /of proxies —
+    # private/cluster addresses); leftmost values are attacker-controlled.
     forwarded = request.headers.get("x-forwarded-for")
     if forwarded:
-        return forwarded.split(",")[-1].strip()
+        hops = [hop.strip() for hop in forwarded.split(",")]
+        for hop in reversed(hops):
+            try:
+                if ipaddress.ip_address(hop).is_global:
+                    return hop
+            except ValueError:
+                continue
+        return hops[-1]  # all private (dev/test): the nearest peer
     return request.client.host if request.client else "unknown"
 
 
