@@ -1,0 +1,354 @@
+# Oriflux — production Swarm stack (issue #2).
+#
+# Deploy (from a manager node or Portainer):
+#   docker stack deploy -c docker-stack.yml oriflux
+# Stack name MUST be `oriflux` so services come up as oriflux_{ingest,api,workers,clickhouse,…}
+# (CLAUDE.md naming; Swarm prefixes service names with the stack name). `oriflux_web`
+# joins the stack with issue #7.
+#
+# First deployment runbook: see README.md in this directory (create /data dirs,
+# required env vars, DNS, backup-failure drill).
+#
+# Required environment (set in Portainer stack env — no defaults on purpose):
+#   ORIFLUX_INGEST_API_KEY    walking-skeleton ingest key (replaced by issue #3)
+#   ORIFLUX_READ_API_KEY      walking-skeleton read key   (replaced by issue #3)
+#   CLICKHOUSE_PASSWORD       ClickHouse app user password
+#   POSTGRES_PASSWORD         PostgreSQL password
+#   MINIO_SECRET_KEY          MinIO root password (backup target)
+# Optional:
+#   OPS_WEBHOOK_URL           POST target for backup-failure alerts (Slack/ntfy/…)
+#   TAG                       image tag (default latest)
+#   INGEST_HOST / API_HOST    public hosts (default *.oriflux.sponge-theory.dev —
+#                             the PRD's in.oriflux.sponge-theory.ai needs DNS first,
+#                             swap when the .ai zone has records)
+
+version: "3.8"
+
+x-oriflux-env: &oriflux-env
+  PYTHONDONTWRITEBYTECODE: "1"
+  PYTHONUNBUFFERED: "1"
+  ORIFLUX_REDIS_URL: redis://redis:6379/0
+  ORIFLUX_CLICKHOUSE_HOST: clickhouse
+  ORIFLUX_CLICKHOUSE_PORT: "8123"
+  ORIFLUX_CLICKHOUSE_USER: ${CLICKHOUSE_USER:-oriflux}
+  ORIFLUX_CLICKHOUSE_PASSWORD: ${CLICKHOUSE_PASSWORD:?CLICKHOUSE_PASSWORD is required}
+  ORIFLUX_CLICKHOUSE_DATABASE: ${CLICKHOUSE_DB:-oriflux}
+  ORIFLUX_INGEST_API_KEY: ${ORIFLUX_INGEST_API_KEY:?ORIFLUX_INGEST_API_KEY is required}
+  ORIFLUX_READ_API_KEY: ${ORIFLUX_READ_API_KEY:?ORIFLUX_READ_API_KEY is required}
+
+x-healthz: &healthz
+  test: ["CMD", "python", "-c", "import urllib.request; urllib.request.urlopen('http://localhost:8000/healthz')"]
+  interval: 15s
+  timeout: 5s
+  retries: 5
+  start_period: 20s
+
+services:
+  # ── Stateless app services (multi-arch image: any node) ────────────────
+  ingest:
+    image: registry.sponge-theory.dev/oriflux-api:${TAG:-latest}
+    command: ["uvicorn", "oriflux.ingest.main:app", "--host", "0.0.0.0", "--port", "8000"]
+    environment: *oriflux-env
+    healthcheck: *healthz
+    networks:
+      - webfacing
+      - oriflux
+    deploy:
+      replicas: ${INGEST_REPLICAS:-1}
+      resources:
+        limits: { cpus: "0.50", memory: 512M }
+        reservations: { memory: 128M }
+      restart_policy:
+        condition: on-failure
+        delay: 5s
+      labels:
+        - "traefik.enable=true"
+        - "traefik.http.routers.oriflux-ingest.rule=Host(`${INGEST_HOST:-in.oriflux.sponge-theory.dev}`)"
+        - "traefik.http.routers.oriflux-ingest.entrypoints=websecure"
+        - "traefik.http.routers.oriflux-ingest.tls.certresolver=letsencrypt"
+        - "traefik.http.services.oriflux-ingest.loadbalancer.server.port=8000"
+
+  api:
+    image: registry.sponge-theory.dev/oriflux-api:${TAG:-latest}
+    command: ["uvicorn", "oriflux.api.main:app", "--host", "0.0.0.0", "--port", "8000"]
+    environment: *oriflux-env
+    healthcheck: *healthz
+    networks:
+      - webfacing
+      - oriflux
+    deploy:
+      replicas: ${API_REPLICAS:-1}
+      resources:
+        limits: { cpus: "0.50", memory: 512M }
+        reservations: { memory: 128M }
+      restart_policy:
+        condition: on-failure
+        delay: 5s
+      labels:
+        - "traefik.enable=true"
+        - "traefik.http.routers.oriflux-api.rule=Host(`${API_HOST:-api.oriflux.sponge-theory.dev}`)"
+        - "traefik.http.routers.oriflux-api.entrypoints=websecure"
+        - "traefik.http.routers.oriflux-api.tls.certresolver=letsencrypt"
+        - "traefik.http.services.oriflux-api.loadbalancer.server.port=8000"
+
+  workers:
+    image: registry.sponge-theory.dev/oriflux-api:${TAG:-latest}
+    command: ["uvicorn", "oriflux.workers.main:app", "--host", "0.0.0.0", "--port", "8000"]
+    environment: *oriflux-env
+    healthcheck: *healthz
+    networks:
+      - oriflux
+    deploy:
+      replicas: 1  # single consumer name per replica; scale only with distinct consumers
+      resources:
+        limits: { cpus: "0.50", memory: 512M }
+        reservations: { memory: 128M }
+      restart_policy:
+        condition: on-failure
+        delay: 5s
+
+  # ── ClickHouse (pinned LTS, PRD §8.3) ───────────────────────────────────
+  clickhouse:
+    image: clickhouse/clickhouse-server:24.8
+    environment:
+      CLICKHOUSE_DB: ${CLICKHOUSE_DB:-oriflux}
+      CLICKHOUSE_USER: ${CLICKHOUSE_USER:-oriflux}
+      CLICKHOUSE_PASSWORD: ${CLICKHOUSE_PASSWORD:?CLICKHOUSE_PASSWORD is required}
+    volumes:
+      - /data/oriflux/prod/clickhouse:/var/lib/clickhouse
+    ulimits:
+      nofile: 262144
+    healthcheck:
+      test: ["CMD", "wget", "--spider", "-q", "http://localhost:8123/ping"]
+      interval: 15s
+      timeout: 5s
+      retries: 10
+      start_period: 30s
+    networks:
+      - oriflux
+    deploy:
+      replicas: 1
+      placement:
+        constraints:
+          - node.labels.NODE == 2
+      resources:
+        limits: { cpus: "1.50", memory: 2G }
+        reservations: { memory: 512M }
+      restart_policy:
+        condition: on-failure
+        delay: 10s
+
+  # ── ClickHouse backup — daily `create_remote` to MinIO, 14 remote kept ──
+  #    Same alert policy as Rayonne: on failure, log + best-effort POST to
+  #    $OPS_WEBHOOK_URL. Shares the ClickHouse data dir → same node.
+  clickhouse-backup:
+    image: altinity/clickhouse-backup:2.6.5
+    entrypoint: ["/bin/sh", "-c"]
+    command:
+      - |
+        alert() {
+          echo "[ch-backup] FAILED at $$1";
+          if [ -n "$$OPS_WEBHOOK_URL" ] && command -v curl >/dev/null 2>&1; then
+            curl -fsS -X POST -H 'Content-Type: application/json' \
+              -d "{\"text\":\"[oriflux] clickhouse backup FAILED at $$1\"}" \
+              "$$OPS_WEBHOOK_URL" >/dev/null 2>&1 || true;
+          fi
+        }
+        sleep 30;
+        while true; do
+          ts=$$(date +%Y%m%d-%H%M%S);
+          if clickhouse-backup create_remote "oriflux-$$ts" && clickhouse-backup delete local "oriflux-$$ts"; then
+            echo "[ch-backup] wrote oriflux-$$ts to MinIO";
+          else
+            alert "$$ts";
+          fi
+          sleep 86400;
+        done
+    environment:
+      CLICKHOUSE_HOST: clickhouse
+      CLICKHOUSE_USERNAME: ${CLICKHOUSE_USER:-oriflux}
+      CLICKHOUSE_PASSWORD: ${CLICKHOUSE_PASSWORD:?CLICKHOUSE_PASSWORD is required}
+      REMOTE_STORAGE: s3
+      S3_ENDPOINT: http://minio:9000
+      S3_BUCKET: ${MINIO_BACKUP_BUCKET:-oriflux-backups}
+      S3_PATH: clickhouse
+      S3_ACCESS_KEY: ${MINIO_ACCESS_KEY:-oriflux}
+      S3_SECRET_KEY: ${MINIO_SECRET_KEY:?MINIO_SECRET_KEY is required}
+      S3_FORCE_PATH_STYLE: "true"
+      BACKUPS_TO_KEEP_REMOTE: "14"
+      OPS_WEBHOOK_URL: ${OPS_WEBHOOK_URL:-}
+    volumes:
+      - /data/oriflux/prod/clickhouse:/var/lib/clickhouse
+    networks:
+      - oriflux
+    deploy:
+      replicas: 1
+      placement:
+        constraints:
+          - node.labels.NODE == 2
+      resources:
+        limits: { memory: 256M }
+      restart_policy:
+        condition: on-failure
+        delay: 30s
+
+  # ── PostgreSQL 16 (metadata — consumed from issue #3 on) ────────────────
+  postgres:
+    image: postgres:16
+    environment:
+      POSTGRES_USER: ${POSTGRES_USER:-oriflux}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:?POSTGRES_PASSWORD is required}
+      POSTGRES_DB: ${POSTGRES_DB:-oriflux}
+      PGDATA: /var/lib/postgresql/data/pgdata
+    volumes:
+      - /data/oriflux/prod/postgres:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U ${POSTGRES_USER:-oriflux}"]
+      interval: 15s
+      timeout: 5s
+      retries: 5
+    networks:
+      - oriflux
+    deploy:
+      replicas: 1
+      placement:
+        constraints:
+          - node.labels.NODE == 2
+      resources:
+        limits: { memory: 512M }
+        reservations: { memory: 128M }
+      restart_policy:
+        condition: on-failure
+        delay: 10s
+
+  # ── PostgreSQL backup — daily pg_dump, retention 14 d, alert on failure ─
+  postgres-backup:
+    image: postgres:16
+    entrypoint: ["/bin/sh", "-c"]
+    command:
+      - |
+        alert() {
+          echo "[pg-backup] FAILED at $$1";
+          if [ -n "$$OPS_WEBHOOK_URL" ] && command -v curl >/dev/null 2>&1; then
+            curl -fsS -X POST -H 'Content-Type: application/json' \
+              -d "{\"text\":\"[oriflux] postgres backup FAILED at $$1\"}" \
+              "$$OPS_WEBHOOK_URL" >/dev/null 2>&1 || true;
+          fi
+        }
+        sleep 30;
+        while true; do
+          ts=$$(date +%Y%m%d-%H%M%S);
+          if PGPASSWORD="$$POSTGRES_PASSWORD" pg_dump -h postgres -U "$$POSTGRES_USER" \
+               -d "$$POSTGRES_DB" -Fc -f "/backups/oriflux-$$ts.dump"; then
+            echo "[pg-backup] wrote oriflux-$$ts.dump";
+          else
+            alert "$$ts";
+          fi
+          find /backups -name 'oriflux-*.dump' -mtime +14 -delete;
+          sleep 86400;
+        done
+    environment:
+      POSTGRES_USER: ${POSTGRES_USER:-oriflux}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:?POSTGRES_PASSWORD is required}
+      POSTGRES_DB: ${POSTGRES_DB:-oriflux}
+      OPS_WEBHOOK_URL: ${OPS_WEBHOOK_URL:-}
+    volumes:
+      - /data/oriflux/prod/backups:/backups
+    networks:
+      - oriflux
+    deploy:
+      replicas: 1
+      placement:
+        constraints:
+          - node.labels.NODE == 2
+      resources:
+        limits: { memory: 128M }
+      restart_policy:
+        condition: on-failure
+        delay: 30s
+
+  # ── Redis Streams buffer — AOF everysec (PRD §8.3) ──────────────────────
+  redis:
+    image: redis:7-alpine
+    command: ["redis-server", "--appendonly", "yes", "--appendfsync", "everysec"]
+    volumes:
+      - /data/oriflux/prod/redis:/data
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 15s
+      timeout: 5s
+      retries: 5
+    networks:
+      - oriflux
+    deploy:
+      replicas: 1
+      placement:
+        constraints:
+          - node.labels.NODE == 2
+      resources:
+        limits: { memory: 512M }
+        reservations: { memory: 64M }
+      restart_policy:
+        condition: on-failure
+        delay: 5s
+
+  # ── MinIO — backup target (console not published: Rayonne hardening) ────
+  minio:
+    image: minio/minio:latest
+    environment:
+      MINIO_ROOT_USER: ${MINIO_ACCESS_KEY:-oriflux}
+      MINIO_ROOT_PASSWORD: ${MINIO_SECRET_KEY:?MINIO_SECRET_KEY is required}
+    command: server /data --address ":9000"
+    volumes:
+      - /data/oriflux/prod/minio:/data
+    healthcheck:
+      test: ["CMD", "mc", "ready", "local"]
+      interval: 15s
+      timeout: 5s
+      retries: 5
+      start_period: 15s
+    networks:
+      - oriflux
+    deploy:
+      replicas: 1
+      placement:
+        constraints:
+          - node.labels.NODE == 2
+      resources:
+        limits: { memory: 512M }
+        reservations: { memory: 128M }
+      restart_policy:
+        condition: on-failure
+        delay: 10s
+
+  minio-init:
+    image: minio/mc:latest
+    entrypoint: >
+      /bin/sh -c "
+      sleep 10;
+      mc alias set local http://minio:9000 $${MINIO_ROOT_USER} $${MINIO_ROOT_PASSWORD};
+      mc mb local/$${BACKUP_BUCKET} --ignore-existing;
+      echo 'oriflux MinIO bucket ready';
+      exit 0;
+      "
+    environment:
+      MINIO_ROOT_USER: ${MINIO_ACCESS_KEY:-oriflux}
+      MINIO_ROOT_PASSWORD: ${MINIO_SECRET_KEY:?MINIO_SECRET_KEY is required}
+      BACKUP_BUCKET: ${MINIO_BACKUP_BUCKET:-oriflux-backups}
+    networks:
+      - oriflux
+    deploy:
+      replicas: 1
+      placement:
+        constraints:
+          - node.labels.NODE == 2
+      restart_policy:
+        condition: none
+
+networks:
+  webfacing:
+    driver: overlay
+    external: true
+  oriflux:
+    driver: overlay
+    internal: true
