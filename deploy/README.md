@@ -46,20 +46,27 @@ webhook (cliphaven/neokanban pattern).
    docker exec $(docker ps -q -f name=oriflux_api) python -m oriflux.bootstrap
    ```
 
-4. **Webhook** — in the Portainer stack, enable the webhook and export it locally:
+4. **Webhook** — the stack's webhook is baked into `deploy-portainer.sh` as the
+   default (`PORTAINER_WEBHOOK` env overrides it). Deploys are just
+   `./deploy-portainer.sh`.
 
-   ```bash
-   export PORTAINER_WEBHOOK="https://portainer.sponge-theory.dev/api/stacks/webhooks/<uuid>"
-   ```
+5. **Ingress — NPM (Nginx Proxy Manager)** is the head of line for this stack.
+   NPM sits on the external `webfacing` overlay network, so it reaches the
+   services by their Swarm DNS names. Three Proxy Hosts:
 
-   Subsequent deploys are just `./deploy-portainer.sh`.
+   | Domain | Forward (Scheme=http) | Port | Options |
+   |---|---|---|---|
+   | `oriflux.sponge-theory.dev` | `oriflux_web` | `80` | Websockets ON, Block Common Exploits, SSL Let's Encrypt + Force SSL |
+   | `in.oriflux.sponge-theory.dev` | `oriflux_ingest` | `8000` | same (NPM's default headers pass `X-Forwarded-For`, which ingest requires for geo/rate-limiting) |
+   | `api.oriflux.sponge-theory.dev` | `oriflux_api` | `8000` | same, **plus** Advanced → `proxy_buffering off;` (MCP streamable HTTP at `/mcp`) |
 
-5. **DNS / Traefik** — the stack routes `in.oriflux.sponge-theory.dev` (ingest) and
-   `api.oriflux.sponge-theory.dev` (query API) through the external `webfacing`
-   network (entrypoint `websecure`, resolver `letsencrypt`). Both hosts already
-   resolve via the `*.sponge-theory.dev` wildcard. The PRD's target domain
-   `in.oriflux.sponge-theory.ai` has **no DNS records yet** — once the `.ai` zone
-   is populated, override `INGEST_HOST`/`API_HOST` in the stack env.
+   The dashboard only needs its own domain (its nginx proxies `/api` to the api
+   service internally); `in.` is for oriflux.js + SDKs, `api.` for REST/MCP
+   consumers. All three hosts already resolve via the `*.sponge-theory.dev`
+   wildcard. The Traefik labels in the stack yml are inert while NPM fronts it —
+   kept for a possible Traefik switch. The PRD's `in.oriflux.sponge-theory.ai`
+   has no DNS records yet; once the `.ai` zone exists, add the domains to the
+   same proxy hosts.
 
 ## Post-deploy verification
 
