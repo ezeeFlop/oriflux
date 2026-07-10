@@ -18,6 +18,7 @@ dependencies = [
     "requests>=2.31",
     "geoip2>=4.8",
     "ua-parser>=1.0",
+    "fastapi-mcp>=0.3",
 ]
 
 [dependency-groups]
@@ -56,7 +57,7 @@ module = "clickhouse_connect.*"
 ignore_missing_imports = true
 
 [[tool.mypy.overrides]]
-module = ["jose.*", "google.auth.*", "google.oauth2.*"]
+module = ["jose.*", "google.auth.*", "google.oauth2.*", "fastapi_mcp.*"]
 ignore_missing_imports = true
 
 [tool.ruff]

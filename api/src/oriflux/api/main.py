@@ -13,10 +13,11 @@ from contextlib import asynccontextmanager
 from typing import Any, Protocol
 
 from fastapi import Depends, FastAPI
+from fastapi_mcp import FastApiMCP
 from pydantic import BaseModel
 from sqlalchemy.ext.asyncio import AsyncSession, async_sessionmaker
 
-from oriflux.api import admin, auth
+from oriflux.api import admin, auth, tools
 from oriflux.api.deps import require_read_key_org
 from oriflux.config import Settings, get_settings
 from oriflux.db import create_engine, create_session_factory
@@ -82,6 +83,7 @@ def create_app(
 
     app.include_router(auth.router)
     app.include_router(admin.router)
+    app.include_router(tools.router)
 
     def get_executor() -> QueryExecutor:
         if executor is not None:
@@ -90,7 +92,13 @@ def create_app(
 
         return ClickHouseExecutor.from_settings(settings)
 
-    @app.post("/api/v1/query")
+    app.state.query_executor = get_executor
+
+    @app.post(
+        "/api/v1/query",
+        operation_id="query_metrics",
+        summary="Run a typed analytics query (single contract: registry-validated)",
+    )
     async def query(
         request: QueryRequest,
         org_id: str = Depends(require_read_key_org),
@@ -120,6 +128,26 @@ def create_app(
     @app.get("/healthz")
     async def healthz() -> dict[str, str]:
         return {"status": "ok"}
+
+    # MCP server (PRD §7.1): the same five read-only operations as REST,
+    # served HTTP-streamable at /mcp. Auth rides on each endpoint's
+    # read-key dependency — the client's Authorization header is forwarded.
+    FastApiMCP(
+        app,
+        name="Oriflux Analytics",
+        description=(
+            "Read-only analytics for the Sponge Theory ecosystem: web traffic, "
+            "sessions, geography and API health, queried through the typed "
+            "metric registry. Requires a read-scoped API key (Bearer)."
+        ),
+        include_operations=[
+            "list_projects",
+            "get_overview",
+            "query_metrics",
+            "get_geo_breakdown",
+            "get_api_health",
+        ],
+    ).mount_http()
 
     return app
 
