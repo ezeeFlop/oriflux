@@ -13,6 +13,7 @@ import asyncio
 import logging
 from typing import Any, Protocol
 
+from pydantic import BaseModel
 from redis.asyncio import Redis
 from redis.exceptions import ResponseError
 
@@ -23,7 +24,7 @@ logger = logging.getLogger(__name__)
 
 
 class EventSink(Protocol):
-    def insert(self, events: list[EnrichedEvent]) -> None: ...
+    def insert(self, events: list[Any]) -> None: ...
 
 
 class Batcher:
@@ -35,16 +36,22 @@ class Batcher:
         consumer: str,
         batch_size: int = 500,
         block_ms: int = 1000,
+        stream: str = EVENTS_STREAM,
+        group: str = CONSUMER_GROUP,
+        model: type[BaseModel] = EnrichedEvent,
     ) -> None:
         self._redis = redis
         self._sink = sink
         self._consumer = consumer
         self._batch_size = batch_size
         self._block_ms = block_ms
+        self._stream = stream
+        self._group = group
+        self._model = model
 
     async def _ensure_group(self) -> None:
         try:
-            await self._redis.xgroup_create(EVENTS_STREAM, CONSUMER_GROUP, id="0", mkstream=True)
+            await self._redis.xgroup_create(self._stream, self._group, id="0", mkstream=True)
         except ResponseError as exc:
             if "BUSYGROUP" not in str(exc):
                 raise
@@ -55,9 +62,9 @@ class Batcher:
         # redis-py's stubs type xreadgroup too loosely to be useful; the shape
         # is [[stream, [(entry_id, {field: value}), ...]], ...].
         response: Any = await self._redis.xreadgroup(
-            CONSUMER_GROUP,
+            self._group,
             self._consumer,
-            {EVENTS_STREAM: from_id},
+            {self._stream: from_id},
             count=self._batch_size,
             block=block_ms,
         )
@@ -77,7 +84,7 @@ class Batcher:
             return 0
 
         ids: list[bytes] = []
-        events: list[EnrichedEvent] = []
+        events: list[BaseModel] = []
         for entry_id, fields in entries:
             payload = fields.get(b"payload") or fields.get("payload")  # type: ignore[call-overload]
             if payload is None:
@@ -85,11 +92,11 @@ class Batcher:
                 ids.append(entry_id)
                 continue
             ids.append(entry_id)
-            events.append(EnrichedEvent.model_validate_json(payload))
+            events.append(self._model.model_validate_json(payload))
 
         # The insert must commit before anything is acked (at-least-once).
         await asyncio.to_thread(self._sink.insert, events)
-        await self._redis.xack(EVENTS_STREAM, CONSUMER_GROUP, *ids)
+        await self._redis.xack(self._stream, self._group, *ids)
         return len(events)
 
     async def run_forever(self) -> None:

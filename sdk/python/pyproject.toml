@@ -1,0 +1,54 @@
+[project]
+name = "oriflux-sdk"
+version = "0.1.0"
+description = "Oriflux API analytics — zero-dependency ASGI middleware with client-side 60 s aggregation"
+readme = "README.md"
+license = "MIT"
+license-files = ["LICENSE"]
+authors = [{ name = "Sponge Theory", email = "contact@sponge-theory.io" }]
+requires-python = ">=3.10"
+dependencies = []
+classifiers = [
+    "Development Status :: 4 - Beta",
+    "Intended Audience :: Developers",
+    "Programming Language :: Python :: 3",
+    "Topic :: Internet :: WWW/HTTP",
+    "Topic :: System :: Monitoring",
+]
+
+[project.urls]
+Homepage = "https://sponge-theory.ai"
+
+[dependency-groups]
+dev = [
+    "pytest>=8.2",
+    "pytest-asyncio>=0.23",
+    "httpx>=0.27",
+    "starlette>=0.37",
+    "mypy>=1.10",
+    "ruff>=0.5",
+]
+
+[build-system]
+requires = ["hatchling"]
+build-backend = "hatchling.build"
+
+[tool.hatch.build.targets.wheel]
+packages = ["src/oriflux_sdk"]
+
+[tool.pytest.ini_options]
+asyncio_mode = "auto"
+testpaths = ["tests"]
+
+[tool.mypy]
+python_version = "3.10"
+strict = true
+packages = ["oriflux_sdk"]
+mypy_path = "src"
+
+[tool.ruff]
+line-length = 100
+src = ["src", "tests"]
+
+[tool.ruff.lint]
+select = ["E", "F", "I", "UP", "B", "SIM"]

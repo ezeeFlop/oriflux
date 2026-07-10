@@ -49,11 +49,13 @@ class TestRegistryDrift:
     def test_every_metric_dimension_combination_executes(
         self, executor: ClickHouseExecutor
     ) -> None:
-        for metric in METRICS:
-            for dimension in DIMENSIONS:
+        for metric_name, metric in METRICS.items():
+            for dimension_name, dimension in DIMENSIONS.items():
+                if metric.source not in dimension.sources:
+                    continue
                 run(
-                    executor, "drift-org", metric=metric, dimensions=[dimension],
-                    filters=[{"dimension": dimension, "op": "eq", "value": "1"}],
+                    executor, "drift-org", metric=metric_name, dimensions=[dimension_name],
+                    filters=[{"dimension": dimension_name, "op": "eq", "value": "1"}],
                 )
 
     def test_every_granularity_executes_for_every_metric(

@@ -15,6 +15,7 @@ import clickhouse_connect
 from clickhouse_connect.driver.client import Client
 
 from oriflux.config import Settings
+from oriflux.models.api_metrics import ApiMinuteRow
 from oriflux.models.events import EnrichedEvent
 
 EVENTS_DDL = """
@@ -55,8 +56,35 @@ TTL toDateTime(timestamp) + INTERVAL 13 MONTH
 
 # One source of truth for the column set: the EnrichedEvent model. Only the
 # DDL above repeats it (ClickHouse types can't be derived from annotations).
+API_MINUTELY_DDL = """
+CREATE TABLE IF NOT EXISTS api_minutely (
+    entry_id UUID,
+    timestamp_min DateTime('UTC'),
+    org_id LowCardinality(String),
+    project_id LowCardinality(String),
+    source_id LowCardinality(String),
+    endpoint String,
+    method LowCardinality(String),
+    status_code UInt16,
+    status_class LowCardinality(String),
+    consumer_id String,
+    country LowCardinality(String),
+    asn UInt32,
+    count UInt64,
+    bytes_in UInt64,
+    bytes_out UInt64,
+    latency_bucket_ms Array(Float64),
+    latency_counts Array(UInt64)
+)
+ENGINE = ReplacingMergeTree
+PARTITION BY toYYYYMM(timestamp_min)
+ORDER BY (org_id, project_id, timestamp_min, entry_id)
+TTL timestamp_min + INTERVAL 13 MONTH
+"""
+
 _COLUMNS = list(EnrichedEvent.model_fields)
 _PROPS_INDEX = _COLUMNS.index("props")  # props is JSON-encoded to a String column
+_API_COLUMNS = list(ApiMinuteRow.model_fields)
 
 
 def get_client(settings: Settings) -> Client:
@@ -71,6 +99,7 @@ def get_client(settings: Settings) -> Client:
 
 def ensure_schema(client: Client) -> None:
     client.command(EVENTS_DDL)
+    client.command(API_MINUTELY_DDL)
 
 
 def wait_for_clickhouse(settings: Settings, *, attempts: int = 30, delay_s: float = 2.0) -> Client:
@@ -99,6 +128,17 @@ class ClickHouseSink:
             row[_PROPS_INDEX] = json.dumps(event.props)
             rows.append(row)
         self._client.insert("events", rows, column_names=_COLUMNS)
+
+
+class ApiMinutelySink:
+    """Sink for the api-metrics batcher (same dedup scheme as events)."""
+
+    def __init__(self, client: Client) -> None:
+        self._client = client
+
+    def insert(self, rows: list[ApiMinuteRow]) -> None:
+        data = [[getattr(row, column) for column in _API_COLUMNS] for row in rows]
+        self._client.insert("api_minutely", data, column_names=_API_COLUMNS)
 
 
 class ClickHouseExecutor:

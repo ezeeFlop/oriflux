@@ -17,16 +17,22 @@ distinct people — within one day it dedupes exactly. Surfaces must label
 multi-day totals accordingly.
 """
 
-from dataclasses import dataclass
+from dataclasses import dataclass, field
 from typing import Literal
 
-QueryShape = Literal["event", "session"]
+QueryShape = Literal["event", "session", "api", "api_latency"]
+Source = Literal["events", "api"]
+
+_EVENTS_ONLY: frozenset[str] = frozenset({"events"})
+_API_ONLY: frozenset[str] = frozenset({"api"})
+_BOTH: frozenset[str] = frozenset({"events", "api"})
 
 
 @dataclass(frozen=True)
 class DimensionSpec:
     name: str
-    sql: str  # column expression on `events`, vetted
+    sql: str  # column expression on the source table, vetted
+    sources: frozenset[str] = field(default=_EVENTS_ONLY)
 
 
 @dataclass(frozen=True)
@@ -34,15 +40,19 @@ class MetricSpec:
     name: str
     shape: QueryShape
     sql: str  # vetted aggregate expression for the shape's source
-    event_filter: str | None = None  # vetted WHERE fragment on `events`
+    event_filter: str | None = None  # vetted WHERE fragment on the source table
+
+    @property
+    def source(self) -> Source:
+        return "events" if self.shape in ("event", "session") else "api"
 
 
 DIMENSIONS: dict[str, DimensionSpec] = {
-    "project_id": DimensionSpec(name="project_id", sql="project_id"),
-    "country": DimensionSpec(name="country", sql="country"),
+    "project_id": DimensionSpec(name="project_id", sql="project_id", sources=_BOTH),
+    "country": DimensionSpec(name="country", sql="country", sources=_BOTH),
     "region": DimensionSpec(name="region", sql="region"),
     "city": DimensionSpec(name="city", sql="city"),
-    "asn": DimensionSpec(name="asn", sql="asn"),
+    "asn": DimensionSpec(name="asn", sql="asn", sources=_BOTH),
     "page": DimensionSpec(name="page", sql="url_path"),
     "referrer": DimensionSpec(name="referrer", sql="referrer"),
     "utm_source": DimensionSpec(name="utm_source", sql="utm_source"),
@@ -53,6 +63,11 @@ DIMENSIONS: dict[str, DimensionSpec] = {
     "browser": DimensionSpec(name="browser", sql="browser"),
     "locale": DimensionSpec(name="locale", sql="locale"),
     "traffic_class": DimensionSpec(name="traffic_class", sql="traffic_class"),
+    # API analytics (§5.3) — read from api_minutely
+    "endpoint": DimensionSpec(name="endpoint", sql="endpoint", sources=_API_ONLY),
+    "method": DimensionSpec(name="method", sql="method", sources=_API_ONLY),
+    "status_class": DimensionSpec(name="status_class", sql="status_class", sources=_API_ONLY),
+    "consumer": DimensionSpec(name="consumer", sql="consumer_id", sources=_API_ONLY),
 }
 
 _PAGEVIEWS = "event_name = 'pageview'"
@@ -76,6 +91,29 @@ METRICS: dict[str, MetricSpec] = {
         name="session_duration", shape="session",
         sql="round(avg(duration_s), 1)",
         event_filter=_PAGEVIEWS,
+    ),
+    # ── API analytics (§5.3) — pre-aggregated api_minutely rows ──────────
+    "api_requests": MetricSpec(name="api_requests", shape="api", sql="sum(count)"),
+    "api_error_rate_4xx": MetricSpec(
+        name="api_error_rate_4xx", shape="api",
+        sql="round(100 * sumIf(count, status_class = '4xx') / sum(count), 2)",
+    ),
+    "api_error_rate_5xx": MetricSpec(
+        name="api_error_rate_5xx", shape="api",
+        sql="round(100 * sumIf(count, status_class = '5xx') / sum(count), 2)",
+    ),
+    # weighted quantiles over the SDK's log-bucket histograms (ms)
+    "api_latency_p50": MetricSpec(
+        name="api_latency_p50", shape="api_latency",
+        sql="round(quantileExactWeighted(0.5)(lat_ms, lat_cnt), 1)",
+    ),
+    "api_latency_p95": MetricSpec(
+        name="api_latency_p95", shape="api_latency",
+        sql="round(quantileExactWeighted(0.95)(lat_ms, lat_cnt), 1)",
+    ),
+    "api_latency_p99": MetricSpec(
+        name="api_latency_p99", shape="api_latency",
+        sql="round(quantileExactWeighted(0.99)(lat_ms, lat_cnt), 1)",
     ),
 }
 

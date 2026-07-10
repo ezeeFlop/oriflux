@@ -71,6 +71,18 @@ class QueryRequest(BaseModel):
         return value
 
     @model_validator(mode="after")
+    def _dimensions_must_match_the_metric_source(self) -> Self:
+        source = METRICS[self.metric].source
+        compatible = sorted(n for n, d in DIMENSIONS.items() if source in d.sources)
+        for name in [*self.dimensions, *(f.dimension for f in self.filters)]:
+            if source not in DIMENSIONS[name].sources:
+                raise ValueError(
+                    f"dimension {name!r} is not available for metric {self.metric!r} — "
+                    f"available: {', '.join(compatible)}"
+                )
+        return self
+
+    @model_validator(mode="after")
     def _hour_granularity_needs_a_short_period(self) -> Self:
         if (
             self.granularity == "hour"

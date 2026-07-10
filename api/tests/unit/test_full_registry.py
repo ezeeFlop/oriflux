@@ -21,25 +21,27 @@ def q(**overrides: object) -> QueryRequest:
 
 
 class TestVocabulary:
-    def test_all_standard_metrics_are_registered(self) -> None:
-        assert set(METRICS) == {
+    def test_all_standard_web_metrics_are_registered(self) -> None:
+        assert {
             "pageviews", "visitors", "sessions", "bounce_rate", "session_duration",
-        }
+        } <= set(METRICS)
 
-    def test_all_standard_dimensions_are_registered(self) -> None:
-        assert set(DIMENSIONS) == {
+    def test_all_standard_web_dimensions_are_registered(self) -> None:
+        assert {
             "project_id", "country", "region", "city", "asn", "page", "referrer",
             "utm_source", "utm_medium", "utm_campaign", "device", "os", "browser",
             "locale", "traffic_class",
-        }
+        } <= set(DIMENSIONS)
 
-    def test_every_dimension_is_filterable_and_groupable_for_every_metric(self) -> None:
-        for metric in METRICS:
-            for dimension in DIMENSIONS:
+    def test_every_compatible_dimension_is_filterable_and_groupable(self) -> None:
+        for metric_name, metric in METRICS.items():
+            for dimension_name, dimension in DIMENSIONS.items():
+                if metric.source not in dimension.sources:
+                    continue
                 request = q(
-                    metric=metric,
-                    dimensions=[dimension],
-                    filters=[{"dimension": dimension, "op": "eq", "value": "x"}],
+                    metric=metric_name,
+                    dimensions=[dimension_name],
+                    filters=[{"dimension": dimension_name, "op": "eq", "value": "x"}],
                 )
                 sql, params = build_query(request, org_id="o")
                 assert "value" in sql

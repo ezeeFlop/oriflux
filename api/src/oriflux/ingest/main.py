@@ -28,9 +28,11 @@ from oriflux.enrichment.sessions import SessionTracker
 from oriflux.enrichment.ua import parse_ua
 from oriflux.enrichment.visitor import VisitorHasher
 from oriflux.ingest.auth import IngestKeyResolver, ResolvedIngestKey, UnknownKey, WrongScope
+from oriflux.models.api_metrics import ApiMetricsIn, ApiMinuteRow
+from oriflux.models.enrichment import GeoInfo
 from oriflux.models.events import EnrichedEvent, PageviewIn
 from oriflux.ratelimit import RateLimited, RateLimiter
-from oriflux.storage.redis_stream import publish_event
+from oriflux.storage.redis_stream import publish_api_rows, publish_event
 
 _bearer = HTTPBearer(auto_error=False)
 
@@ -173,6 +175,31 @@ def create_app(
         )
         await publish_event(request.app.state.redis, event)
         return {"event_id": str(event.event_id)}
+
+    @app.post("/api/v1/api-metrics", status_code=202)
+    async def collect_api_metrics(
+        payload: ApiMetricsIn,
+        request: Request,
+        key: ResolvedIngestKey = Depends(authenticate),
+    ) -> dict[str, Any]:
+        """Aggregate payload from oriflux-sdk (§5.3). Each entry's caller IP
+        is resolved to country/ASN here and discarded — ApiMinuteRow has no
+        IP field, so nothing downstream can ever see the address."""
+        geo = request.app.state.geo
+        rows = [
+            ApiMinuteRow.from_entry(
+                entry,
+                window_start=payload.window_start,
+                org_id=key.org_id,
+                project_id=key.project_id,
+                source_id=key.source_id,
+                geo=geo.resolve(entry.ip) if entry.ip else GeoInfo(),
+            )
+            for entry in payload.entries
+        ]
+        if rows:
+            await publish_api_rows(request.app.state.redis, rows)
+        return {"accepted": len(rows)}
 
     @app.get("/v1/oriflux.js")
     async def sdk_script() -> Response:

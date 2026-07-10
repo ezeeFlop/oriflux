@@ -30,11 +30,13 @@ def _filter_clause(f: Filter, index: int, params: dict[str, Any]) -> str:
     return f"{spec.sql} {_OPS[f.op]} {{{name}:String}}"
 
 
-def _where(request: QueryRequest, metric: MetricSpec, params: dict[str, Any]) -> str:
+def _where(
+    request: QueryRequest, metric: MetricSpec, params: dict[str, Any], *, time_column: str
+) -> str:
     clauses = [
         "org_id = {org_id:String}",
-        "timestamp >= {start:DateTime64(3)}",
-        "timestamp < {end:DateTime64(3)}",
+        f"{time_column} >= {{start:DateTime64(3)}}",
+        f"{time_column} < {{end:DateTime64(3)}}",
     ]
     if metric.event_filter is not None:
         clauses.append(metric.event_filter)
@@ -72,14 +74,29 @@ def build_query(request: QueryRequest, *, org_id: str) -> tuple[str, dict[str, A
         "start": request.period.start,
         "end": request.period.end,
     }
-    where = _where(request, metric, params)
+    time_column = "timestamp" if metric.source == "events" else "timestamp_min"
+    where = _where(request, metric, params, time_column=time_column)
+    columns = {name: DIMENSIONS[name].sql for name in request.dimensions}
 
     if metric.shape == "event":
-        columns = {name: DIMENSIONS[name].sql for name in request.dimensions}
         select, tail = _select_and_group(
             request, metric.sql, dimension_sql=columns, time_column="timestamp"
         )
         return f"SELECT {select} FROM events FINAL WHERE {where}{tail}", params
+
+    if metric.shape in ("api", "api_latency"):
+        select, tail = _select_and_group(
+            request, metric.sql, dimension_sql=columns, time_column="timestamp_min"
+        )
+        array_join = (
+            " ARRAY JOIN latency_bucket_ms AS lat_ms, latency_counts AS lat_cnt"
+            if metric.shape == "api_latency"
+            else ""
+        )
+        return (
+            f"SELECT {select} FROM api_minutely FINAL{array_join} WHERE {where}{tail}",
+            params,
+        )
 
     # session shape: per-session rollup first, aggregate on top
     inner_select = [
