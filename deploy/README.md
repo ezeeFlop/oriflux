@@ -37,7 +37,7 @@ webhook (cliphaven/neokanban pattern).
    | `POSTGRES_PASSWORD` | generate |
    | `MINIO_SECRET_KEY` | generate |
    | `ORIFLUX_GOOGLE_CLIENT_ID` | Google OAuth client id (dashboard login; optional until web ships) |
-   | `MAXMIND_LICENSE_KEY` | SPT MaxMind key — without it geo dimensions stay empty and the weekly refresh alerts |
+   | `MAXMIND_LICENSE_KEY` | optional — only with `ORIFLUX_GEOIP_PROVIDER=maxmind`; the default provider (DB-IP Lite) is keyless and fills `/data/oriflux/prod/geoip` with zero configuration |
    | `OPS_WEBHOOK_URL` | Slack/ntfy webhook for backup-failure alerts (optional but wanted from day 1) |
 
    Then seed tenancy (idempotent; prints the API keys **once** — store them):

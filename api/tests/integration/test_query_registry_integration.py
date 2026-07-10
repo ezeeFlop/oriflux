@@ -136,7 +136,7 @@ def _seed_perf_dataset(settings: Settings) -> None:
     browsers = ["Chrome", "Firefox", "Safari", "Edge"]
     batch: list[dict[str, Any]] = []
     remaining = PERF_TARGET_ROWS - existing
-    for i in range(remaining):
+    for _i in range(remaining):
         day_offset = rng.betavariate(1.2, 3.0) * 395  # denser near "now", 13 months back
         ts = NOW - timedelta(days=day_offset, seconds=rng.randint(0, 86_399))
         visitor = f"v-{ts.date()}-{rng.randint(0, 4000)}"
@@ -175,4 +175,5 @@ class TestLatencyBudget:
                 latencies.append(time.monotonic() - started)
         latencies.sort()
         p95 = latencies[int(len(latencies) * 0.95)]
-        assert p95 < 0.5, f"p95 {p95 * 1000:.0f} ms over budget (median {latencies[len(latencies) // 2] * 1000:.0f} ms)"
+        median = latencies[len(latencies) // 2]
+        assert p95 < 0.5, f"p95 {p95 * 1000:.0f} ms over budget (median {median * 1000:.0f} ms)"

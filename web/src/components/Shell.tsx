@@ -171,6 +171,19 @@ export default function Shell() {
       <main className="mx-auto max-w-6xl px-4 py-6">
         <Outlet />
       </main>
+
+      <footer className="mx-auto max-w-6xl px-4 py-4 text-xs text-ink-soft">
+        {/* CC-BY 4.0 attribution required by the DB-IP Lite databases (#14) */}
+        {t("footer.geoAttribution")}{" "}
+        <a
+          href="https://db-ip.com"
+          target="_blank"
+          rel="noreferrer"
+          className="underline hover:text-ink"
+        >
+          DB-IP
+        </a>
+      </footer>
     </div>
   );
 }

@@ -11,7 +11,8 @@ x-service-env: &service-env
   ORIFLUX_CLICKHOUSE_DATABASE: oriflux
   ORIFLUX_DATABASE_URL: postgresql+asyncpg://oriflux:oriflux-dev@postgres:5432/oriflux
   ORIFLUX_GEOIP_DIR: /var/lib/oriflux/geoip
-  ORIFLUX_MAXMIND_LICENSE_KEY: ${MAXMIND_LICENSE_KEY:-}  # empty in dev: geo stays blank
+  ORIFLUX_GEOIP_PROVIDER: ${ORIFLUX_GEOIP_PROVIDER:-dbip}  # dbip (keyless) | maxmind (needs key)
+  ORIFLUX_MAXMIND_LICENSE_KEY: ${MAXMIND_LICENSE_KEY:-}  # only used by the maxmind provider
 
 x-healthz: &healthz
   test: ["CMD", "python", "-c", "import urllib.request; urllib.request.urlopen('http://localhost:8000/healthz')"]

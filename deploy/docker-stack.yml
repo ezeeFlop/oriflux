@@ -40,7 +40,8 @@ x-oriflux-env: &oriflux-env
   ORIFLUX_JWT_SECRET: ${ORIFLUX_JWT_SECRET:?ORIFLUX_JWT_SECRET is required}
   ORIFLUX_GOOGLE_CLIENT_ID: ${ORIFLUX_GOOGLE_CLIENT_ID:-1031899381936-8g3t4qvikt248nfe76lm5kmcs39ahesq.apps.googleusercontent.com}
   ORIFLUX_GEOIP_DIR: /var/lib/oriflux/geoip
-  ORIFLUX_MAXMIND_LICENSE_KEY: ${MAXMIND_LICENSE_KEY:-}
+  ORIFLUX_GEOIP_PROVIDER: ${ORIFLUX_GEOIP_PROVIDER:-dbip}  # dbip (keyless) | maxmind (needs key)
+  ORIFLUX_MAXMIND_LICENSE_KEY: ${MAXMIND_LICENSE_KEY:-}  # only used by the maxmind provider
   ORIFLUX_OPS_WEBHOOK_URL: ${OPS_WEBHOOK_URL:-}
 
 x-healthz: &healthz
@@ -106,7 +107,7 @@ services:
     environment: *oriflux-env
     healthcheck: *healthz
     volumes:
-      - /data/oriflux/prod/geoip:/var/lib/oriflux/geoip  # writer (weekly refresh job)
+      - /data/oriflux/prod/geoip:/var/lib/oriflux/geoip  # writer (monthly refresh job)
     networks:
       - oriflux
     deploy:

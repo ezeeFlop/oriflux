@@ -1,9 +1,11 @@
-"""IP → geo/ASN dimensions via local MaxMind GeoLite2 databases (PRD §5.1, §9).
+"""IP → geo/ASN dimensions via local .mmdb databases (PRD §5.1, §9).
 
+DB-IP Lite by default, MaxMind GeoLite2 as opt-in — same MMDB format, and
+the refresh job writes both under the GeoLite2-* names below (issue #14).
 The IP is resolved here and DISCARDED — only country/region/city/ASN leave
 this module; `GeoInfo` never carries the address. Missing or unreadable
-databases degrade to empty dimensions (dev environments have no MaxMind
-key); readers reopen when the weekly refresh job replaces the .mmdb files.
+databases degrade to empty dimensions (dev environments may skip the
+refresh); readers reopen when the monthly refresh job replaces the files.
 """
 
 import contextlib

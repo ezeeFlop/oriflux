@@ -7,6 +7,7 @@
     "missingClientId": "Google client id not configured (VITE_GOOGLE_CLIENT_ID)."
   },
   "nav": { "home": "Portfolio", "web": "Web", "api": "API", "logout": "Sign out" },
+  "footer": { "geoAttribution": "IP Geolocation by" },
   "period": {
     "label": "Period",
     "24h": "24 hours",

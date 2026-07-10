@@ -31,8 +31,10 @@ class Settings(BaseSettings):
     ingest_rate_limit_per_key: int = 600
     ingest_rate_limit_per_ip: int = 1200
 
-    # Enrichment (issue #4): local GeoLite2 databases + weekly refresh
+    # Enrichment (issues #4, #14): local .mmdb databases + monthly refresh.
+    # dbip (default) is keyless; maxmind stays available for key holders.
     geoip_dir: str = "./geoip"
+    geoip_provider: str = "dbip"
     maxmind_license_key: str = ""
     ops_webhook_url: str = ""  # backup/refresh failure alerts (same as stack sidecars)
 
