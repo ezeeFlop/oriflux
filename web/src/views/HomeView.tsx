@@ -3,11 +3,11 @@
  *  per décision 2026-07-10). */
 
 import { useQueries, useQuery } from "@tanstack/react-query";
-import { useMemo } from "react";
+import { useMemo, useState } from "react";
 import { useTranslation } from "react-i18next";
 import { Link } from "react-router-dom";
 import { Panel, RankedTable, SkeletonRows } from "../components/widgets";
-import { listAnomalies, runQuery, auth, type Project, type QueryResponse } from "../lib/api";
+import { askOriflux, listAnomalies, runQuery, auth, ApiError, type AskResult, type Project, type QueryResponse } from "../lib/api";
 import { formatNumber, formatPercent } from "../lib/format";
 import { lastMinutes, periodFor } from "../lib/periods";
 import { useDashboard } from "../lib/state";
@@ -99,6 +99,87 @@ function useTiles(projects: Project[]) {
     });
     return tiles;
   }, [projects, live, trends, errors]);
+}
+
+function AskBar() {
+  const { t } = useTranslation();
+  const [question, setQuestion] = useState("");
+  const [result, setResult] = useState<AskResult | null>(null);
+  const [error, setError] = useState("");
+  const [busy, setBusy] = useState(false);
+  const [showQuery, setShowQuery] = useState(false);
+
+  const submit = async (event: React.FormEvent) => {
+    event.preventDefault();
+    if (!question.trim() || busy) return;
+    setBusy(true);
+    setError("");
+    try {
+      setResult(await askOriflux(question));
+    } catch (err) {
+      setResult(null);
+      if (err instanceof ApiError && err.status === 503) setError(t("ask.disabled"));
+      else if (err instanceof ApiError && err.status === 429) setError(t("ask.budget"));
+      else if (err instanceof ApiError && err.status === 422) setError(t("ask.cannotCompile"));
+      else setError(t("common.error"));
+    } finally {
+      setBusy(false);
+    }
+  };
+
+  return (
+    <section>
+      <form onSubmit={submit} className="flex items-center gap-2">
+        <input
+          value={question}
+          onChange={(e) => setQuestion(e.target.value)}
+          placeholder={t("ask.placeholder")}
+          className="flex-1 rounded-lg border border-line bg-surface px-3 py-2 text-sm"
+        />
+        <button
+          type="submit"
+          disabled={busy || !question.trim()}
+          className="rounded-lg bg-flame px-3 py-2 text-sm font-semibold text-white disabled:opacity-40"
+        >
+          {busy ? "…" : t("ask.go")}
+        </button>
+      </form>
+      {error && <p className="mt-1.5 text-sm text-flame">{error}</p>}
+      {result && (
+        <div className="mt-2 rounded-lg border border-line bg-surface p-3">
+          {result.answer && <p className="text-sm">{result.answer}</p>}
+          {result.results.length > 0 && (
+            <table className="mt-2 w-full text-xs">
+              <tbody>
+                {result.results.slice(0, 12).map((row, index) => (
+                  <tr key={index} className="border-t border-line">
+                    {Object.entries(row).map(([key, value]) => (
+                      <td key={key} className="py-1 pr-3 tabular-nums">
+                        {String(value)}
+                      </td>
+                    ))}
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          )}
+          <button
+            onClick={() => setShowQuery((v) => !v)}
+            className="mt-2 text-[11px] text-ink-soft hover:text-flame"
+          >
+            {t("ask.showQuery")}
+          </button>
+          {showQuery && (
+            <pre className="mt-1 overflow-x-auto rounded bg-flame-soft p-2 text-[10px]">
+              {JSON.stringify(result.query, null, 2)}
+              {"\n\n"}
+              {result.sql}
+            </pre>
+          )}
+        </div>
+      )}
+    </section>
+  );
 }
 
 function RevenueStrip() {
@@ -281,6 +362,7 @@ export default function HomeView() {
       )}
 
       <h2 className="font-display text-base font-bold">{t("home.liveNow")}</h2>
+      <AskBar />
       <RevenueStrip />
       <AnomaliesSection />
       <LiveSection />

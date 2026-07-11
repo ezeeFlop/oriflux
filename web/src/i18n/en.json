@@ -165,5 +165,13 @@
     "title": "Infrastructure (Zeus)",
     "containers": "containers",
     "note": "Live snapshot of {{service}} from Zeus — usage vs resources at a glance."
+  },
+  "ask": {
+    "placeholder": "Ask Oriflux… e.g. which countries grew this month?",
+    "go": "Ask",
+    "disabled": "AI is not configured on this instance.",
+    "budget": "Monthly AI budget exhausted.",
+    "cannotCompile": "Could not turn that question into a query — try rephrasing.",
+    "showQuery": "show the executed query"
   }
 }

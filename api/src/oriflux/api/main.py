@@ -10,15 +10,18 @@ on in phase 3.
 import asyncio
 import csv
 import io
+import json
 from collections.abc import AsyncIterator
 from contextlib import asynccontextmanager
 from typing import Any, Protocol
 
-from fastapi import Depends, FastAPI, Response
+from fastapi import Depends, FastAPI, HTTPException, Response
 from fastapi_mcp import FastApiMCP
 from pydantic import BaseModel
 from sqlalchemy.ext.asyncio import AsyncSession, async_sessionmaker
 
+from oriflux.ai.ask import AskCompilationError, compile_question
+from oriflux.ai.gateway import AiBudgetExhausted, AiGateway
 from oriflux.api import (
     admin,
     alerts,
@@ -38,13 +41,18 @@ from oriflux.db.migrate import run_migrations
 from oriflux.logs import setup_logging
 from oriflux.query.engine import build_query
 from oriflux.query.funnel import FunnelRequest, build_funnel
-from oriflux.query.models import Period, QueryRequest
+from oriflux.query.models import Filter, Period, QueryRequest
 from oriflux.query.retention import RetentionRequest, build_retention
 from oriflux.security.google import GoogleVerifier, make_google_verifier
 
 
 class QueryExecutor(Protocol):
     def execute(self, sql: str, params: dict[str, Any]) -> list[dict[str, Any]]: ...
+
+
+class AskRequest(BaseModel):
+    question: str
+    project_id: str | None = None
 
 
 class QueryResponse(BaseModel):
@@ -75,6 +83,7 @@ def create_app(
     settings: Settings | None = None,
     session_factory: async_sessionmaker[AsyncSession] | None = None,
     google_verifier: GoogleVerifier | None = None,
+    ai_gateway: AiGateway | None = None,
 ) -> FastAPI:
     setup_logging()
     settings = settings or get_settings()
@@ -117,6 +126,15 @@ def create_app(
         return ClickHouseExecutor.from_settings(settings)
 
     app.state.query_executor = get_executor
+
+    def get_ai_gateway() -> AiGateway:
+        if ai_gateway is not None:
+            return ai_gateway
+        cached = getattr(app.state, "ai_gateway", None)
+        if cached is None:
+            cached = AiGateway(settings, app.state.session_factory)
+            app.state.ai_gateway = cached
+        return cached
 
     @app.post(
         "/api/v1/query",
@@ -225,6 +243,66 @@ def create_app(
                 "Content-Disposition": f'attachment; filename="oriflux-{request.metric}.csv"'
             },
         )
+
+    @app.post(
+        "/api/v1/ask",
+        operation_id="ask_oriflux",
+        summary="Natural-language analytics: compiles to the typed registry query (never SQL)",
+    )
+    async def ask(
+        request: AskRequest,
+        org_id: str = Depends(require_read_org),
+        executor: QueryExecutor = Depends(get_executor),
+        gateway: AiGateway = Depends(get_ai_gateway),
+    ) -> dict[str, Any]:
+        if not gateway.enabled:
+            raise HTTPException(status_code=503, detail="AI is not configured")
+        try:
+            compiled = await compile_question(gateway, org_id, question=request.question)
+        except AiBudgetExhausted as exc:
+            raise HTTPException(status_code=429, detail=str(exc)) from exc
+        except AskCompilationError as exc:
+            raise HTTPException(
+                status_code=422, detail=f"could not compile the question: {exc}"
+            ) from exc
+        if request.project_id:
+            compiled.filters.append(
+                Filter(dimension="project_id", op="eq", value=request.project_id)
+            )
+        sql, params = build_query(compiled, org_id=org_id)
+        results = await asyncio.to_thread(executor.execute, sql, params)
+        answer = ""
+        try:
+            answer = await gateway.chat(
+                org_id,
+                feature="ask",
+                messages=[
+                    {
+                        "role": "system",
+                        "content": (
+                            "Answer the analytics question in the question's language, in one or "
+                            "two sentences, citing ONLY the numbers provided. Never invent values."
+                        ),
+                    },
+                    {
+                        "role": "user",
+                        "content": (
+                            f"question: {request.question}\n"
+                            f"query: {compiled.model_dump_json()}\n"
+                            f"results: {json.dumps(results[:50], default=str)}"
+                        ),
+                    },
+                ],
+            )
+        except Exception:  # noqa: BLE001 — phrasing is optional; numbers are the answer
+            answer = ""
+        return {
+            "question": request.question,
+            "query": compiled.model_dump(mode="json"),
+            "sql": sql,
+            "results": results,
+            "answer": answer,
+        }
 
     @app.get("/healthz")
     async def healthz() -> dict[str, str]:

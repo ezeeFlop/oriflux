@@ -220,6 +220,21 @@ export function fetchInfra(projectId: string): Promise<InfraSnapshot> {
   return apiFetch<InfraSnapshot>(`/api/v1/projects/${projectId}/infra`);
 }
 
+export interface AskResult {
+  question: string;
+  query: Record<string, unknown>;
+  sql: string;
+  results: QueryRow[];
+  answer: string;
+}
+
+export function askOriflux(question: string, projectId?: string): Promise<AskResult> {
+  return apiFetch<AskResult>("/api/v1/ask", {
+    method: "POST",
+    body: JSON.stringify({ question, project_id: projectId ?? null }),
+  });
+}
+
 export interface Me {
   id: string;
   email: string;

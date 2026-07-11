@@ -165,5 +165,13 @@
     "title": "Infrastructure (Zeus)",
     "containers": "conteneurs",
     "note": "Instantané live de {{service}} via Zeus — usage vs ressources d'un coup d'œil."
+  },
+  "ask": {
+    "placeholder": "Demandez à Oriflux… ex. quels pays progressent ce mois-ci ?",
+    "go": "Demander",
+    "disabled": "L'IA n'est pas configurée sur cette instance.",
+    "budget": "Budget IA mensuel épuisé.",
+    "cannotCompile": "Impossible de transformer la question en requête — reformulez.",
+    "showQuery": "voir la requête exécutée"
   }
 }
