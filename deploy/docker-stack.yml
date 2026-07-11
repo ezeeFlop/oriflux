@@ -43,6 +43,7 @@ x-oriflux-env: &oriflux-env
   ORIFLUX_GEOIP_PROVIDER: ${ORIFLUX_GEOIP_PROVIDER:-dbip}  # dbip (keyless) | maxmind (needs key)
   ORIFLUX_MAXMIND_LICENSE_KEY: ${MAXMIND_LICENSE_KEY:-}  # only used by the maxmind provider
   ORIFLUX_OPS_WEBHOOK_URL: ${OPS_WEBHOOK_URL:-}
+  ORIFLUX_FERNET_KEY: ${ORIFLUX_FERNET_KEY:-}  # connectors (#24): python -c "from cryptography.fernet import Fernet; print(Fernet.generate_key().decode())"
   ORIFLUX_MINIO_URL: http://oriflux_minio:9000  # scheduled CSV dumps (#30)
   ORIFLUX_MINIO_ACCESS_KEY: ${MINIO_ACCESS_KEY:-oriflux}
   ORIFLUX_MINIO_SECRET_KEY: ${MINIO_SECRET_KEY:?MINIO_SECRET_KEY is required}

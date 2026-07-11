@@ -157,5 +157,8 @@
   "anomalies": {
     "title": "Anomalías",
     "vsExpected": "esperado ~{{expected}}"
+  },
+  "revenue": {
+    "mrrMovement": "Movimiento MRR (neto):"
   }
 }

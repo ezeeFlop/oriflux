@@ -77,7 +77,7 @@ class TestQueryEndpoint:
     async def test_unknown_metric_is_422(self, client: httpx.AsyncClient, read_key: str) -> None:
         response = await client.post(
             "/api/v1/query",
-            json={"metric": "revenue", "period": JULY},
+            json={"metric": "profit_margin", "period": JULY},
             headers={"Authorization": f"Bearer {read_key}"},
         )
         assert response.status_code == 422

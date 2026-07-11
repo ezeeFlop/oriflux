@@ -187,6 +187,27 @@ class ExportSchedule(Base):
     created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), default=_utcnow)
 
 
+class ConnectorProvider(enum.StrEnum):
+    stripe = "stripe"
+    lemonsqueezy = "lemonsqueezy"
+
+
+class Connector(Base):
+    """A billing-webhook connector (issue #24): per project, secret Fernet-
+    encrypted at rest (PRD §9)."""
+
+    __tablename__ = "connectors"
+
+    id: Mapped[uuid.UUID] = mapped_column(Uuid, primary_key=True, default=uuid.uuid4)
+    org_id: Mapped[uuid.UUID] = mapped_column(ForeignKey("organizations.id"))
+    project_id: Mapped[uuid.UUID] = mapped_column(ForeignKey("projects.id"))
+    provider: Mapped[ConnectorProvider] = mapped_column(
+        Enum(ConnectorProvider, native_enum=False, length=16)
+    )
+    webhook_secret_encrypted: Mapped[str] = mapped_column(String(512))
+    created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), default=_utcnow)
+
+
 class AnnotationKind(enum.StrEnum):
     release = "release"
     campaign = "campaign"

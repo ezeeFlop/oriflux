@@ -105,6 +105,12 @@ METRICS: dict[str, MetricSpec] = {
         name="custom_event_visitors", shape="event", sql="uniq(visitor_hash)",
         event_filter="event_name != 'pageview'",
     ),
+    # ── Revenue (§5.4, issue #24) — signed amounts: churn < 0, so the sum
+    # reads as MRR movement over the period
+    "revenue": MetricSpec(
+        name="revenue", shape="event", sql="round(sum(value), 2)",
+        event_filter="event_name LIKE 'revenue_%'",
+    ),
     # ── Web Vitals (§5.1, issue #23) — p75 per Google guidance ───────────
     "web_vital_lcp_p75": MetricSpec(
         name="web_vital_lcp_p75", shape="event",

@@ -30,7 +30,7 @@ class TestSchemaValidation:
 
     def test_unknown_metric_is_rejected(self) -> None:
         with pytest.raises(ValidationError, match="unknown metric"):
-            q(metric="revenue")
+            q(metric="profit_margin")
 
     def test_unknown_dimension_is_rejected(self) -> None:
         with pytest.raises(ValidationError, match="unknown dimension"):

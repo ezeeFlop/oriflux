@@ -9,6 +9,8 @@ this path with issue #4.
 """
 
 import ipaddress
+import json
+import uuid
 from collections.abc import AsyncIterator
 from contextlib import asynccontextmanager
 from datetime import UTC, datetime
@@ -23,7 +25,14 @@ from redis.asyncio import Redis
 from sqlalchemy.ext.asyncio import AsyncSession, async_sessionmaker
 
 from oriflux.config import Settings, get_settings
+from oriflux.connectors.revenue import (
+    map_lemonsqueezy_event,
+    map_stripe_event,
+    verify_lemonsqueezy_signature,
+    verify_stripe_signature,
+)
 from oriflux.db import create_engine, create_session_factory
+from oriflux.db.models import Connector, ConnectorProvider
 from oriflux.enrichment.crawlers import classify_traffic, refine_traffic
 from oriflux.enrichment.geo import GeoResolver
 from oriflux.enrichment.sessions import SessionTracker
@@ -41,6 +50,7 @@ from oriflux.models.events import (
     VitalIn,
 )
 from oriflux.ratelimit import RateLimited, RateLimiter
+from oriflux.security.secrets import decrypt_secret
 from oriflux.storage.redis_stream import publish_api_rows, publish_event
 
 _bearer = HTTPBearer(auto_error=False)
@@ -92,6 +102,7 @@ def create_app(
         app: FastAPI, redis_client: Redis, factory: async_sessionmaker[AsyncSession]
     ) -> None:
         app.state.redis = redis_client
+        app.state.session_factory = factory
         app.state.resolver = IngestKeyResolver(
             factory, cache_ttl_s=settings.api_key_cache_ttl_s
         )
@@ -246,6 +257,44 @@ def create_app(
         if rows:
             await publish_api_rows(request.app.state.redis, rows)
         return {"accepted": len(rows)}
+
+    @app.post("/api/v1/connectors/{connector_id}/webhook", status_code=202)
+    async def billing_webhook(connector_id: uuid.UUID, request: Request) -> dict[str, Any]:
+        """Stripe / Lemon Squeezy webhooks (issue #24). Signature-verified;
+        idempotent under redelivery via deterministic event UUIDs (uuid5 of
+        the provider event id — the ClickHouse dedup absorbs duplicates)."""
+        if not settings.fernet_key:
+            raise HTTPException(status_code=503, detail="connectors disabled (no Fernet key)")
+        async with request.app.state.session_factory() as session:
+            connector = await session.get(Connector, connector_id)
+        if connector is None:
+            raise HTTPException(status_code=404, detail="unknown connector")
+        secret = decrypt_secret(connector.webhook_secret_encrypted, settings.fernet_key)
+        body = await request.body()
+        if connector.provider == ConnectorProvider.stripe:
+            header = request.headers.get("stripe-signature", "")
+            if not verify_stripe_signature(body, header, secret):
+                raise HTTPException(status_code=401, detail="invalid signature")
+            revenue = map_stripe_event(json.loads(body))
+        else:
+            signature = request.headers.get("x-signature", "")
+            if not verify_lemonsqueezy_signature(body, signature, secret):
+                raise HTTPException(status_code=401, detail="invalid signature")
+            revenue = map_lemonsqueezy_event(json.loads(body))
+        if revenue is None:
+            return {"ignored": True}
+        event = EnrichedEvent(
+            event_id=revenue.event_id,
+            timestamp=datetime.now(tz=UTC),
+            org_id=str(connector.org_id),
+            project_id=str(connector.project_id),
+            source_type="api",
+            event_name=revenue.name,
+            value=revenue.amount,
+            props=revenue.props,
+        )
+        await publish_event(request.app.state.redis, event)
+        return {"event_id": str(event.event_id)}
 
     @app.get("/v1/oriflux.js")
     async def sdk_script() -> Response:

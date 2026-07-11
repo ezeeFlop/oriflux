@@ -78,7 +78,7 @@ class TestRuleValidation:
         owner, org_id = org
         response = await api_client.post(
             f"/api/v1/orgs/{org_id}/alert-rules",
-            json={**RULE, "metric": "revenue"},
+            json={**RULE, "metric": "profit_margin"},
             headers=owner,
         )
         assert response.status_code == 422

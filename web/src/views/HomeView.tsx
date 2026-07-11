@@ -101,6 +101,31 @@ function useTiles(projects: Project[]) {
   }, [projects, live, trends, errors]);
 }
 
+function RevenueStrip() {
+  const { t } = useTranslation();
+  const revenue = useQuery({
+    queryKey: ["portfolio-revenue"],
+    queryFn: () =>
+      runQuery({
+        metric: "revenue",
+        period: periodFor("30d"),
+      }),
+    refetchInterval: TREND_POLL_MS,
+  });
+  const value = revenue.data?.results?.[0]?.value;
+  if (value === undefined || value === null || value === 0) return null;
+  return (
+    <div className="rounded-lg border border-line bg-surface px-3 py-1.5 text-sm">
+      <span className="text-ink-soft">{t("revenue.mrrMovement")} </span>
+      <strong className={`tnum ${value >= 0 ? "text-emerald-600" : "text-flame"}`}>
+        {value >= 0 ? "+" : ""}
+        {value.toFixed(0)} €
+      </strong>
+      <span className="ml-1 text-xs text-ink-soft">/ 30j</span>
+    </div>
+  );
+}
+
 function AnomaliesSection() {
   const { t } = useTranslation();
   const anomalies = useQuery({
@@ -256,6 +281,7 @@ export default function HomeView() {
       )}
 
       <h2 className="font-display text-base font-bold">{t("home.liveNow")}</h2>
+      <RevenueStrip />
       <AnomaliesSection />
       <LiveSection />
     </div>

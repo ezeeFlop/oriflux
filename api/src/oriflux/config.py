@@ -43,6 +43,9 @@ class Settings(BaseSettings):
     alert_email_from: str = "oriflux@sponge-theory.io"
     allow_private_webhooks: bool = False  # dev/test sinks only — NEVER in prod
 
+    # Connectors (issue #24): Fernet key for webhook secrets at rest
+    fernet_key: str = ""  # empty → connector CRUD is disabled
+
     # Exports (issue #30): daily CSV dumps to the in-stack MinIO
     minio_url: str = ""  # e.g. http://minio:9000 — empty disables scheduled dumps
     minio_access_key: str = ""
