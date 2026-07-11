@@ -27,6 +27,22 @@ and revoked keys are rejected. Keys are issued per organization
 
 (Dev: `http://localhost:8101/mcp`.)
 
+## Ecosystem: traffic classification (§15.2)
+
+Oriflux is the single source of truth for the crawler / AI-agent list for
+Sponge Theory properties. Consumers (AudiGEO) read it instead of embedding
+their own:
+
+- `GET /api/v1/classification/crawlers` (read key) — the canonical list,
+  versioned with an `ETag`; send `If-None-Match` to get `304` when unchanged.
+- `POST /api/v1/classification/classify` `{"user_agent": ...}` → `{traffic_class, reason}`
+  (the same `refine_traffic` path the ingest uses; reason is `ua:<Crawler>` or `heuristic:<name>`).
+
+**AudiGEO integration (its repo):** replace the embedded `BOT_PATTERNS`
+with a cached consumer of `/crawlers` (respect the ETag; keep the last
+good copy as a fallback when Oriflux is unreachable). AudiGEO customer
+sites never move into Oriflux; only the LIST source becomes shared.
+
 ## Tool inventory (phase 3 additions)
 
 | Tool | Input | Notes |

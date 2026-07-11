@@ -28,6 +28,7 @@ from oriflux.api import (
     annotations,
     anomalies,
     auth,
+    classification,
     connectors,
     digest,
     goals,
@@ -119,6 +120,7 @@ def create_app(
     app.include_router(connectors.router)
     app.include_router(infra.router)
     app.include_router(public.router)
+    app.include_router(classification.router)
 
     def get_executor() -> QueryExecutor:
         if executor is not None:
