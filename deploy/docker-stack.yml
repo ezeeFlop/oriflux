@@ -30,13 +30,13 @@ version: "3.8"
 x-oriflux-env: &oriflux-env
   PYTHONDONTWRITEBYTECODE: "1"
   PYTHONUNBUFFERED: "1"
-  ORIFLUX_REDIS_URL: redis://redis:6379/0
-  ORIFLUX_CLICKHOUSE_HOST: clickhouse
+  ORIFLUX_REDIS_URL: redis://oriflux_redis:6379/0
+  ORIFLUX_CLICKHOUSE_HOST: oriflux_clickhouse  # qualified: never hijackable on webfacing (cd27aee lesson)
   ORIFLUX_CLICKHOUSE_PORT: "8123"
   ORIFLUX_CLICKHOUSE_USER: ${CLICKHOUSE_USER:-oriflux}
   ORIFLUX_CLICKHOUSE_PASSWORD: ${CLICKHOUSE_PASSWORD:?CLICKHOUSE_PASSWORD is required}
   ORIFLUX_CLICKHOUSE_DATABASE: ${CLICKHOUSE_DB:-oriflux}
-  ORIFLUX_DATABASE_URL: postgresql+asyncpg://${POSTGRES_USER:-oriflux}:${POSTGRES_PASSWORD:?POSTGRES_PASSWORD is required}@postgres:5432/${POSTGRES_DB:-oriflux}
+  ORIFLUX_DATABASE_URL: postgresql+asyncpg://${POSTGRES_USER:-oriflux}:${POSTGRES_PASSWORD:?POSTGRES_PASSWORD is required}@oriflux_postgres:5432/${POSTGRES_DB:-oriflux}
   ORIFLUX_JWT_SECRET: ${ORIFLUX_JWT_SECRET:?ORIFLUX_JWT_SECRET is required}
   ORIFLUX_GOOGLE_CLIENT_ID: ${ORIFLUX_GOOGLE_CLIENT_ID:-1031899381936-8g3t4qvikt248nfe76lm5kmcs39ahesq.apps.googleusercontent.com}
   ORIFLUX_GEOIP_DIR: /var/lib/oriflux/geoip
@@ -109,6 +109,7 @@ services:
     volumes:
       - /data/oriflux/prod/geoip:/var/lib/oriflux/geoip  # writer (monthly refresh job)
     networks:
+      - webfacing  # egress: DB-IP downloads + alert webhooks (oriflux net is internal)
       - oriflux
     deploy:
       replicas: 1  # single consumer name per replica; scale only with distinct consumers
@@ -202,7 +203,7 @@ services:
           sleep 86400;
         done
     environment:
-      CLICKHOUSE_HOST: clickhouse
+      CLICKHOUSE_HOST: oriflux_clickhouse
       CLICKHOUSE_USERNAME: ${CLICKHOUSE_USER:-oriflux}
       CLICKHOUSE_PASSWORD: ${CLICKHOUSE_PASSWORD:?CLICKHOUSE_PASSWORD is required}
       REMOTE_STORAGE: s3
