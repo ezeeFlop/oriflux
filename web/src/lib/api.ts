@@ -102,6 +102,80 @@ export function listProjects(orgId: string): Promise<Project[]> {
   return apiFetch<Project[]>(`/api/v1/orgs/${orgId}/projects`);
 }
 
+export function createProject(
+  orgId: string,
+  project: { slug: string; name: string },
+): Promise<Project> {
+  return apiFetch<Project>(`/api/v1/orgs/${orgId}/projects`, {
+    method: "POST",
+    body: JSON.stringify(project),
+  });
+}
+
+export type SourceType = "web" | "app" | "api";
+
+export interface Source {
+  id: string;
+  project_id: string;
+  type: SourceType;
+  name: string;
+}
+
+export function listSources(projectId: string): Promise<Source[]> {
+  return apiFetch<Source[]>(`/api/v1/projects/${projectId}/sources`);
+}
+
+export function createSource(
+  projectId: string,
+  source: { type: SourceType; name: string },
+): Promise<Source> {
+  return apiFetch<Source>(`/api/v1/projects/${projectId}/sources`, {
+    method: "POST",
+    body: JSON.stringify(source),
+  });
+}
+
+/** Plaintext appears exactly once, in this issuance response. */
+export interface IssuedKey {
+  id: string;
+  key: string;
+  key_prefix: string;
+  scope: "ingest" | "read";
+  name: string;
+}
+
+export interface ApiKeyRow {
+  id: string;
+  scope: "ingest" | "read";
+  name: string;
+  key_prefix: string;
+  source_id: string | null;
+  revoked: boolean;
+  created_at: string;
+}
+
+export function issueIngestKey(sourceId: string, name: string): Promise<IssuedKey> {
+  return apiFetch<IssuedKey>(`/api/v1/sources/${sourceId}/keys`, {
+    method: "POST",
+    body: JSON.stringify({ name }),
+  });
+}
+
+export function issueReadKey(orgId: string, name: string): Promise<IssuedKey> {
+  return apiFetch<IssuedKey>(`/api/v1/orgs/${orgId}/keys`, {
+    method: "POST",
+    body: JSON.stringify({ name }),
+  });
+}
+
+export function listKeys(orgId: string): Promise<ApiKeyRow[]> {
+  return apiFetch<ApiKeyRow[]>(`/api/v1/orgs/${orgId}/keys`);
+}
+
+export function revokeKey(keyId: string): Promise<void> {
+  return apiFetch<void>(`/api/v1/keys/${keyId}`, { method: "DELETE" });
+}
+
 export interface Goal {
   id: string;
   name: string;

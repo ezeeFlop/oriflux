@@ -31,6 +31,41 @@
     "title": "Próximamente en la renovación",
     "body": "Esta pantalla llega en una próxima etapa de la Fase 3.5."
   },
+  "settings": {
+    "projects": "Proyectos",
+    "projectName": "Nombre del proyecto",
+    "projectSlug": "slug",
+    "createProject": "Crear proyecto",
+    "sources": "Fuentes",
+    "sourceName": "Nombre de la fuente",
+    "sourceType": "Tipo de fuente",
+    "addSource": "Añadir fuente",
+    "issueIngestKey": "Emitir clave de ingesta",
+    "keys": "Claves API",
+    "keyName": "Nombre de la clave",
+    "issueReadKey": "Emitir clave de lectura",
+    "revoke": "Revocar",
+    "revoked": "Revocada",
+    "noSources": "Sin fuentes — añade una para instrumentar este proyecto.",
+    "noKeys": "Sin claves API.",
+    "keyModalTitle": "Clave emitida — cópiala ahora",
+    "keyModalWarning": "Esta clave no volverá a mostrarse: el servidor solo conserva una huella.",
+    "snippet": "Fragmento de integración",
+    "copy": "Copiar",
+    "copied": "¡Copiado!",
+    "copyKey": "Copiar clave",
+    "copySnippet": "Copiar fragmento",
+    "close": "Cerrar",
+    "scope": {
+      "ingest": "Ingesta",
+      "read": "Lectura"
+    },
+    "type": {
+      "web": "Web",
+      "app": "App",
+      "api": "API"
+    }
+  },
   "footer": {
     "geoAttribution": "Geolocalización IP por"
   },

@@ -7,6 +7,7 @@ import ApiView from "./views/ApiView";
 import ComingSoon from "./views/ComingSoon";
 import HomeView from "./views/HomeView";
 import Login from "./views/Login";
+import OrgSettingsView from "./views/OrgSettingsView";
 import PublicView from "./views/PublicView";
 import WebView from "./views/WebView";
 
@@ -43,7 +44,7 @@ export function AppRoutes() {
         }
       >
         <Route path="/" element={<HomeView />} />
-        <Route path="/settings/org" element={<ComingSoon section="orgSettings" />} />
+        <Route path="/settings/org" element={<OrgSettingsView />} />
         <Route path="/p/:projectId" element={<ProjectIndexRedirect />} />
         {PROJECT_SECTIONS.map(({ key, path }) => (
           <Route

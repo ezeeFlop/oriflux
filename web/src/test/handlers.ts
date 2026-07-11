@@ -55,6 +55,8 @@ export const handlers = [
       answer: "42",
     }),
   ),
+  http.get("/api/v1/projects/:projectId/sources", () => HttpResponse.json([])),
+  http.get("/api/v1/orgs/:orgId/keys", () => HttpResponse.json([])),
   http.get("/api/v1/projects/:projectId/goals", () => HttpResponse.json([])),
   http.get("/api/v1/projects/:projectId/annotations", () => HttpResponse.json([])),
   http.get("/api/v1/projects/:projectId/infra", () =>

@@ -31,6 +31,41 @@
     "title": "Coming soon in the overhaul",
     "body": "This screen ships in an upcoming Phase 3.5 slice."
   },
+  "settings": {
+    "projects": "Projects",
+    "projectName": "Project name",
+    "projectSlug": "slug",
+    "createProject": "Create project",
+    "sources": "Sources",
+    "sourceName": "Source name",
+    "sourceType": "Source type",
+    "addSource": "Add source",
+    "issueIngestKey": "Issue ingest key",
+    "keys": "API keys",
+    "keyName": "Key name",
+    "issueReadKey": "Issue read key",
+    "revoke": "Revoke",
+    "revoked": "Revoked",
+    "noSources": "No sources — add one to instrument this project.",
+    "noKeys": "No API keys.",
+    "keyModalTitle": "Key issued — copy it now",
+    "keyModalWarning": "This key will never be shown again: the server only keeps a fingerprint.",
+    "snippet": "Integration snippet",
+    "copy": "Copy",
+    "copied": "Copied!",
+    "copyKey": "Copy key",
+    "copySnippet": "Copy snippet",
+    "close": "Close",
+    "scope": {
+      "ingest": "Ingest",
+      "read": "Read"
+    },
+    "type": {
+      "web": "Web",
+      "app": "App",
+      "api": "API"
+    }
+  },
   "footer": {
     "geoAttribution": "IP Geolocation by"
   },

@@ -31,6 +31,41 @@
     "title": "Bientôt dans la refonte",
     "body": "Cet écran arrive dans une prochaine tranche de la Phase 3.5."
   },
+  "settings": {
+    "projects": "Projets",
+    "projectName": "Nom du projet",
+    "projectSlug": "slug",
+    "createProject": "Créer le projet",
+    "sources": "Sources",
+    "sourceName": "Nom de la source",
+    "sourceType": "Type de source",
+    "addSource": "Ajouter la source",
+    "issueIngestKey": "Émettre une clé d'ingestion",
+    "keys": "Clés API",
+    "keyName": "Nom de la clé",
+    "issueReadKey": "Émettre une clé de lecture",
+    "revoke": "Révoquer",
+    "revoked": "Révoquée",
+    "noSources": "Aucune source — ajoutez-en une pour instrumenter ce projet.",
+    "noKeys": "Aucune clé API.",
+    "keyModalTitle": "Clé émise — copiez-la maintenant",
+    "keyModalWarning": "Cette clé ne sera plus jamais affichée : le serveur n'en conserve qu'une empreinte.",
+    "snippet": "Snippet d'intégration",
+    "copy": "Copier",
+    "copied": "Copié !",
+    "copyKey": "Copier la clé",
+    "copySnippet": "Copier le snippet",
+    "close": "Fermer",
+    "scope": {
+      "ingest": "Ingestion",
+      "read": "Lecture"
+    },
+    "type": {
+      "web": "Web",
+      "app": "App",
+      "api": "API"
+    }
+  },
   "footer": {
     "geoAttribution": "Géolocalisation IP par"
   },

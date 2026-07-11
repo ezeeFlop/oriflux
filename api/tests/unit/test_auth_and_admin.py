@@ -125,3 +125,69 @@ class TestRbac:
             f"/api/v1/orgs/{org_id}/projects", json={"slug": "x", "name": "X"}, headers=outsider
         )
         assert response.status_code == 403
+
+
+class TestAdminListing:
+    """Issue #45: the settings UI needs to list what the POSTs created."""
+
+    async def test_project_sources_are_listable(self, api_client: httpx.AsyncClient) -> None:
+        owner = await login(api_client, "alice")
+        _, project_id, source_id = await create_org_chain(api_client, owner)
+
+        listed = await api_client.get(f"/api/v1/projects/{project_id}/sources", headers=owner)
+        assert listed.status_code == 200
+        sources = listed.json()
+        assert [s["id"] for s in sources] == [source_id]
+        assert sources[0]["type"] == "web"
+        assert sources[0]["name"] == "audigeo.ai website"
+
+    async def test_org_keys_listing_shows_prefix_and_revocation_never_secrets(
+        self, api_client: httpx.AsyncClient
+    ) -> None:
+        owner = await login(api_client, "alice")
+        org_id, _, source_id = await create_org_chain(api_client, owner)
+        ingest = await api_client.post(
+            f"/api/v1/sources/{source_id}/keys", json={"name": "site"}, headers=owner
+        )
+        read = await api_client.post(
+            f"/api/v1/orgs/{org_id}/keys", json={"name": "mcp"}, headers=owner
+        )
+        assert ingest.status_code == 201 and read.status_code == 201
+
+        listed = await api_client.get(f"/api/v1/orgs/{org_id}/keys", headers=owner)
+        assert listed.status_code == 200
+        keys = {k["id"]: k for k in listed.json()}
+        assert set(keys) == {ingest.json()["id"], read.json()["id"]}
+
+        ingest_row = keys[ingest.json()["id"]]
+        assert ingest_row["scope"] == "ingest"
+        assert ingest_row["source_id"] == source_id
+        assert ingest_row["key_prefix"] == ingest.json()["key_prefix"]
+        assert ingest_row["revoked"] is False
+        # the plaintext and the hash must never appear in a listing
+        assert "key" not in ingest_row and "key_hash" not in ingest_row
+
+        revoked = await api_client.delete(
+            f"/api/v1/keys/{read.json()['id']}", headers=owner
+        )
+        assert revoked.status_code == 204
+        relisted = await api_client.get(f"/api/v1/orgs/{org_id}/keys", headers=owner)
+        assert {k["id"]: k["revoked"] for k in relisted.json()}[read.json()["id"]] is True
+
+    async def test_a_viewer_cannot_list_keys_but_can_list_sources(
+        self, api_client: httpx.AsyncClient
+    ) -> None:
+        owner = await login(api_client, "alice")
+        org_id, project_id, _ = await create_org_chain(api_client, owner)
+        await api_client.post(
+            f"/api/v1/orgs/{org_id}/members",
+            json={"email": "bob@sponge-theory.io", "role": "viewer"},
+            headers=owner,
+        )
+        viewer = await login(api_client, "bob")
+        assert (
+            await api_client.get(f"/api/v1/projects/{project_id}/sources", headers=viewer)
+        ).status_code == 200
+        assert (
+            await api_client.get(f"/api/v1/orgs/{org_id}/keys", headers=viewer)
+        ).status_code == 403

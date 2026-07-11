@@ -72,6 +72,18 @@ class KeyIn(BaseModel):
     name: str = ""
 
 
+class KeyOut(BaseModel):
+    """Listing shape: the prefix identifies a key, the secret never reappears."""
+
+    id: str
+    scope: KeyScope
+    name: str
+    key_prefix: str
+    source_id: str | None
+    revoked: bool
+    created_at: datetime
+
+
 class IssuedKeyOut(BaseModel):
     id: str
     key: str  # plaintext — shown exactly once
@@ -165,6 +177,61 @@ async def create_source(
     return SourceOut(
         id=str(source.id), project_id=str(project_id), type=source.type, name=source.name
     )
+
+
+@router.get("/projects/{project_id}/sources")
+async def list_project_sources(
+    project_id: uuid.UUID,
+    user: User = Depends(get_current_user),
+    session: AsyncSession = Depends(get_session),
+) -> list[SourceOut]:
+    project = await session.get(Project, project_id)
+    if project is None:
+        raise HTTPException(status_code=404, detail="project not found")
+    await require_role(session, user, project.org_id, Role.viewer)
+    sources = (
+        (
+            await session.execute(
+                select(Source).where(Source.project_id == project_id).order_by(Source.created_at)
+            )
+        )
+        .scalars()
+        .all()
+    )
+    return [
+        SourceOut(id=str(s.id), project_id=str(project_id), type=s.type, name=s.name)
+        for s in sources
+    ]
+
+
+@router.get("/orgs/{org_id}/keys")
+async def list_org_keys(
+    org_id: uuid.UUID,
+    user: User = Depends(get_current_user),
+    session: AsyncSession = Depends(get_session),
+) -> list[KeyOut]:
+    await require_role(session, user, org_id, Role.admin)
+    keys = (
+        (
+            await session.execute(
+                select(ApiKey).where(ApiKey.org_id == org_id).order_by(ApiKey.created_at)
+            )
+        )
+        .scalars()
+        .all()
+    )
+    return [
+        KeyOut(
+            id=str(k.id),
+            scope=k.scope,
+            name=k.name,
+            key_prefix=k.key_prefix,
+            source_id=str(k.source_id) if k.source_id is not None else None,
+            revoked=k.revoked_at is not None,
+            created_at=k.created_at,
+        )
+        for k in keys
+    ]
 
 
 @router.post("/sources/{source_id}/keys", status_code=201)
