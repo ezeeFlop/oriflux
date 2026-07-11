@@ -97,7 +97,8 @@
     "topPagesNow": "Páginas activas (30 min)",
     "topCountriesNow": "Países activos (30 min)",
     "noProjects": "Aún no hay proyectos — cree uno a través de la API de administración.",
-    "updated": "actualizado cada 10 s"
+    "updated": "actualizado cada 10 s",
+    "liveGlobe": "Mundo en vivo"
   },
   "common": {
     "loading": "Cargando…",

@@ -10,6 +10,8 @@ import { Panel, RankedTable, SkeletonRows } from "../components/widgets";
 import { askOriflux, listAnomalies, listInsights, runQuery, auth, ApiError, type AskResult, type Project, type QueryResponse } from "../lib/api";
 import { formatNumber, formatPercent } from "../lib/format";
 import { lastMinutes, periodFor } from "../lib/periods";
+import { useLive } from "../lib/useLive";
+import WorldLive from "../components/WorldLive";
 import { useDashboard } from "../lib/state";
 
 const LIVE_POLL_MS = 10_000;
@@ -315,14 +317,32 @@ function LiveSection() {
   });
   void projects;
 
+  const live = useLive();
+  const pageRows = live ? live.pages : pagesNow[0]?.data?.results;
+  const countryRows = live ? live.countries : pagesNow[1]?.data?.results;
   return (
-    <div className="grid gap-4 md:grid-cols-2">
-      <Panel title={t("home.topPagesNow")}>
-        <RankedTable rows={pagesNow[0]?.data?.results} dimension="page" />
+    <div className="space-y-4">
+      <Panel
+        title={t("home.liveGlobe")}
+        actions={
+          live ? (
+            <span className="text-[10px] uppercase text-emerald-600">ws</span>
+          ) : undefined
+        }
+      >
+        <WorldLive countries={(countryRows ?? []).map((row) => ({
+          country: String((row as { country?: unknown }).country ?? ""),
+          value: Number((row as { value?: unknown }).value ?? 0),
+        }))} />
       </Panel>
-      <Panel title={t("home.topCountriesNow")}>
-        <RankedTable rows={pagesNow[1]?.data?.results} dimension="country" />
-      </Panel>
+      <div className="grid gap-4 md:grid-cols-2">
+        <Panel title={t("home.topPagesNow")}>
+          <RankedTable rows={pageRows} dimension="page" />
+        </Panel>
+        <Panel title={t("home.topCountriesNow")}>
+          <RankedTable rows={countryRows} dimension="country" />
+        </Panel>
+      </div>
     </div>
   );
 }

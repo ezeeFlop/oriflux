@@ -127,6 +127,12 @@ def create_app(
 
     app.state.query_executor = get_executor
 
+    from oriflux.api.live import LiveHub, register_live_endpoint
+
+    register_live_endpoint(
+        app, LiveHub(get_executor, lambda: app.state.session_factory())
+    )
+
     def get_ai_gateway() -> AiGateway:
         if ai_gateway is not None:
             return ai_gateway
