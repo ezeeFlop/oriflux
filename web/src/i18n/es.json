@@ -254,7 +254,11 @@
     "disabled": "La IA no está configurada en esta instancia.",
     "budget": "Presupuesto mensual de IA agotado.",
     "cannotCompile": "No se pudo convertir la pregunta en una consulta — reformule.",
-    "showQuery": "ver la consulta ejecutada"
+    "showQuery": "ver la consulta ejecutada",
+    "title": "Preguntar a Oriflux",
+    "open": "Preguntar",
+    "hint": "⌘K / Ctrl+K para abrir — Esc para cerrar. Cada respuesta cita la consulta ejecutada.",
+    "executedQuery": "Consulta ejecutada"
   },
   "insights": {
     "title": "Insights"
@@ -263,7 +267,8 @@
     "title": "Panel público",
     "last30d": "Últimos 30 días",
     "invalid": "Este enlace de compartición no es válido o ha sido revocado.",
-    "poweredBy": "Con la tecnología de Oriflux"
+    "poweredBy": "Con la tecnología de Oriflux",
+    "invalidHint": "Este enlace compartido fue revocado o no existe."
   },
   "alerts": {
     "rules": "Reglas de alerta",

@@ -254,7 +254,11 @@
     "disabled": "AI is not configured on this instance.",
     "budget": "Monthly AI budget exhausted.",
     "cannotCompile": "Could not turn that question into a query — try rephrasing.",
-    "showQuery": "show the executed query"
+    "showQuery": "show the executed query",
+    "title": "Ask Oriflux",
+    "open": "Ask",
+    "hint": "⌘K / Ctrl+K to open — Esc to close. Every answer cites the executed query.",
+    "executedQuery": "Executed query"
   },
   "insights": {
     "title": "Insights"
@@ -263,7 +267,8 @@
     "title": "Public dashboard",
     "last30d": "Last 30 days",
     "invalid": "This share link is invalid or has been revoked.",
-    "poweredBy": "Powered by Oriflux"
+    "poweredBy": "Powered by Oriflux",
+    "invalidHint": "This share link was revoked or does not exist."
   },
   "alerts": {
     "rules": "Alert rules",

@@ -254,7 +254,11 @@
     "disabled": "L'IA n'est pas configurée sur cette instance.",
     "budget": "Budget IA mensuel épuisé.",
     "cannotCompile": "Impossible de transformer la question en requête — reformulez.",
-    "showQuery": "voir la requête exécutée"
+    "showQuery": "voir la requête exécutée",
+    "title": "Demander à Oriflux",
+    "open": "Demander",
+    "hint": "⌘K / Ctrl+K pour ouvrir — Échap pour fermer. Chaque réponse cite la requête exécutée.",
+    "executedQuery": "Requête exécutée"
   },
   "insights": {
     "title": "Insights"
@@ -263,7 +267,8 @@
     "title": "Tableau de bord public",
     "last30d": "30 derniers jours",
     "invalid": "Ce lien de partage est invalide ou a été révoqué.",
-    "poweredBy": "Propulsé par Oriflux"
+    "poweredBy": "Propulsé par Oriflux",
+    "invalidHint": "Ce lien de partage a été révoqué ou n'existe pas."
   },
   "alerts": {
     "rules": "Règles d'alerte",

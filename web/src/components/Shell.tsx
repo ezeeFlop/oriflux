@@ -2,6 +2,7 @@ import { useEffect, useRef, useState } from "react";
 import { useTranslation } from "react-i18next";
 import { NavLink, Outlet, useLocation, useNavigate, useParams } from "react-router-dom";
 import { LANGUAGES, setLanguage, type Language } from "../i18n";
+import AskPalette, { openAskPalette } from "./AskPalette";
 import { PROJECT_SECTIONS } from "../lib/sections";
 import { useDashboard } from "../lib/state";
 import { PERIOD_KEYS, type PeriodKey } from "../lib/periods";
@@ -278,6 +279,13 @@ export default function Shell() {
             </NavLink>
             <div className="ml-auto flex items-center gap-3">
               <PeriodPicker />
+              <button
+                onClick={openAskPalette}
+                aria-label={t("ask.title")}
+                className="rounded-md border border-line px-2 py-1 text-xs text-ink-soft hover:border-flame hover:text-flame"
+              >
+                {t("ask.open")} <kbd className="ml-1 text-[10px]">⌘K</kbd>
+              </button>
               <AccountMenu />
             </div>
           </div>
@@ -292,6 +300,7 @@ export default function Shell() {
         <main className="min-w-0 flex-1 px-4 py-5">
           <Outlet />
         </main>
+        <AskPalette />
       </div>
     </div>
   );
