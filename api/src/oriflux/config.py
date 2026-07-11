@@ -46,6 +46,11 @@ class Settings(BaseSettings):
     # Connectors (issue #24): Fernet key for webhook secrets at rest
     fernet_key: str = ""  # empty → connector CRUD is disabled
 
+    # Zeus infra read (issue #29): service-account session; empty → disabled
+    zeus_url: str = ""
+    zeus_username: str = ""
+    zeus_password: str = ""
+
     # Exports (issue #30): daily CSV dumps to the in-stack MinIO
     minio_url: str = ""  # e.g. http://minio:9000 — empty disables scheduled dumps
     minio_access_key: str = ""

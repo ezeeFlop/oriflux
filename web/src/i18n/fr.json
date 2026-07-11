@@ -160,5 +160,10 @@
   },
   "revenue": {
     "mrrMovement": "Mouvement MRR (net) :"
+  },
+  "infra": {
+    "title": "Infrastructure (Zeus)",
+    "containers": "conteneurs",
+    "note": "Instantané live de {{service}} via Zeus — usage vs ressources d'un coup d'œil."
   }
 }

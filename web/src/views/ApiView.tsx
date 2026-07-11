@@ -1,10 +1,12 @@
 import { useMemo, useState } from "react";
+import { useQuery } from "@tanstack/react-query";
 import { useTranslation } from "react-i18next";
 import { useParams } from "react-router-dom";
 import { PeriodPicker } from "../components/Shell";
 import { Panel, RankedTable, SkeletonRows, StatCard } from "../components/widgets";
 import type { QueryRow } from "../lib/api";
 import { deltaPercent, formatMs, formatNumber, formatPercent } from "../lib/format";
+import { fetchInfra } from "../lib/api";
 import { compareScalar, scalar, useMetric } from "../lib/useMetric";
 
 type SortKey = "volume" | "errors" | "p95";
@@ -157,6 +159,41 @@ function ConsumerPanel({ projectId }: { projectId: string }) {
   );
 }
 
+function InfraPanel({ projectId }: { projectId: string }) {
+  const { t } = useTranslation();
+  const infra = useQuery({
+    queryKey: ["infra", projectId],
+    queryFn: () => fetchInfra(projectId),
+    refetchInterval: 30_000,
+  });
+  if (!infra.data?.available) return null;
+  return (
+    <Panel title={t("infra.title")}>
+      <div className="grid grid-cols-3 gap-3 text-center">
+        <div>
+          <div className="tnum font-display text-2xl font-bold">
+            {infra.data.cpu_percent?.toFixed(1)}%
+          </div>
+          <div className="text-xs text-ink-soft">CPU</div>
+        </div>
+        <div>
+          <div className="tnum font-display text-2xl font-bold">
+            {Math.round(infra.data.memory_mb ?? 0)} MB
+          </div>
+          <div className="text-xs text-ink-soft">RAM</div>
+        </div>
+        <div>
+          <div className="tnum font-display text-2xl font-bold">{infra.data.containers}</div>
+          <div className="text-xs text-ink-soft">{t("infra.containers")}</div>
+        </div>
+      </div>
+      <p className="mt-2 text-[11px] text-ink-soft">
+        {t("infra.note", { service: infra.data.service })}
+      </p>
+    </Panel>
+  );
+}
+
 export default function ApiView() {
   const { t } = useTranslation();
   const { projectId = "" } = useParams();
@@ -207,6 +244,8 @@ export default function ApiView() {
       </div>
 
       <EndpointTable projectId={projectId} />
+
+      <InfraPanel projectId={projectId} />
 
       <div className="grid gap-4 md:grid-cols-3">
         <Panel title={t("api.statusClasses")}>

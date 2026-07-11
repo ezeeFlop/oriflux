@@ -208,6 +208,18 @@ export function listAnomalies(orgId: string): Promise<Anomaly[]> {
   return apiFetch<Anomaly[]>(`/api/v1/orgs/${orgId}/anomalies`);
 }
 
+export interface InfraSnapshot {
+  available: boolean;
+  service?: string;
+  cpu_percent?: number;
+  memory_mb?: number;
+  containers?: number;
+}
+
+export function fetchInfra(projectId: string): Promise<InfraSnapshot> {
+  return apiFetch<InfraSnapshot>(`/api/v1/projects/${projectId}/infra`);
+}
+
 export interface Me {
   id: string;
   email: string;

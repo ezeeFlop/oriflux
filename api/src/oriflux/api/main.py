@@ -28,6 +28,7 @@ from oriflux.api import (
     connectors,
     digest,
     goals,
+    infra,
     tools,
 )
 from oriflux.api.deps import require_read_org
@@ -106,6 +107,7 @@ def create_app(
     app.include_router(anomalies.router)
     app.include_router(digest.router)
     app.include_router(connectors.router)
+    app.include_router(infra.router)
 
     def get_executor() -> QueryExecutor:
         if executor is not None:
