@@ -33,7 +33,13 @@ from oriflux.ingest.auth import IngestKeyResolver, ResolvedIngestKey, UnknownKey
 from oriflux.logs import setup_logging
 from oriflux.models.api_metrics import ApiMetricsIn, ApiMinuteRow
 from oriflux.models.enrichment import GeoInfo
-from oriflux.models.events import CustomEventIn, EnrichedEvent, IdentifyIn, PageviewIn
+from oriflux.models.events import (
+    CustomEventIn,
+    EnrichedEvent,
+    IdentifyIn,
+    PageviewIn,
+    VitalIn,
+)
 from oriflux.ratelimit import RateLimited, RateLimiter
 from oriflux.storage.redis_stream import publish_api_rows, publish_event
 
@@ -158,7 +164,8 @@ def create_app(
     @app.post("/api/v1/events", status_code=202)
     async def collect(
         payload: Annotated[
-            PageviewIn | CustomEventIn | IdentifyIn, Field(discriminator="type")
+            PageviewIn | CustomEventIn | IdentifyIn | VitalIn,
+            Field(discriminator="type"),
         ],
         request: Request,
         key: ResolvedIngestKey = Depends(authenticate),
@@ -199,6 +206,8 @@ def create_app(
         }
         if isinstance(payload, PageviewIn):
             event = EnrichedEvent.from_pageview(payload, **enrichment)
+        elif isinstance(payload, VitalIn):
+            event = EnrichedEvent.from_vital(payload, **enrichment)
         else:
             event = EnrichedEvent.from_custom_event(payload, **enrichment)
         await publish_event(request.app.state.redis, event)

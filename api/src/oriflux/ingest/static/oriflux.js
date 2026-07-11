@@ -59,6 +59,54 @@
     }
   };
 
+  /* Web Vitals (§5.1): collected passively, reported once on page hide */
+  try {
+    var vitals = {};
+    var nav = performance.getEntriesByType("navigation")[0];
+    if (nav && nav.responseStart > 0) vitals.ttfb = nav.responseStart;
+    var observe = function (type, handler, extra) {
+      try {
+        new PerformanceObserver(handler).observe(
+          Object.assign({ type: type, buffered: true }, extra || {})
+        );
+      } catch (e) {}
+    };
+    observe("largest-contentful-paint", function (list) {
+      var entries = list.getEntries();
+      if (entries.length) vitals.lcp = entries[entries.length - 1].startTime;
+    });
+    var cls = 0;
+    observe("layout-shift", function (list) {
+      list.getEntries().forEach(function (entry) {
+        if (!entry.hadRecentInput) cls += entry.value;
+      });
+      vitals.cls = cls;
+    });
+    var inp = 0;
+    observe(
+      "event",
+      function (list) {
+        list.getEntries().forEach(function (entry) {
+          if (entry.duration > inp) inp = entry.duration;
+        });
+        if (inp) vitals.inp = inp;
+      },
+      { durationThreshold: 40 }
+    );
+    var reported = false;
+    var report = function () {
+      if (reported) return;
+      reported = true;
+      for (var name in vitals) {
+        send({ type: "vital", name: name, value: vitals[name], url: w.location.href });
+      }
+    };
+    d.addEventListener("visibilitychange", function () {
+      if (d.visibilityState === "hidden") report();
+    });
+    w.addEventListener("pagehide", report);
+  } catch (e) {}
+
   /* SPA navigations: history API + back/forward */
   try {
     var push = w.history.pushState;

@@ -46,6 +46,7 @@ CREATE TABLE IF NOT EXISTS events (
     browser LowCardinality(String),
     locale LowCardinality(String),
     traffic_class LowCardinality(String),
+    value Float64,
     props String
 )
 ENGINE = ReplacingMergeTree
@@ -100,6 +101,9 @@ def get_client(settings: Settings) -> Client:
 def ensure_schema(client: Client) -> None:
     client.command(EVENTS_DDL)
     client.command(API_MINUTELY_DDL)
+    # Columns added after first ship (idempotent — CREATE IF NOT EXISTS above
+    # only covers fresh installs): Web Vitals numeric payload (#23).
+    client.command("ALTER TABLE events ADD COLUMN IF NOT EXISTS value Float64")
 
 
 def wait_for_clickhouse(settings: Settings, *, attempts: int = 30, delay_s: float = 2.0) -> Client:

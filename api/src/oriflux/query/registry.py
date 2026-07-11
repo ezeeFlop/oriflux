@@ -104,6 +104,23 @@ METRICS: dict[str, MetricSpec] = {
         name="custom_event_visitors", shape="event", sql="uniq(visitor_hash)",
         event_filter="event_name != 'pageview'",
     ),
+    # ── Web Vitals (§5.1, issue #23) — p75 per Google guidance ───────────
+    "web_vital_lcp_p75": MetricSpec(
+        name="web_vital_lcp_p75", shape="event",
+        sql="round(quantile(0.75)(value), 0)", event_filter="event_name = 'vital_lcp'",
+    ),
+    "web_vital_cls_p75": MetricSpec(
+        name="web_vital_cls_p75", shape="event",
+        sql="round(quantile(0.75)(value), 3)", event_filter="event_name = 'vital_cls'",
+    ),
+    "web_vital_inp_p75": MetricSpec(
+        name="web_vital_inp_p75", shape="event",
+        sql="round(quantile(0.75)(value), 0)", event_filter="event_name = 'vital_inp'",
+    ),
+    "web_vital_ttfb_p75": MetricSpec(
+        name="web_vital_ttfb_p75", shape="event",
+        sql="round(quantile(0.75)(value), 0)", event_filter="event_name = 'vital_ttfb'",
+    ),
     # ── API analytics (§5.3) — pre-aggregated api_minutely rows ──────────
     "api_requests": MetricSpec(name="api_requests", shape="api", sql="sum(count)"),
     "api_error_rate_4xx": MetricSpec(

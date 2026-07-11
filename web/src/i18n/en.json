@@ -143,5 +143,9 @@
     "cohort": "Cohort",
     "empty": "No identified cohorts in this period — retention needs identify() and an activation event.",
     "identifiedNote": "Identified users only: anonymous cross-day retention is impossible by design (the daily salt is destroyed) — that is what keeps Oriflux consent-banner-free."
+  },
+  "vitals": {
+    "title": "Web Vitals",
+    "note": "p75 over the selected period — thresholds per Google guidance (LCP 2.5s / CLS 0.1 / INP 200ms / TTFB 800ms)."
   }
 }

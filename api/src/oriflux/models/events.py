@@ -116,6 +116,27 @@ class CustomEventIn(BaseModel):
         return (urlsplit(self.url).path or "/") if self.url else ""
 
 
+class VitalIn(BaseModel):
+    """A Web Vital sample reported by oriflux.js (§5.1, #23)."""
+
+    type: Literal["vital"]
+    name: Literal["lcp", "cls", "inp", "ttfb"]
+    value: float = Field(ge=0, le=600_000)  # ms for lcp/inp/ttfb, unitless for cls
+    url: str
+
+    @field_validator("url")
+    @classmethod
+    def _url_must_be_http(cls, value: str) -> str:
+        parts = urlsplit(value)
+        if parts.scheme not in ("http", "https") or not parts.netloc:
+            raise ValueError("url must be an absolute http(s) URL")
+        return value
+
+    @property
+    def url_path(self) -> str:
+        return urlsplit(self.url).path or "/"
+
+
 class IdentifyIn(BaseModel):
     """oriflux.identify(user_id, traits) — pseudonymous only (§5.2, §9, #17)."""
 
@@ -168,6 +189,7 @@ class EnrichedEvent(BaseModel):
     locale: str = ""
     # "" = unclassified; classification (issue #4) fills it, but the column exists from day one
     traffic_class: Literal["", "human", "bot", "ai_agent"] = ""
+    value: float = 0.0  # numeric payload (Web Vitals #23); 0 for plain events
     props: dict[str, Any] = Field(default_factory=dict)
 
     @classmethod
@@ -216,6 +238,47 @@ class EnrichedEvent(BaseModel):
             session_id=session_id,
             user_pseudo_id=user_pseudo_id,
             props=wire.props,
+        )
+
+    @classmethod
+    def from_vital(
+        cls,
+        wire: "VitalIn",
+        *,
+        org_id: str,
+        project_id: str,
+        timestamp: datetime,
+        geo: GeoInfo | None = None,
+        ua: UAInfo | None = None,
+        traffic_class: Literal["", "human", "bot", "ai_agent"] = "",
+        visitor_hash: str = "",
+        session_id: str = "",
+        locale: str = "",
+        user_pseudo_id: str = "",
+    ) -> Self:
+        geo = geo or GeoInfo()
+        ua = ua or UAInfo()
+        return cls(
+            event_id=uuid4(),
+            timestamp=timestamp,
+            org_id=org_id,
+            project_id=project_id,
+            source_type="web",
+            event_name=f"vital_{wire.name}",
+            url_path=wire.url_path,
+            country=geo.country,
+            region=geo.region,
+            city=geo.city,
+            asn=geo.asn,
+            device=ua.device,
+            os=ua.os,
+            browser=ua.browser,
+            locale=locale,
+            traffic_class=traffic_class,
+            visitor_hash=visitor_hash,
+            session_id=session_id,
+            user_pseudo_id=user_pseudo_id,
+            value=wire.value,
         )
 
     @classmethod

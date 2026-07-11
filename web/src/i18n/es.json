@@ -143,5 +143,9 @@
     "cohort": "Cohorte",
     "empty": "Sin cohortes identificadas en este período — la retención requiere identify() y un evento de activación.",
     "identifiedNote": "Solo usuarios identificados: la retención anónima entre días es imposible por diseño (la sal diaria se destruye) — eso es lo que mantiene Oriflux sin banner de consentimiento."
+  },
+  "vitals": {
+    "title": "Web Vitals",
+    "note": "p75 en el período — umbrales según las recomendaciones de Google (LCP 2,5 s / CLS 0,1 / INP 200 ms / TTFB 800 ms)."
   }
 }

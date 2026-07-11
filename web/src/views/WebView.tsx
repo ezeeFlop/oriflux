@@ -135,6 +135,49 @@ function GeoPanel({ projectId }: { projectId: string }) {
   );
 }
 
+const VITALS = [
+  { key: "lcp", metric: "web_vital_lcp_p75", unit: "ms", good: 2500, poor: 4000 },
+  { key: "cls", metric: "web_vital_cls_p75", unit: "", good: 0.1, poor: 0.25 },
+  { key: "inp", metric: "web_vital_inp_p75", unit: "ms", good: 200, poor: 500 },
+  { key: "ttfb", metric: "web_vital_ttfb_p75", unit: "ms", good: 800, poor: 1800 },
+] as const;
+
+function VitalsPanel({ projectId }: { projectId: string }) {
+  const { t } = useTranslation();
+  const lcp = useMetric({ metric: "web_vital_lcp_p75", projectId, projectOnly: true });
+  const cls = useMetric({ metric: "web_vital_cls_p75", projectId, projectOnly: true });
+  const inp = useMetric({ metric: "web_vital_inp_p75", projectId, projectOnly: true });
+  const ttfb = useMetric({ metric: "web_vital_ttfb_p75", projectId, projectOnly: true });
+  const queries = { lcp, cls, inp, ttfb };
+
+  return (
+    <Panel title={t("vitals.title")} className="md:col-span-2">
+      <div className="grid grid-cols-2 gap-3 sm:grid-cols-4">
+        {VITALS.map((vital) => {
+          const value = scalar(queries[vital.key].data);
+          const state =
+            value === null ? "none" : value <= vital.good ? "good" : value <= vital.poor ? "ni" : "poor";
+          const dot =
+            state === "good" ? "bg-emerald-500" : state === "ni" ? "bg-amber-500" : "bg-flame";
+          return (
+            <div key={vital.key} className="rounded-lg border border-line bg-surface p-3">
+              <div className="flex items-center gap-1.5 text-xs uppercase tracking-wide text-ink-soft">
+                {state !== "none" && <span className={`h-2 w-2 rounded-full ${dot}`} />}
+                {vital.key.toUpperCase()}
+                <span className="normal-case">· p75</span>
+              </div>
+              <div className="tnum mt-1 font-display text-xl font-bold">
+                {value === null ? "—" : `${formatNumber(value)}${vital.unit ? ` ${vital.unit}` : ""}`}
+              </div>
+            </div>
+          );
+        })}
+      </div>
+      <p className="mt-2 text-[11px] text-ink-soft">{t("vitals.note")}</p>
+    </Panel>
+  );
+}
+
 function GoalsPanel({ projectId }: { projectId: string }) {
   const { t } = useTranslation();
   const { period } = useDashboard();
@@ -548,6 +591,7 @@ export default function WebView() {
         >
           <RankedTable rows={devices.data?.results} dimension={deviceTab} />
         </Panel>
+        <VitalsPanel projectId={projectId} />
         <GoalsPanel projectId={projectId} />
         <FunnelPanel projectId={projectId} />
         <RetentionPanel projectId={projectId} />
