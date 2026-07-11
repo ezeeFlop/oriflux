@@ -44,6 +44,8 @@ x-oriflux-env: &oriflux-env
   ORIFLUX_MAXMIND_LICENSE_KEY: ${MAXMIND_LICENSE_KEY:-}  # only used by the maxmind provider
   ORIFLUX_OPS_WEBHOOK_URL: ${OPS_WEBHOOK_URL:-}
   ORIFLUX_FERNET_KEY: ${ORIFLUX_FERNET_KEY:-}  # connectors (#24): python -c "from cryptography.fernet import Fernet; print(Fernet.generate_key().decode())"
+  ORIFLUX_SPT_MODELS_URL: ${ORIFLUX_SPT_MODELS_URL:-}  # AI layer (#33): SPT Models gateway; empty = AI disabled
+  ORIFLUX_SPT_MODELS_API_KEY: ${ORIFLUX_SPT_MODELS_API_KEY:-}
   ORIFLUX_ZEUS_URL: ${ORIFLUX_ZEUS_URL:-}  # infra correlation (#29): e.g. https://zeus.sponge-theory.dev
   ORIFLUX_ZEUS_USERNAME: ${ORIFLUX_ZEUS_USERNAME:-}
   ORIFLUX_ZEUS_PASSWORD: ${ORIFLUX_ZEUS_PASSWORD:-}

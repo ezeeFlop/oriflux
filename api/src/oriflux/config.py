@@ -43,6 +43,14 @@ class Settings(BaseSettings):
     alert_email_from: str = "oriflux@sponge-theory.io"
     allow_private_webhooks: bool = False  # dev/test sinks only — NEVER in prod
 
+    # AI layer (issue #33, PRD §6): local SPT Models only — never a cloud LLM
+    spt_models_url: str = ""  # empty → every AI feature cleanly disabled
+    spt_models_api_key: str = ""
+    spt_chat_model: str = "spt-chat"
+    spt_embed_model: str = "spt-embed"
+    spt_rerank_model: str = "spt-rerank"
+    ai_default_monthly_token_budget: int = 2_000_000  # per org; org column overrides
+
     # Connectors (issue #24): Fernet key for webhook secrets at rest
     fernet_key: str = ""  # empty → connector CRUD is disabled
 

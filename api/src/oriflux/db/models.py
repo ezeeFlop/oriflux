@@ -58,6 +58,7 @@ class Organization(Base):
     slug: Mapped[str] = mapped_column(String(64), unique=True)
     name: Mapped[str] = mapped_column(String(255))
     anomalies_muted: Mapped[bool] = mapped_column(Boolean, default=False)
+    ai_token_budget: Mapped[int | None] = mapped_column(Integer)  # None → settings default (#33)
     created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), default=_utcnow)
 
     projects: Mapped[list["Project"]] = relationship(back_populates="organization")
@@ -185,6 +186,20 @@ class ExportSchedule(Base):
     query: Mapped[dict[str, Any]] = mapped_column(JSON)  # QueryRequest minus period
     window_days: Mapped[int] = mapped_column(Integer, default=1)
     enabled: Mapped[bool] = mapped_column(Boolean, default=True)
+    created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), default=_utcnow)
+
+
+class AiUsage(Base):
+    """One row per SPT Models call (issue #33): the per-org inference
+    budget is enforced against the current month's sum, BEFORE each call."""
+
+    __tablename__ = "ai_usage"
+
+    id: Mapped[uuid.UUID] = mapped_column(Uuid, primary_key=True, default=uuid.uuid4)
+    org_id: Mapped[uuid.UUID] = mapped_column(ForeignKey("organizations.id"))
+    feature: Mapped[str] = mapped_column(String(32))  # ask | insights | explain | digest | segments
+    tokens_in: Mapped[int] = mapped_column(Integer, default=0)
+    tokens_out: Mapped[int] = mapped_column(Integer, default=0)
     created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), default=_utcnow)
 
 
