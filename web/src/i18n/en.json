@@ -177,5 +177,11 @@
   },
   "insights": {
     "title": "Insights"
+  },
+  "public": {
+    "title": "Public dashboard",
+    "last30d": "Last 30 days",
+    "invalid": "This share link is invalid or has been revoked.",
+    "poweredBy": "Powered by Oriflux"
   }
 }

@@ -177,5 +177,11 @@
   },
   "insights": {
     "title": "Insights"
+  },
+  "public": {
+    "title": "Tableau de bord public",
+    "last30d": "30 derniers jours",
+    "invalid": "Ce lien de partage est invalide ou a été révoqué.",
+    "poweredBy": "Propulsé par Oriflux"
   }
 }

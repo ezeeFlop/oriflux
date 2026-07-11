@@ -177,5 +177,11 @@
   },
   "insights": {
     "title": "Insights"
+  },
+  "public": {
+    "title": "Panel público",
+    "last30d": "Últimos 30 días",
+    "invalid": "Este enlace de compartición no es válido o ha sido revocado.",
+    "poweredBy": "Con la tecnología de Oriflux"
   }
 }

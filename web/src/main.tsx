@@ -10,6 +10,7 @@ import { DashboardProvider } from "./lib/state";
 import ApiView from "./views/ApiView";
 import HomeView from "./views/HomeView";
 import Login from "./views/Login";
+import PublicView from "./views/PublicView";
 import WebView from "./views/WebView";
 
 const queryClient = new QueryClient({
@@ -29,6 +30,7 @@ createRoot(document.getElementById("root")!).render(
       <BrowserRouter>
         <Routes>
           <Route path="/login" element={<Login />} />
+          <Route path="/public/:token" element={<PublicView />} />
           <Route
             element={
               <RequireAuth>

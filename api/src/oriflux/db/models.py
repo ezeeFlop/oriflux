@@ -225,6 +225,20 @@ class Insight(Base):
     created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), default=_utcnow)
 
 
+class ShareToken(Base):
+    """A revocable public-dashboard share (issue #41): hashed at rest like
+    an API key; the plaintext (ofx_pub_*) is shown once at mint."""
+
+    __tablename__ = "share_tokens"
+
+    id: Mapped[uuid.UUID] = mapped_column(Uuid, primary_key=True, default=uuid.uuid4)
+    org_id: Mapped[uuid.UUID] = mapped_column(ForeignKey("organizations.id"))
+    project_id: Mapped[uuid.UUID] = mapped_column(ForeignKey("projects.id"))
+    token_hash: Mapped[str] = mapped_column(String(64), unique=True)
+    revoked_at: Mapped[datetime | None] = mapped_column(DateTime(timezone=True))
+    created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), default=_utcnow)
+
+
 class ConnectorProvider(enum.StrEnum):
     stripe = "stripe"
     lemonsqueezy = "lemonsqueezy"
