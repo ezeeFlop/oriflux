@@ -49,6 +49,7 @@ from oriflux.models.events import (
     PageviewIn,
     VitalIn,
 )
+from oriflux.quota import QuotaExceeded, QuotaMeter
 from oriflux.ratelimit import RateLimited, RateLimiter
 from oriflux.security.secrets import decrypt_secret
 from oriflux.storage.redis_stream import publish_api_rows, publish_event
@@ -114,6 +115,9 @@ def create_app(
         app.state.geo = GeoResolver(settings.geoip_dir)
         app.state.visitor_hasher = VisitorHasher(redis_client)
         app.state.session_tracker = SessionTracker(redis_client)
+        app.state.quota = QuotaMeter(
+            redis_client, factory, tolerance_pct=settings.ingest_quota_tolerance_pct
+        )
 
     @asynccontextmanager
     async def lifespan(app: FastAPI) -> AsyncIterator[None]:
@@ -172,6 +176,24 @@ def create_app(
             raise HTTPException(status_code=429, detail=str(exc)) from exc
         return resolved
 
+    async def _meter_quota(
+        request: Request, org_id: str, n: int, now: datetime
+    ) -> dict[str, str]:
+        """Count n events against the org's monthly quota (issue #60);
+        429 with the quota headers once past limit × (1 + tolerance)."""
+        if n <= 0:
+            return {}
+        meter: QuotaMeter = request.app.state.quota
+        try:
+            status = await meter.count(org_id, n, now=now)
+        except QuotaExceeded as exc:
+            raise HTTPException(
+                status_code=429,
+                detail="monthly event quota exceeded",
+                headers=exc.status.headers(),
+            ) from exc
+        return status.headers()
+
     @app.post("/api/v1/events", status_code=202)
     async def collect(
         payload: Annotated[
@@ -179,12 +201,15 @@ def create_app(
             Field(discriminator="type"),
         ],
         request: Request,
+        response: Response,
         key: ResolvedIngestKey = Depends(authenticate),
     ) -> dict[str, Any]:
         if _do_not_track(request):
             return {"tracked": False}
 
         now = datetime.now(tz=UTC)
+        if not isinstance(payload, IdentifyIn):  # identify stores no event row
+            response.headers.update(await _meter_quota(request, key.org_id, 1, now))
         # The IP lives only in these two local variables: resolved to geo and
         # hashed into the daily visitor id, then discarded (PRD §9).
         ip = _client_ip(request)
@@ -237,12 +262,18 @@ def create_app(
     async def collect_api_metrics(
         payload: ApiMetricsIn,
         request: Request,
+        response: Response,
         key: ResolvedIngestKey = Depends(authenticate),
     ) -> dict[str, Any]:
         """Aggregate payload from oriflux-sdk (§5.3). Each entry's caller IP
         is resolved to country/ASN here and discarded — ApiMinuteRow has no
         IP field, so nothing downstream can ever see the address."""
         geo = request.app.state.geo
+        response.headers.update(
+            await _meter_quota(
+                request, key.org_id, len(payload.entries), datetime.now(tz=UTC)
+            )
+        )
         rows = [
             ApiMinuteRow.from_entry(
                 entry,

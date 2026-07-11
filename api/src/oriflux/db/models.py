@@ -13,6 +13,7 @@ from typing import Any
 
 from sqlalchemy import (
     JSON,
+    BigInteger,
     Boolean,
     DateTime,
     Enum,
@@ -51,6 +52,18 @@ class KeyScope(enum.StrEnum):
     read = "read"
 
 
+class Plan(Base):
+    """A billable plan (issue #60): limits are data, never code. NULL
+    monthly_events = unlimited (internal/dogfooding orgs)."""
+
+    __tablename__ = "plans"
+
+    slug: Mapped[str] = mapped_column(String(32), primary_key=True)
+    name: Mapped[str] = mapped_column(String(64))
+    monthly_events: Mapped[int | None] = mapped_column(BigInteger)
+    stripe_price_id: Mapped[str | None] = mapped_column(String(64))
+
+
 class Organization(Base):
     __tablename__ = "organizations"
 
@@ -59,6 +72,9 @@ class Organization(Base):
     name: Mapped[str] = mapped_column(String(255))
     anomalies_muted: Mapped[bool] = mapped_column(Boolean, default=False)
     ai_token_budget: Mapped[int | None] = mapped_column(Integer)  # None → settings default (#33)
+    # soft reference to plans.slug (no FK: plans are config-like, and the
+    # quota gate fails open on a missing row)
+    plan_slug: Mapped[str] = mapped_column(String(32), default="free", server_default="free")
     created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), default=_utcnow)
 
     projects: Mapped[list["Project"]] = relationship(back_populates="organization")

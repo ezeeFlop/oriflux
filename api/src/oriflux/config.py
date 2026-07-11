@@ -29,6 +29,8 @@ class Settings(BaseSettings):
     # Ingest protection (PRD §9): per-key and per-IP rate limits, events/minute
     api_key_cache_ttl_s: float = 30.0
     ingest_rate_limit_per_key: int = 600
+    # monthly event quota overshoot allowance before 429 (issue #60)
+    ingest_quota_tolerance_pct: int = 10
     ingest_rate_limit_per_ip: int = 1200
 
     # Enrichment (issues #4, #14): local .mmdb databases + monthly refresh.
