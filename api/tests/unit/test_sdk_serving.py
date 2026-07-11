@@ -80,3 +80,13 @@ class TestCors:
         allowed = response.headers["access-control-allow-headers"].lower()
         assert "authorization" in allowed
         assert int(response.headers["access-control-max-age"]) >= 3600
+
+
+class TestProductAnalyticsApi:
+    """§5.2 / issue #17: window.oriflux.track / .identify shipped in the tag."""
+
+    async def test_script_exposes_track_and_identify(self, client: httpx.AsyncClient) -> None:
+        source = (await client.get("/v1/oriflux.js")).text
+        assert "track:" in source
+        assert "identify:" in source
+        assert "oriflux" in source  # window.oriflux namespace

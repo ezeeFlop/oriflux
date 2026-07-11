@@ -13,11 +13,12 @@ from collections.abc import AsyncIterator
 from contextlib import asynccontextmanager
 from datetime import UTC, datetime
 from importlib.resources import files
-from typing import Any
+from typing import Annotated, Any
 
 from fastapi import Depends, FastAPI, HTTPException, Request, Response
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.security import HTTPAuthorizationCredentials, HTTPBearer
+from pydantic import Field
 from redis.asyncio import Redis
 from sqlalchemy.ext.asyncio import AsyncSession, async_sessionmaker
 
@@ -32,7 +33,7 @@ from oriflux.ingest.auth import IngestKeyResolver, ResolvedIngestKey, UnknownKey
 from oriflux.logs import setup_logging
 from oriflux.models.api_metrics import ApiMetricsIn, ApiMinuteRow
 from oriflux.models.enrichment import GeoInfo
-from oriflux.models.events import EnrichedEvent, PageviewIn
+from oriflux.models.events import CustomEventIn, EnrichedEvent, IdentifyIn, PageviewIn
 from oriflux.ratelimit import RateLimited, RateLimiter
 from oriflux.storage.redis_stream import publish_api_rows, publish_event
 
@@ -156,7 +157,9 @@ def create_app(
 
     @app.post("/api/v1/events", status_code=202)
     async def collect(
-        pageview: PageviewIn,
+        payload: Annotated[
+            PageviewIn | CustomEventIn | IdentifyIn, Field(discriminator="type")
+        ],
         request: Request,
         key: ResolvedIngestKey = Depends(authenticate),
     ) -> dict[str, Any]:
@@ -168,22 +171,36 @@ def create_app(
         # hashed into the daily visitor id, then discarded (PRD §9).
         ip = _client_ip(request)
         user_agent = request.headers.get("user-agent", "")
-        traffic_class, _ = classify_traffic(user_agent)
         visitor_hash = await request.app.state.visitor_hasher.visitor_hash(
             key.project_id, ip, user_agent, day=now.date()
         )
-        event = EnrichedEvent.from_pageview(
-            pageview,
-            org_id=key.org_id,
-            project_id=key.project_id,
-            timestamp=now,
-            geo=request.app.state.geo.resolve(ip),
-            ua=parse_ua(user_agent),
-            traffic_class=traffic_class,
-            visitor_hash=visitor_hash,
-            session_id=await request.app.state.session_tracker.session_for(visitor_hash),
-            locale=_locale(request),
-        )
+        tracker: SessionTracker = request.app.state.session_tracker
+        session_id = await tracker.session_for(visitor_hash)
+
+        if isinstance(payload, IdentifyIn):
+            # No event row: identify only binds the session, server side (#17).
+            await tracker.identify(session_id, payload.user_id)
+            return {"identified": True}
+
+        inline_user = payload.user_id if isinstance(payload, CustomEventIn) else ""
+        user_pseudo_id = inline_user or await tracker.user_for(session_id)
+        traffic_class, _ = classify_traffic(user_agent)
+        enrichment: dict[str, Any] = {
+            "org_id": key.org_id,
+            "project_id": key.project_id,
+            "timestamp": now,
+            "geo": request.app.state.geo.resolve(ip),
+            "ua": parse_ua(user_agent),
+            "traffic_class": traffic_class,
+            "visitor_hash": visitor_hash,
+            "session_id": session_id,
+            "locale": _locale(request),
+            "user_pseudo_id": user_pseudo_id,
+        }
+        if isinstance(payload, PageviewIn):
+            event = EnrichedEvent.from_pageview(payload, **enrichment)
+        else:
+            event = EnrichedEvent.from_custom_event(payload, **enrichment)
         await publish_event(request.app.state.redis, event)
         return {"event_id": str(event.event_id)}
 

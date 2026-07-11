@@ -44,6 +44,7 @@
     "title": "Web analytics",
     "timeseries": "Trend",
     "topPages": "Pages",
+    "topEvents": "Events",
     "topReferrers": "Referrers",
     "utm": "Campaigns",
     "utm_source": "Source",

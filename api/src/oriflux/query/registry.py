@@ -63,6 +63,7 @@ DIMENSIONS: dict[str, DimensionSpec] = {
     "browser": DimensionSpec(name="browser", sql="browser"),
     "locale": DimensionSpec(name="locale", sql="locale"),
     "traffic_class": DimensionSpec(name="traffic_class", sql="traffic_class"),
+    "event_name": DimensionSpec(name="event_name", sql="event_name"),
     # API analytics (§5.3) — read from api_minutely
     "endpoint": DimensionSpec(name="endpoint", sql="endpoint", sources=_API_ONLY),
     "method": DimensionSpec(name="method", sql="method", sources=_API_ONLY),
@@ -91,6 +92,11 @@ METRICS: dict[str, MetricSpec] = {
         name="session_duration", shape="session",
         sql="round(avg(duration_s), 1)",
         event_filter=_PAGEVIEWS,
+    ),
+    # ── product analytics (§5.2, issue #17) ──────────────────────────────
+    "custom_events": MetricSpec(
+        name="custom_events", shape="event", sql="count()",
+        event_filter="event_name != 'pageview'",
     ),
     # ── API analytics (§5.3) — pre-aggregated api_minutely rows ──────────
     "api_requests": MetricSpec(name="api_requests", shape="api", sql="sum(count)"),

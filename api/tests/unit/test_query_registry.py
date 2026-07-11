@@ -73,3 +73,33 @@ class TestSqlSafety:
         sql, _ = build_query(q(dimensions=["country"], granularity="day"), org_id="o")
         assert "GROUP BY" in sql
         assert "country" in sql
+
+
+class TestCustomEventsRegistry:
+    """§5.2 / issue #17: custom events queryable through the registry only."""
+
+    def test_custom_events_by_event_name(self) -> None:
+        sql, _ = build_query(
+            q(metric="custom_events", dimensions=["event_name"]), org_id="org-dev"
+        )
+        assert "event_name != 'pageview'" in sql
+        assert "GROUP BY event_name" in sql
+
+    def test_custom_events_never_count_pageviews(self) -> None:
+        sql, _ = build_query(q(metric="custom_events"), org_id="org-dev")
+        assert "event_name != 'pageview'" in sql
+
+    def test_event_name_dimension_rejected_on_api_metrics(self) -> None:
+        with pytest.raises(ValidationError):
+            q(metric="api_requests", dimensions=["event_name"])
+
+    def test_custom_events_filterable_by_event_name(self) -> None:
+        sql, params = build_query(
+            q(
+                metric="custom_events",
+                filters=[{"dimension": "event_name", "op": "eq", "value": "signup_completed"}],
+            ),
+            org_id="org-dev",
+        )
+        assert "signup_completed" not in sql  # bound, never inlined
+        assert "signup_completed" in params.values()

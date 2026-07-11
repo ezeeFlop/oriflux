@@ -29,3 +29,19 @@ class SessionTracker:
         # every event slides the inactivity window
         await self._redis.expire(key, SESSION_GAP_S)
         return raw.decode() if isinstance(raw, bytes) else str(raw)
+
+    # ── identify() (issue #17) ────────────────────────────────────────────
+    # The session → pseudonymous-user binding lives server side with the
+    # same lifetime as the session: subsequent events get user_pseudo_id
+    # without any client-side storage (no localStorage, ever — §9).
+
+    async def identify(self, session_id: str, user_id: str) -> None:
+        await self._redis.set(
+            f"oriflux:session-user:{session_id}", user_id, ex=SESSION_GAP_S
+        )
+
+    async def user_for(self, session_id: str) -> str:
+        raw = await self._redis.get(f"oriflux:session-user:{session_id}")
+        if raw is None:
+            return ""
+        return raw.decode() if isinstance(raw, bytes) else str(raw)

@@ -141,6 +141,11 @@ export default function WebView() {
   const referrers = useMetric({ metric: "visitors", dimensions: ["referrer"], projectId });
   const utm = useMetric({ metric: "visitors", dimensions: [utmTab], projectId });
   const devices = useMetric({ metric: "visitors", dimensions: [deviceTab], projectId });
+  const events = useMetric({
+    metric: "custom_events",
+    dimensions: ["event_name"],
+    projectId,
+  });
 
   return (
     <div className="space-y-4">
@@ -183,6 +188,9 @@ export default function WebView() {
           <RankedTable rows={utm.data?.results} dimension={utmTab} />
         </Panel>
         <GeoPanel projectId={projectId} />
+        <Panel title={t("web.topEvents")}>
+          <RankedTable rows={events.data?.results} dimension="event_name" />
+        </Panel>
         <Panel
           title={t("web.devices")}
           actions={
@@ -193,7 +201,6 @@ export default function WebView() {
               labelFor={(tab) => t(`web.${tab}`)}
             />
           }
-          className="md:col-span-2"
         >
           <RankedTable rows={devices.data?.results} dimension={deviceTab} />
         </Panel>

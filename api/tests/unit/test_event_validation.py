@@ -10,7 +10,7 @@ from uuid import UUID
 import pytest
 from pydantic import ValidationError
 
-from oriflux.models.events import EnrichedEvent, PageviewIn
+from oriflux.models.events import CustomEventIn, EnrichedEvent, IdentifyIn, PageviewIn
 
 
 class TestPageviewWireContract:
@@ -60,3 +60,74 @@ class TestEnrichment:
         a = EnrichedEvent.from_pageview(wire, org_id="o", project_id="p", timestamp=ts)
         b = EnrichedEvent.from_pageview(wire, org_id="o", project_id="p", timestamp=ts)
         assert a.event_id != b.event_id
+
+
+class TestCustomEventWireContract:
+    """§5.2: oriflux.track(name, props) — issue #17."""
+
+    def test_valid_custom_event_is_accepted(self) -> None:
+        event = CustomEventIn.model_validate(
+            {"type": "event", "name": "signup_completed", "url": "https://a.io/join",
+             "props": {"plan": "pro"}}
+        )
+        assert event.name == "signup_completed"
+        assert event.url_path == "/join"
+
+    def test_url_is_optional_for_custom_events(self) -> None:
+        event = CustomEventIn.model_validate({"type": "event", "name": "job_done"})
+        assert event.url_path == ""
+
+    @pytest.mark.parametrize("name", ["", "Signup", "9lives", "a b", "a" * 65, "é_vent"])
+    def test_non_slug_names_are_rejected(self, name: str) -> None:
+        with pytest.raises(ValidationError):
+            CustomEventIn.model_validate({"type": "event", "name": name})
+
+    def test_pageview_is_not_a_valid_custom_event_name(self) -> None:
+        # would corrupt every pageview metric in the registry
+        with pytest.raises(ValidationError):
+            CustomEventIn.model_validate({"type": "event", "name": "pageview"})
+
+    def test_oversized_props_are_rejected(self) -> None:
+        with pytest.raises(ValidationError, match="props"):
+            CustomEventIn.model_validate(
+                {"type": "event", "name": "big", "props": {"blob": "x" * 5000}}
+            )
+
+    def test_too_many_prop_keys_are_rejected(self) -> None:
+        with pytest.raises(ValidationError, match="props"):
+            CustomEventIn.model_validate(
+                {"type": "event", "name": "wide", "props": {f"k{i}": i for i in range(40)}}
+            )
+
+
+class TestIdentifyWireContract:
+    """§5.2 + §9: identify() accepts only pseudonymous IDs — PII dies at
+    validation with a message naming the reason (issue #17)."""
+
+    def test_pseudonymous_id_is_accepted(self) -> None:
+        identify = IdentifyIn.model_validate({"type": "identify", "user_id": "usr_8f3a2c"})
+        assert identify.user_id == "usr_8f3a2c"
+
+    def test_email_shaped_user_id_is_rejected_naming_the_reason(self) -> None:
+        with pytest.raises(ValidationError, match="email"):
+            IdentifyIn.model_validate({"type": "identify", "user_id": "jane@corp.io"})
+
+    def test_phone_shaped_user_id_is_rejected_naming_the_reason(self) -> None:
+        with pytest.raises(ValidationError, match="phone"):
+            IdentifyIn.model_validate({"type": "identify", "user_id": "+33612345678"})
+
+    def test_email_shaped_trait_value_is_rejected(self) -> None:
+        with pytest.raises(ValidationError, match="email"):
+            IdentifyIn.model_validate(
+                {"type": "identify", "user_id": "usr_1", "traits": {"contact": "j@x.io"}}
+            )
+
+    def test_plain_traits_are_accepted(self) -> None:
+        identify = IdentifyIn.model_validate(
+            {"type": "identify", "user_id": "usr_1", "traits": {"plan": "pro", "tenant": "acme"}}
+        )
+        assert identify.traits == {"plan": "pro", "tenant": "acme"}
+
+    def test_overlong_user_id_is_rejected(self) -> None:
+        with pytest.raises(ValidationError):
+            IdentifyIn.model_validate({"type": "identify", "user_id": "u" * 200})

@@ -44,3 +44,35 @@ class TestSessionTracker:
         tracker = SessionTracker(FakeAsyncRedis())
         ids = await asyncio.gather(*(tracker.session_for("visitor-a") for _ in range(10)))
         assert len(set(ids)) == 1
+
+
+class TestSessionIdentity:
+    """identify() binds the CURRENT session to a pseudonymous user id, server
+    side (issue #17): subsequent events in the session carry user_pseudo_id
+    with zero client-side storage."""
+
+    async def test_identify_binds_the_session_to_the_user(self) -> None:
+        tracker = SessionTracker(FakeAsyncRedis())
+        session = await tracker.session_for("visitor-a")
+        await tracker.identify(session, "usr_42")
+        assert await tracker.user_for(session) == "usr_42"
+
+    async def test_unidentified_session_has_no_user(self) -> None:
+        tracker = SessionTracker(FakeAsyncRedis())
+        session = await tracker.session_for("visitor-a")
+        assert await tracker.user_for(session) == ""
+
+    async def test_identity_does_not_leak_across_sessions(self) -> None:
+        tracker = SessionTracker(FakeAsyncRedis())
+        session_a = await tracker.session_for("visitor-a")
+        session_b = await tracker.session_for("visitor-b")
+        await tracker.identify(session_a, "usr_42")
+        assert await tracker.user_for(session_b) == ""
+
+    async def test_identity_expires_with_the_session_gap(self) -> None:
+        redis = FakeAsyncRedis()
+        tracker = SessionTracker(redis)
+        session = await tracker.session_for("visitor-a")
+        await tracker.identify(session, "usr_42")
+        ttl = await redis.ttl(f"oriflux:session-user:{session}")
+        assert 0 < ttl <= SESSION_GAP_S
