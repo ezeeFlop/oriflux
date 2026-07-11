@@ -69,4 +69,5 @@ export const handlers = [
   ),
   http.get("/api/v1/orgs/:orgId/anomalies", () => HttpResponse.json([])),
   http.get("/api/v1/orgs/:orgId/insights", () => HttpResponse.json([])),
+  http.get("/api/v1/orgs/:orgId/alert-events", () => HttpResponse.json([])),
 ];

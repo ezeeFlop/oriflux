@@ -176,7 +176,10 @@
     "topCountriesNow": "Active countries (30 min)",
     "noProjects": "No projects yet — create one through the admin API.",
     "updated": "refreshed every 10 s",
-    "liveGlobe": "Live world"
+    "liveGlobe": "Live world",
+    "recentAlerts": "Recent alerts",
+    "alertFiring": "Firing",
+    "alertResolved": "Resolved"
   },
   "common": {
     "loading": "Loading…",

@@ -396,6 +396,21 @@ export function listInsights(orgId: string): Promise<Insight[]> {
   return apiFetch<Insight[]>(`/api/v1/orgs/${orgId}/insights`);
 }
 
+export interface AlertEvent {
+  id: string;
+  rule_id: string;
+  rule_name: string;
+  project_id: string | null;
+  metric: string;
+  value: number;
+  fired_at: string;
+  resolved_at: string | null;
+}
+
+export function listAlertEvents(orgId: string): Promise<AlertEvent[]> {
+  return apiFetch<AlertEvent[]>(`/api/v1/orgs/${orgId}/alert-events`);
+}
+
 export interface Me {
   id: string;
   email: string;

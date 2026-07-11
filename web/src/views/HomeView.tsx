@@ -7,7 +7,7 @@ import { useMemo, useState } from "react";
 import { useTranslation } from "react-i18next";
 import { Link, useLocation } from "react-router-dom";
 import { Panel, RankedTable, SkeletonRows } from "../components/widgets";
-import { askOriflux, listAnomalies, listInsights, runQuery, auth, ApiError, type AskResult, type Project, type QueryResponse } from "../lib/api";
+import { askOriflux, listAlertEvents, listAnomalies, listInsights, runQuery, auth, ApiError, type AskResult, type Project, type QueryResponse } from "../lib/api";
 import { formatNumber, formatPercent } from "../lib/format";
 import { lastMinutes, periodFor } from "../lib/periods";
 import { useLive } from "../lib/useLive";
@@ -245,6 +245,59 @@ function InsightsSection() {
   );
 }
 
+/** Recent alert events (#47): rule, metric, value, state — one click lands
+ *  on the project's alerts screen. The diagnosis itself rides the alert
+ *  notification (design of #36); the anomalies feed below carries its own. */
+function AlertsSection() {
+  const { t, i18n } = useTranslation();
+  const { search } = useLocation();
+  const events = useQuery({
+    queryKey: ["alert-events", auth.orgId],
+    queryFn: () => listAlertEvents(auth.orgId ?? ""),
+    enabled: Boolean(auth.orgId),
+    refetchInterval: 60_000,
+  });
+  if (!events.data || events.data.length === 0) return null;
+  return (
+    <section>
+      <h2 className="font-display text-base font-bold">{t("home.recentAlerts")}</h2>
+      <div className="mt-2 space-y-1.5">
+        {events.data.slice(0, 5).map((event) => {
+          const body = (
+            <>
+              <span className={event.resolved_at ? "text-up" : "text-down"} aria-hidden>
+                ●
+              </span>
+              <strong>{event.rule_name}</strong>
+              <span className="text-ink-soft">{t(`metric.${event.metric}`)}</span>
+              <span className="tnum font-semibold">{event.value}</span>
+              <span className="ml-auto text-xs text-ink-soft">
+                {event.resolved_at ? t("home.alertResolved") : t("home.alertFiring")} ·{" "}
+                {new Date(event.fired_at).toLocaleString(i18n.language)}
+              </span>
+            </>
+          );
+          const rowClass =
+            "flex flex-wrap items-center gap-2 rounded-lg border border-line bg-surface px-3 py-2 text-sm";
+          return event.project_id ? (
+            <Link
+              key={event.id}
+              to={{ pathname: `/p/${event.project_id}/alerts`, search }}
+              className={`${rowClass} hover:border-flame`}
+            >
+              {body}
+            </Link>
+          ) : (
+            <div key={event.id} className={rowClass}>
+              {body}
+            </div>
+          );
+        })}
+      </div>
+    </section>
+  );
+}
+
 function AnomaliesSection() {
   const { t } = useTranslation();
   const anomalies = useQuery({
@@ -424,6 +477,7 @@ export default function HomeView() {
       <h2 className="font-display text-base font-bold">{t("home.liveNow")}</h2>
       <AskBar />
       <RevenueStrip />
+      <AlertsSection />
       <InsightsSection />
       <AnomaliesSection />
       <LiveSection />

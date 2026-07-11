@@ -58,6 +58,9 @@ class AlertEventOut(BaseModel):
     id: str
     rule_id: str
     rule_name: str
+    # the rule's scope, so the UI can link an event to its project (#47)
+    project_id: str | None
+    metric: str
     value: float
     fired_at: datetime
     resolved_at: datetime | None
@@ -183,7 +186,7 @@ async def list_events(
     await require_role(session, user, org_id, Role.viewer)
     rows = (
         await session.execute(
-            select(AlertEvent, AlertRule.name)
+            select(AlertEvent, AlertRule.name, AlertRule.project_id, AlertRule.metric)
             .join(AlertRule, AlertRule.id == AlertEvent.rule_id)
             .where(AlertEvent.org_id == org_id)
             .order_by(AlertEvent.fired_at.desc())
@@ -195,9 +198,11 @@ async def list_events(
             id=str(event.id),
             rule_id=str(event.rule_id),
             rule_name=rule_name,
+            project_id=str(project_id) if project_id is not None else None,
+            metric=metric,
             value=event.value,
             fired_at=event.fired_at,
             resolved_at=event.resolved_at,
         )
-        for event, rule_name in rows
+        for event, rule_name, project_id, metric in rows
     ]

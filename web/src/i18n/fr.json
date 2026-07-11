@@ -176,7 +176,10 @@
     "topCountriesNow": "Pays actifs (30 min)",
     "noProjects": "Aucun projet — créez-en un via l'API d'administration.",
     "updated": "actualisé toutes les 10 s",
-    "liveGlobe": "Monde en direct"
+    "liveGlobe": "Monde en direct",
+    "recentAlerts": "Alertes récentes",
+    "alertFiring": "En cours",
+    "alertResolved": "Résolue"
   },
   "common": {
     "loading": "Chargement…",
