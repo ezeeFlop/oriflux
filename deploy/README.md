@@ -114,3 +114,21 @@ Resource limits in the stack cap the non-ClickHouse footprint at
 3 × 0.5 vCPU / 512 MB (services) + Redis 512 MB + PG 512 MB + MinIO 512 MB +
 sidecars 384 MB — under the 2 vCPU / 4 GB target at rest (reservations are far
 lower; limits are ceilings). ClickHouse is capped separately at 1.5 vCPU / 2 GB.
+
+## Exports (issue #30)
+
+- **On demand** — `POST /api/v1/export` with the same typed body as `/api/v1/query`
+  (read key or dashboard JWT) returns CSV; `?limit=` caps rows (hard max 100 000).
+- **Scheduled** — rows in `export_schedules` (org-scoped, saved registry query +
+  trailing window) are dumped daily by the workers to the in-stack MinIO bucket
+  `oriflux-exports` under `<org>/<name>/<date>.csv`. Requires
+  `ORIFLUX_MINIO_URL/ACCESS_KEY/SECRET_KEY` (wired in the stack yml).
+- **BI tools (Metabase/Superset)** — create a read-only ClickHouse user once:
+
+  ```sql
+  CREATE USER oriflux_ro IDENTIFIED BY '<password>' SETTINGS readonly = 1;
+  GRANT SELECT ON oriflux.* TO oriflux_ro;
+  ```
+
+  and point the BI connector at `oriflux_clickhouse:8123` on the stack network
+  (or add a published port scoped to your LAN if the tool runs outside the swarm).

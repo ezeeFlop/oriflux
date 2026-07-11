@@ -20,6 +20,7 @@ dependencies = [
     "ua-parser>=1.0",
     "fastapi-mcp>=0.3",
     "celery[redis]>=5.4",
+    "minio>=7.2.20",
 ]
 
 [dependency-groups]

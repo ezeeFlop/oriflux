@@ -172,6 +172,21 @@ class DigestSend(Base):
     sent_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), default=_utcnow)
 
 
+class ExportSchedule(Base):
+    """A saved registry query dumped daily to MinIO as CSV (issue #30)."""
+
+    __tablename__ = "export_schedules"
+    __table_args__ = (UniqueConstraint("org_id", "name"),)
+
+    id: Mapped[uuid.UUID] = mapped_column(Uuid, primary_key=True, default=uuid.uuid4)
+    org_id: Mapped[uuid.UUID] = mapped_column(ForeignKey("organizations.id"))
+    name: Mapped[str] = mapped_column(String(64))
+    query: Mapped[dict[str, Any]] = mapped_column(JSON)  # QueryRequest minus period
+    window_days: Mapped[int] = mapped_column(Integer, default=1)
+    enabled: Mapped[bool] = mapped_column(Boolean, default=True)
+    created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), default=_utcnow)
+
+
 class AnnotationKind(enum.StrEnum):
     release = "release"
     campaign = "campaign"

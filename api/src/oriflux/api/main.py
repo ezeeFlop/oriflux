@@ -8,11 +8,13 @@ on in phase 3.
 """
 
 import asyncio
+import csv
+import io
 from collections.abc import AsyncIterator
 from contextlib import asynccontextmanager
 from typing import Any, Protocol
 
-from fastapi import Depends, FastAPI
+from fastapi import Depends, FastAPI, Response
 from fastapi_mcp import FastApiMCP
 from pydantic import BaseModel
 from sqlalchemy.ext.asyncio import AsyncSession, async_sessionmaker
@@ -183,6 +185,33 @@ def create_app(
             "cohorts": rows,
             "sql": sql,
         }
+
+    @app.post(
+        "/api/v1/export",
+        operation_id="export_csv",
+        summary="Export a typed registry query as CSV",
+    )
+    async def export_csv(
+        request: QueryRequest,
+        limit: int = 100_000,
+        org_id: str = Depends(require_read_org),
+        executor: QueryExecutor = Depends(get_executor),
+    ) -> Response:
+        sql, params = build_query(request, org_id=org_id)
+        rows = await asyncio.to_thread(executor.execute, sql, params)
+        rows = rows[: max(1, min(limit, 100_000))]  # hard cap (multi-tenancy quota)
+        buffer = io.StringIO()
+        if rows:
+            writer = csv.DictWriter(buffer, fieldnames=list(rows[0].keys()))
+            writer.writeheader()
+            writer.writerows(rows)
+        return Response(
+            content=buffer.getvalue(),
+            media_type="text/csv; charset=utf-8",
+            headers={
+                "Content-Disposition": f'attachment; filename="oriflux-{request.metric}.csv"'
+            },
+        )
 
     @app.get("/healthz")
     async def healthz() -> dict[str, str]:

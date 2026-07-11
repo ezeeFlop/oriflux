@@ -43,6 +43,12 @@ class Settings(BaseSettings):
     alert_email_from: str = "oriflux@sponge-theory.io"
     allow_private_webhooks: bool = False  # dev/test sinks only — NEVER in prod
 
+    # Exports (issue #30): daily CSV dumps to the in-stack MinIO
+    minio_url: str = ""  # e.g. http://minio:9000 — empty disables scheduled dumps
+    minio_access_key: str = ""
+    minio_secret_key: str = ""
+    minio_export_bucket: str = "oriflux-exports"
+
     batch_size: int = 500
     batch_block_ms: int = 1000
 
