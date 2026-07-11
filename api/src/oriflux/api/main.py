@@ -26,6 +26,7 @@ from oriflux.logs import setup_logging
 from oriflux.query.engine import build_query
 from oriflux.query.funnel import FunnelRequest, build_funnel
 from oriflux.query.models import Period, QueryRequest
+from oriflux.query.retention import RetentionRequest, build_retention
 from oriflux.security.google import GoogleVerifier, make_google_verifier
 
 
@@ -158,6 +159,25 @@ def create_app(
             "scope": request.scope,
             "steps": steps,
             "conversion_rate": 0.0 if first == 0 else round(100 * last / first, 1),
+            "sql": sql,
+        }
+
+    @app.post(
+        "/api/v1/retention",
+        operation_id="query_retention",
+        summary="Retention cohorts (identified users only, by design)",
+    )
+    async def retention(
+        request: RetentionRequest,
+        org_id: str = Depends(require_read_org),
+        executor: QueryExecutor = Depends(get_executor),
+    ) -> dict[str, Any]:
+        sql, params = build_retention(request, org_id=org_id)
+        rows = await asyncio.to_thread(executor.execute, sql, params)
+        return {
+            "granularity": request.granularity,
+            "activation_event": request.activation_event,
+            "cohorts": rows,
             "sql": sql,
         }
 

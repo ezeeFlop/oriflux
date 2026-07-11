@@ -134,5 +134,14 @@
     "removeStep": "Remove step",
     "conversion": "Conversion:",
     "sessionNote": "Anonymous funnels are limited to a single session/day — the daily rotating hash makes longer anonymous sequences impossible by design."
+  },
+  "retention": {
+    "title": "Retention",
+    "activation": "Activation event",
+    "weekly": "Weekly",
+    "monthly": "Monthly",
+    "cohort": "Cohort",
+    "empty": "No identified cohorts in this period — retention needs identify() and an activation event.",
+    "identifiedNote": "Identified users only: anonymous cross-day retention is impossible by design (the daily salt is destroyed) — that is what keeps Oriflux consent-banner-free."
   }
 }

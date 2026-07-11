@@ -158,6 +158,24 @@ export function runFunnel(request: {
   });
 }
 
+export interface RetentionResult {
+  granularity: "week" | "month";
+  activation_event: string;
+  cohorts: { cohort_start: string; offset: number; users: number }[];
+}
+
+export function runRetention(request: {
+  activation_event: string;
+  granularity: "week" | "month";
+  project_id: string;
+  period: { start: string; end: string };
+}): Promise<RetentionResult> {
+  return apiFetch<RetentionResult>("/api/v1/retention", {
+    method: "POST",
+    body: JSON.stringify(request),
+  });
+}
+
 export interface Me {
   id: string;
   email: string;

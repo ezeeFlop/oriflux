@@ -10,6 +10,7 @@ import {
   deleteGoal,
   listGoals,
   runFunnel,
+  runRetention,
   type FunnelStep,
   type QueryFilter,
 } from "../lib/api";
@@ -354,6 +355,109 @@ function FunnelPanel({ projectId }: { projectId: string }) {
   );
 }
 
+function RetentionPanel({ projectId }: { projectId: string }) {
+  const { t } = useTranslation();
+  const { period } = useDashboard();
+  const [activation, setActivation] = useState("signup_completed");
+  const [granularity, setGranularity] = useState<"week" | "month">("week");
+
+  const valid = /^[a-z][a-z0-9_]{0,63}$/.test(activation);
+  const retention = useQuery({
+    queryKey: ["retention", projectId, activation, granularity, period],
+    queryFn: () =>
+      runRetention({ activation_event: activation, granularity, project_id: projectId, period }),
+    enabled: valid,
+  });
+
+  const cohorts = new Map<string, Map<number, number>>();
+  let maxOffset = 0;
+  for (const row of retention.data?.cohorts ?? []) {
+    if (!cohorts.has(row.cohort_start)) cohorts.set(row.cohort_start, new Map());
+    cohorts.get(row.cohort_start)!.set(row.offset, row.users);
+    maxOffset = Math.max(maxOffset, row.offset);
+  }
+  const offsets = Array.from({ length: maxOffset + 1 }, (_, i) => i);
+
+  return (
+    <Panel
+      title={t("retention.title")}
+      className="md:col-span-2"
+      actions={
+        <div className="flex items-center gap-2">
+          <input
+            value={activation}
+            onChange={(e) => setActivation(e.target.value)}
+            aria-label={t("retention.activation")}
+            className="w-44 rounded-md border border-line bg-surface px-2 py-1 text-xs font-mono"
+          />
+          <select
+            value={granularity}
+            onChange={(e) => setGranularity(e.target.value as "week" | "month")}
+            className="rounded-md border border-line bg-surface px-2 py-1 text-xs"
+          >
+            <option value="week">{t("retention.weekly")}</option>
+            <option value="month">{t("retention.monthly")}</option>
+          </select>
+        </div>
+      }
+    >
+      {cohorts.size > 0 ? (
+        <div className="overflow-x-auto">
+          <table className="w-full text-xs">
+            <thead>
+              <tr className="text-left uppercase tracking-wide text-ink-soft">
+                <th className="py-1 pr-2 font-medium">{t("retention.cohort")}</th>
+                {offsets.map((offset) => (
+                  <th key={offset} className="px-1 py-1 text-center font-medium">
+                    +{offset}
+                  </th>
+                ))}
+              </tr>
+            </thead>
+            <tbody>
+              {Array.from(cohorts.entries()).map(([start, cells]) => {
+                const size = cells.get(0) ?? 0;
+                return (
+                  <tr key={start} className="border-t border-line">
+                    <td className="whitespace-nowrap py-1 pr-2 tabular-nums">
+                      {start.slice(0, 10)}
+                      <span className="ml-1 text-ink-soft">({size})</span>
+                    </td>
+                    {offsets.map((offset) => {
+                      const users = cells.get(offset);
+                      const pct = users === undefined || size === 0 ? null : (users / size) * 100;
+                      return (
+                        <td key={offset} className="px-0.5 py-0.5 text-center">
+                          {pct === null ? (
+                            <span className="text-ink-soft">·</span>
+                          ) : (
+                            <span
+                              className="block rounded px-1 py-0.5 tabular-nums"
+                              style={{
+                                backgroundColor: `rgba(214, 69, 36, ${0.08 + 0.6 * (pct / 100)})`,
+                                color: pct > 55 ? "white" : undefined,
+                              }}
+                            >
+                              {Math.round(pct)}%
+                            </span>
+                          )}
+                        </td>
+                      );
+                    })}
+                  </tr>
+                );
+              })}
+            </tbody>
+          </table>
+        </div>
+      ) : (
+        <p className="py-2 text-sm text-ink-soft">{t("retention.empty")}</p>
+      )}
+      <p className="mt-1 text-[11px] text-ink-soft">{t("retention.identifiedNote")}</p>
+    </Panel>
+  );
+}
+
 export default function WebView() {
   const { t } = useTranslation();
   const { projectId = "" } = useParams();
@@ -435,6 +539,7 @@ export default function WebView() {
         </Panel>
         <GoalsPanel projectId={projectId} />
         <FunnelPanel projectId={projectId} />
+        <RetentionPanel projectId={projectId} />
       </div>
     </div>
   );

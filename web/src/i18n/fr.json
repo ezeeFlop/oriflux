@@ -134,5 +134,14 @@
     "removeStep": "Retirer l'étape",
     "conversion": "Conversion :",
     "sessionNote": "Les funnels anonymes sont limités à une session/journée — le hash journalier rotatif rend les séquences anonymes plus longues impossibles par conception."
+  },
+  "retention": {
+    "title": "Rétention",
+    "activation": "Événement d'activation",
+    "weekly": "Hebdomadaire",
+    "monthly": "Mensuelle",
+    "cohort": "Cohorte",
+    "empty": "Aucune cohorte identifiée sur la période — la rétention nécessite identify() et un événement d'activation.",
+    "identifiedNote": "Utilisateurs identifiés uniquement : la rétention anonyme inter-jours est impossible par conception (le sel journalier est détruit) — c'est ce qui garde Oriflux sans bannière de consentement."
   }
 }

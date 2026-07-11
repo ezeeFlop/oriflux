@@ -65,3 +65,41 @@ class TestFunnelEndpoint:
     async def test_requires_read_access(self, api_client: httpx.AsyncClient) -> None:
         response = await api_client.post("/api/v1/funnel", json=FUNNEL)
         assert response.status_code == 401
+
+
+RETENTION = {
+    "activation_event": "signup_completed",
+    "granularity": "week",
+    "period": {"start": "2026-05-01T00:00:00Z", "end": "2026-07-01T00:00:00Z"},
+}
+
+
+class TestRetentionEndpoint:
+    async def test_retention_returns_cohort_rows(
+        self,
+        api_client: httpx.AsyncClient,
+        org: tuple[dict[str, str], str],
+        fake_executor: FakeExecutor,
+    ) -> None:
+        owner, org_id = org
+        fake_executor.rows = [
+            {"cohort_start": "2026-05-04", "offset": 0, "users": 12},
+            {"cohort_start": "2026-05-04", "offset": 1, "users": 5},
+        ]
+        response = await api_client.post(
+            "/api/v1/retention",
+            json=RETENTION,
+            headers={**owner, "X-Oriflux-Org": org_id},
+        )
+        assert response.status_code == 200, response.text
+        body = response.json()
+        assert body["granularity"] == "week"
+        assert body["cohorts"] == fake_executor.rows
+        executed, _ = fake_executor.calls[0]
+        assert "user_pseudo_id != ''" in executed
+
+    async def test_retention_requires_read_access(
+        self, api_client: httpx.AsyncClient
+    ) -> None:
+        response = await api_client.post("/api/v1/retention", json=RETENTION)
+        assert response.status_code == 401
