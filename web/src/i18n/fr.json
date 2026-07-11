@@ -264,5 +264,24 @@
     "last30d": "30 derniers jours",
     "invalid": "Ce lien de partage est invalide ou a été révoqué.",
     "poweredBy": "Propulsé par Oriflux"
+  },
+  "alerts": {
+    "rules": "Règles d'alerte",
+    "ruleName": "Nom de la règle",
+    "metric": "Métrique",
+    "condition": "Condition",
+    "threshold": "Seuil",
+    "window": "Fenêtre (min)",
+    "create": "Créer la règle",
+    "createFailed": "Création impossible (métrique/filtres refusés par le registre ?)",
+    "active": "Active",
+    "paused": "En pause",
+    "pause": "Mettre en pause",
+    "resume": "Réactiver",
+    "delete": "Supprimer la règle",
+    "noRules": "Aucune règle d'alerte pour ce projet.",
+    "events": "Événements d'alerte",
+    "noEvents": "Aucun événement d'alerte.",
+    "diagnosisNote": "Le diagnostic détaillé accompagne chaque notification (Slack/email) au moment du déclenchement."
   }
 }

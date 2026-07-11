@@ -264,5 +264,24 @@
     "last30d": "Last 30 days",
     "invalid": "This share link is invalid or has been revoked.",
     "poweredBy": "Powered by Oriflux"
+  },
+  "alerts": {
+    "rules": "Alert rules",
+    "ruleName": "Rule name",
+    "metric": "Metric",
+    "condition": "Condition",
+    "threshold": "Threshold",
+    "window": "Window (min)",
+    "create": "Create rule",
+    "createFailed": "Creation failed (metric/filters rejected by the registry?)",
+    "active": "Active",
+    "paused": "Paused",
+    "pause": "Pause",
+    "resume": "Resume",
+    "delete": "Delete rule",
+    "noRules": "No alert rules for this project.",
+    "events": "Alert events",
+    "noEvents": "No alert events.",
+    "diagnosisNote": "The detailed diagnosis rides each notification (Slack/email) at firing time."
   }
 }

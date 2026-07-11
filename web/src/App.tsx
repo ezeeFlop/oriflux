@@ -4,6 +4,7 @@ import { auth } from "./lib/api";
 import { PROJECT_SECTIONS, type SectionKey } from "./lib/sections";
 import { DashboardProvider } from "./lib/state";
 import ApiView from "./views/ApiView";
+import AlertsView from "./views/AlertsView";
 import ComingSoon from "./views/ComingSoon";
 import GoalsView from "./views/GoalsView";
 import HomeView from "./views/HomeView";
@@ -19,6 +20,7 @@ const SECTION_VIEWS: Partial<Record<SectionKey, JSX.Element>> = {
   api: <ApiView />,
   product: <ProductView />,
   goals: <GoalsView />,
+  alerts: <AlertsView />,
 };
 
 function RequireAuth({ children }: { children: JSX.Element }) {

@@ -95,3 +95,25 @@ class TestRuleValidation:
                 headers=owner,
             )
             assert response.status_code == 422, url
+
+
+class TestRuleProjectScope:
+    async def test_project_filter_becomes_the_rule_scope_on_events(
+        self, api_client: httpx.AsyncClient
+    ) -> None:
+        """#47/#52: a rule filtered on a project carries that project on
+        its listing so alert events can deep-link back to it."""
+        owner = await login(api_client, "alice")
+        org_id, project_id, _ = await create_org_chain(api_client, owner)
+        created = await api_client.post(
+            f"/api/v1/orgs/{org_id}/alert-rules",
+            json={
+                "name": "5xx spike",
+                "metric": "api_error_rate_5xx",
+                "filters": [{"dimension": "project_id", "op": "eq", "value": project_id}],
+                "condition": "gt",
+                "threshold": 5,
+            },
+            headers=owner,
+        )
+        assert created.status_code == 201, created.text

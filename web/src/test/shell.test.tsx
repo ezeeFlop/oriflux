@@ -39,7 +39,7 @@ describe("shell", () => {
   });
 
   it("renders a translated placeholder on not-yet-built sections", async () => {
-    renderApp("/p/p1/alerts");
+    renderApp("/p/p1/overview");
     expect(await screen.findByText("Bientôt dans la refonte")).toBeInTheDocument();
   });
 

@@ -396,6 +396,54 @@ export function listInsights(orgId: string): Promise<Insight[]> {
   return apiFetch<Insight[]>(`/api/v1/orgs/${orgId}/insights`);
 }
 
+export interface AlertRule {
+  id: string;
+  name: string;
+  metric: string;
+  filters: QueryFilter[];
+  condition: "gt" | "lt";
+  threshold: number;
+  window_minutes: number;
+  slack_webhook_url: string | null;
+  email: string | null;
+  enabled: boolean;
+}
+
+export function listAlertRules(orgId: string): Promise<AlertRule[]> {
+  return apiFetch<AlertRule[]>(`/api/v1/orgs/${orgId}/alert-rules`);
+}
+
+export function createAlertRule(
+  orgId: string,
+  rule: {
+    name: string;
+    metric: string;
+    filters: QueryFilter[];
+    condition: "gt" | "lt";
+    threshold: number;
+    window_minutes: number;
+  },
+): Promise<AlertRule> {
+  return apiFetch<AlertRule>(`/api/v1/orgs/${orgId}/alert-rules`, {
+    method: "POST",
+    body: JSON.stringify(rule),
+  });
+}
+
+export function patchAlertRule(
+  ruleId: string,
+  patch: { enabled?: boolean; threshold?: number; name?: string },
+): Promise<AlertRule> {
+  return apiFetch<AlertRule>(`/api/v1/alert-rules/${ruleId}`, {
+    method: "PATCH",
+    body: JSON.stringify(patch),
+  });
+}
+
+export function deleteAlertRule(ruleId: string): Promise<void> {
+  return apiFetch<void>(`/api/v1/alert-rules/${ruleId}`, { method: "DELETE" });
+}
+
 export interface AlertEvent {
   id: string;
   rule_id: string;

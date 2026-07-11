@@ -109,8 +109,19 @@ async def create_rule(
 ) -> AlertRuleOut:
     await require_role(session, user, org_id, Role.admin)
     _validate_rule(payload)
+    # scope column derived from the filters so alert events can deep-link
+    # back to their project (#47)
+    project_id = next(
+        (
+            uuid.UUID(str(f.value))
+            for f in payload.filters
+            if f.dimension == "project_id" and f.op == "eq" and isinstance(f.value, str)
+        ),
+        None,
+    )
     rule = AlertRule(
         org_id=org_id,
+        project_id=project_id,
         name=payload.name,
         metric=payload.metric,
         filters=[f.model_dump() for f in payload.filters],

@@ -264,5 +264,24 @@
     "last30d": "Últimos 30 días",
     "invalid": "Este enlace de compartición no es válido o ha sido revocado.",
     "poweredBy": "Con la tecnología de Oriflux"
+  },
+  "alerts": {
+    "rules": "Reglas de alerta",
+    "ruleName": "Nombre de la regla",
+    "metric": "Métrica",
+    "condition": "Condición",
+    "threshold": "Umbral",
+    "window": "Ventana (min)",
+    "create": "Crear regla",
+    "createFailed": "Creación imposible (¿métrica/filtros rechazados por el registro?)",
+    "active": "Activa",
+    "paused": "En pausa",
+    "pause": "Pausar",
+    "resume": "Reactivar",
+    "delete": "Eliminar regla",
+    "noRules": "Sin reglas de alerta para este proyecto.",
+    "events": "Eventos de alerta",
+    "noEvents": "Sin eventos de alerta.",
+    "diagnosisNote": "El diagnóstico detallado acompaña cada notificación (Slack/email) al dispararse."
   }
 }
