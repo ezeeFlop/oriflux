@@ -65,12 +65,17 @@ def _delta(current: float, previous: float) -> str:
 
 
 def render_digest(
-    numbers: list[dict[str, object]], *, language: str, period_label: str
+    numbers: list[dict[str, object]], *, language: str, period_label: str,
+    narrative: str = "",
 ) -> tuple[str, str]:
-    """→ (subject, plain-text body). Numbers only — nothing invented."""
+    """→ (subject, plain-text body). Numbers only — the optional narrative
+    (issue #37) is generated FROM these numbers and prepended, never a
+    replacement for them."""
     strings = _STRINGS.get(language, _STRINGS["en"])
     subject = strings["subject"].format(period=period_label)
     lines = [strings["heading"].format(period=period_label), ""]
+    if narrative:
+        lines.extend([narrative.strip(), ""])
     if not numbers:
         lines.append(strings["empty"])
     for row in numbers:

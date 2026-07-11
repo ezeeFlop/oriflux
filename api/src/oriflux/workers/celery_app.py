@@ -88,11 +88,15 @@ def _send_digests_job() -> int:
     async def _run() -> int:
         engine = create_engine(settings)
         try:
+            from oriflux.ai.gateway import AiGateway
+
+            factory = create_session_factory(engine)
             return await run_digests(
-                create_session_factory(engine),
+                factory,
                 ClickHouseExecutor(clickhouse),
                 send,
                 now=datetime.now(tz=UTC),
+                gateway=AiGateway(settings, factory),
             )
         finally:
             await engine.dispose()

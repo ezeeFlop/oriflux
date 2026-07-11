@@ -94,3 +94,45 @@ class TestDigestPrefApi:
         assert gone.status_code == 204
         after = await api_client.get(f"/api/v1/orgs/{org_id}/digest", headers=owner)
         assert after.status_code == 404
+
+
+class NarrativeGateway:
+    enabled = True
+
+    def __init__(self) -> None:
+        self.prompts: list[str] = []
+
+    async def chat(self, org_id, *, feature, messages, temperature=0.2):  # type: ignore[no-untyped-def]
+        self.prompts.append(str(messages))
+        return "Belle semaine : les visiteurs progressent nettement."
+
+
+class TestNarrativeDigests:
+    async def test_narrative_opens_the_digest_and_is_grounded(
+        self, db_sessionmaker  # type: ignore[no-untyped-def]
+    ) -> None:
+        await seed_subscription(db_sessionmaker)
+        sender = RecordingSender()
+        gateway = NarrativeGateway()
+        await run_digests(db_sessionmaker, FlatExecutor(), sender, now=MONDAY,
+                          gateway=gateway)
+        _, _, body = sender.sent[0]
+        assert body.splitlines()[2] == "Belle semaine : les visiteurs progressent nettement."
+        assert "Visiteurs" in body  # the numbers stay — narrative never replaces them
+        assert "42" in gateway.prompts[0]  # the model saw ONLY computed numbers
+
+    async def test_broken_model_falls_back_to_numbers_only(
+        self, db_sessionmaker  # type: ignore[no-untyped-def]
+    ) -> None:
+        class Broken:
+            enabled = True
+
+            async def chat(self, *a, **k):  # type: ignore[no-untyped-def]
+                raise RuntimeError("down")
+
+        await seed_subscription(db_sessionmaker)
+        sender = RecordingSender()
+        sent = await run_digests(db_sessionmaker, FlatExecutor(), sender, now=MONDAY,
+                                 gateway=Broken())
+        assert sent == 1
+        assert "Visiteurs" in sender.sent[0][2]

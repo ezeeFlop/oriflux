@@ -71,6 +71,7 @@ async def run_digests(
     sender: Sender,
     *,
     now: datetime | None = None,
+    gateway: Any = None,
 ) -> int:
     now = now or datetime.now(tz=UTC)
     sent = 0
@@ -114,7 +115,27 @@ async def run_digests(
                 _project_numbers(executor, str(org_id), str(pid), name, start, end)
                 for pid, name in projects
             ]
-            subject, body = render_digest(numbers, language=language, period_label=period_key)
+            narrative = ""
+            if gateway is not None and getattr(gateway, "enabled", False):
+                try:
+                    narrative = await gateway.chat(
+                        str(org_id),
+                        feature="digest",
+                        messages=[
+                            {"role": "system", "content": (
+                                f"Write a 2-3 sentence digest opening in language "
+                                f"'{language}': synthesis, highlights, one "
+                                "recommendation. Cite ONLY these numbers; never "
+                                "invent a figure."
+                            )},
+                            {"role": "user", "content": str(numbers)},
+                        ],
+                    )
+                except Exception:  # noqa: BLE001 — numbers-only fallback (#37)
+                    narrative = ""
+            subject, body = render_digest(
+                numbers, language=language, period_label=period_key, narrative=narrative
+            )
             sender(email, subject, body)
             session.add(DigestSend(subscription_id=sub_id, period_key=period_key))
             try:
