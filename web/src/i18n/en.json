@@ -64,7 +64,34 @@
       "web": "Web",
       "app": "App",
       "api": "API"
-    }
+    },
+    "members": "Members",
+    "memberEmail": "Member email",
+    "memberRole": "Role",
+    "invite": "Invite",
+    "inviteFailed": "Invitation failed (the owner role is reserved to the owner).",
+    "role": {
+      "owner": "Owner",
+      "admin": "Admin",
+      "viewer": "Viewer"
+    },
+    "digest": "Email digest",
+    "digestOff": "You are not subscribed to this organization's digest.",
+    "digestActive": "Subscribed — {{cadence}}, in {{language}}.",
+    "digestCadence": "Cadence",
+    "digestLanguage": "Digest language",
+    "digestSubscribe": "Save subscription",
+    "digestUnsubscribe": "Unsubscribe",
+    "cadence": {
+      "weekly": "Weekly",
+      "monthly": "Monthly"
+    },
+    "shares": "Public shares",
+    "noShares": "No share links.",
+    "createShare": "Create share link",
+    "shareModalTitle": "Link created — copy it now",
+    "shareModalWarning": "This URL will never be shown again: the server only keeps a fingerprint.",
+    "copyLink": "Copy link"
   },
   "footer": {
     "geoAttribution": "IP Geolocation by"

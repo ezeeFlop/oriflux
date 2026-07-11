@@ -64,7 +64,34 @@
       "web": "Web",
       "app": "App",
       "api": "API"
-    }
+    },
+    "members": "Miembros",
+    "memberEmail": "Email del miembro",
+    "memberRole": "Rol",
+    "invite": "Invitar",
+    "inviteFailed": "Invitación imposible (el rol propietario está reservado al propietario).",
+    "role": {
+      "owner": "Propietario",
+      "admin": "Admin",
+      "viewer": "Lector"
+    },
+    "digest": "Resumen por email",
+    "digestOff": "No estás suscrito al resumen de esta organización.",
+    "digestActive": "Suscrito — {{cadence}}, en {{language}}.",
+    "digestCadence": "Frecuencia",
+    "digestLanguage": "Idioma del resumen",
+    "digestSubscribe": "Guardar suscripción",
+    "digestUnsubscribe": "Darse de baja",
+    "cadence": {
+      "weekly": "Semanal",
+      "monthly": "Mensual"
+    },
+    "shares": "Compartidos públicos",
+    "noShares": "Sin enlaces compartidos.",
+    "createShare": "Crear enlace compartido",
+    "shareModalTitle": "Enlace creado — cópialo ahora",
+    "shareModalWarning": "Esta URL no volverá a mostrarse: el servidor solo conserva una huella.",
+    "copyLink": "Copiar enlace"
   },
   "footer": {
     "geoAttribution": "Geolocalización IP por"

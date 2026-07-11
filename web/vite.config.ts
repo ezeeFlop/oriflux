@@ -9,6 +9,8 @@ export default defineConfig({
     proxy: {
       // dev: the api service from deploy/docker-compose.yml
       "/api": "http://localhost:8101",
+      // public-dashboard data calls live outside /api (issue #41)
+      "^/public/[^/]+/query$": "http://localhost:8101",
     },
   },
 });

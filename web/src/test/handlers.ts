@@ -57,6 +57,11 @@ export const handlers = [
   ),
   http.get("/api/v1/projects/:projectId/sources", () => HttpResponse.json([])),
   http.get("/api/v1/orgs/:orgId/keys", () => HttpResponse.json([])),
+  http.get("/api/v1/orgs/:orgId/members", () => HttpResponse.json([])),
+  http.get("/api/v1/orgs/:orgId/digest", () =>
+    HttpResponse.json({ detail: "no digest subscription" }, { status: 404 }),
+  ),
+  http.get("/api/v1/projects/:projectId/shares", () => HttpResponse.json([])),
   http.get("/api/v1/projects/:projectId/goals", () => HttpResponse.json([])),
   http.get("/api/v1/projects/:projectId/annotations", () => HttpResponse.json([])),
   http.get("/api/v1/projects/:projectId/infra", () =>

@@ -191,3 +191,62 @@ class TestAdminListing:
         assert (
             await api_client.get(f"/api/v1/orgs/{org_id}/keys", headers=viewer)
         ).status_code == 403
+
+
+class TestMembersAndSharesListing:
+    """Issue #46: members and share links need list endpoints for the UI."""
+
+    async def test_members_are_listable_with_email_and_role(
+        self, api_client: httpx.AsyncClient
+    ) -> None:
+        owner = await login(api_client, "alice")
+        org_id, _, _ = await create_org_chain(api_client, owner)
+        await api_client.post(
+            f"/api/v1/orgs/{org_id}/members",
+            json={"email": "bob@sponge-theory.io", "role": "viewer"},
+            headers=owner,
+        )
+        listed = await api_client.get(f"/api/v1/orgs/{org_id}/members", headers=owner)
+        assert listed.status_code == 200
+        members = {m["email"]: m["role"] for m in listed.json()}
+        assert members == {"alice@sponge-theory.io": "owner", "bob@sponge-theory.io": "viewer"}
+
+    async def test_members_listing_is_open_to_members_only(
+        self, api_client: httpx.AsyncClient
+    ) -> None:
+        owner = await login(api_client, "alice")
+        org_id, _, _ = await create_org_chain(api_client, owner)
+        outsider = await login(api_client, "bob")
+        assert (
+            await api_client.get(f"/api/v1/orgs/{org_id}/members", headers=outsider)
+        ).status_code == 403
+
+    async def test_shares_are_listable_with_revocation_state_and_no_token(
+        self, api_client: httpx.AsyncClient
+    ) -> None:
+        owner = await login(api_client, "alice")
+        org_id, project_id, _ = await create_org_chain(api_client, owner)
+        minted = await api_client.post(f"/api/v1/projects/{project_id}/share", headers=owner)
+        assert minted.status_code == 201
+        share_id = minted.json()["id"]
+
+        listed = await api_client.get(f"/api/v1/projects/{project_id}/shares", headers=owner)
+        assert listed.status_code == 200
+        rows = listed.json()
+        assert [r["id"] for r in rows] == [share_id]
+        assert rows[0]["revoked"] is False
+        assert "token" not in rows[0] and "token_hash" not in rows[0]
+
+        await api_client.delete(f"/api/v1/share/{share_id}", headers=owner)
+        relisted = await api_client.get(f"/api/v1/projects/{project_id}/shares", headers=owner)
+        assert relisted.json()[0]["revoked"] is True
+
+        await api_client.post(
+            f"/api/v1/orgs/{org_id}/members",
+            json={"email": "bob@sponge-theory.io", "role": "viewer"},
+            headers=owner,
+        )
+        viewer = await login(api_client, "bob")
+        assert (
+            await api_client.get(f"/api/v1/projects/{project_id}/shares", headers=viewer)
+        ).status_code == 403

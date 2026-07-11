@@ -86,7 +86,7 @@ describe("org settings — the zero-terminal path", () => {
     await user.type(screen.getByLabelText("slug"), "cliphaven");
     await user.click(screen.getByRole("button", { name: "Créer le projet" }));
     const main = within(await screen.findByRole("main"));
-    expect(await main.findByText("ClipHaven")).toBeInTheDocument();
+    expect((await main.findAllByText("ClipHaven")).length).toBeGreaterThan(0);
     const aside = within(screen.getByRole("complementary"));
     expect(await aside.findByRole("link", { name: "ClipHaven" })).toBeInTheDocument();
   });

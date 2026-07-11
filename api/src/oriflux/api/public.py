@@ -29,6 +29,15 @@ class ShareOut(BaseModel):
     public_path: str
 
 
+class ShareRow(BaseModel):
+    """Listing shape: only the hash is stored, so a share is identified by
+    its id and creation date — the URL is copyable at mint time only."""
+
+    id: str
+    created_at: datetime
+    revoked: bool
+
+
 @router.post("/api/v1/projects/{project_id}/share", status_code=201)
 async def mint_share(
     project_id: uuid.UUID,
@@ -46,6 +55,33 @@ async def mint_share(
     session.add(token)
     await session.commit()
     return ShareOut(id=str(token.id), token=plaintext, public_path=f"/public/{plaintext}")
+
+
+@router.get("/api/v1/projects/{project_id}/shares")
+async def list_shares(
+    project_id: uuid.UUID,
+    session: AsyncSession = Depends(get_session),
+    user: User = Depends(get_current_user),
+) -> list[ShareRow]:
+    project = await session.get(Project, project_id)
+    if project is None:
+        raise HTTPException(status_code=404, detail="unknown project")
+    await require_role(session, user, project.org_id, Role.admin)
+    tokens = (
+        (
+            await session.execute(
+                select(ShareToken)
+                .where(ShareToken.project_id == project_id)
+                .order_by(ShareToken.created_at)
+            )
+        )
+        .scalars()
+        .all()
+    )
+    return [
+        ShareRow(id=str(t.id), created_at=t.created_at, revoked=t.revoked_at is not None)
+        for t in tokens
+    ]
 
 
 @router.delete("/api/v1/share/{share_id}", status_code=204)

@@ -103,6 +103,13 @@ class MemberOut(BaseModel):
     role: Role
 
 
+class MemberRow(BaseModel):
+    user_id: str
+    email: str
+    name: str
+    role: Role
+
+
 @router.post("/orgs", status_code=201)
 async def create_org(
     payload: OrgIn,
@@ -295,6 +302,26 @@ async def revoke_key(
     if key.revoked_at is None:
         key.revoked_at = datetime.now(tz=UTC)
         await session.commit()
+
+
+@router.get("/orgs/{org_id}/members")
+async def list_members(
+    org_id: uuid.UUID,
+    user: User = Depends(get_current_user),
+    session: AsyncSession = Depends(get_session),
+) -> list[MemberRow]:
+    await require_role(session, user, org_id, Role.viewer)
+    rows = (
+        await session.execute(
+            select(Membership, User)
+            .join(User, User.id == Membership.user_id)
+            .where(Membership.org_id == org_id)
+            .order_by(User.email)
+        )
+    ).all()
+    return [
+        MemberRow(user_id=str(u.id), email=u.email, name=u.name, role=m.role) for m, u in rows
+    ]
 
 
 @router.post("/orgs/{org_id}/members", status_code=201)

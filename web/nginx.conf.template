@@ -27,6 +27,14 @@ server {
         proxy_read_timeout 3600s;
     }
 
+    # public-dashboard data calls (issue #41): POST /public/{token}/query is
+    # an API route; /public/{token} itself stays with the SPA below
+    location ~ ^/public/[^/]+/query$ {
+        proxy_pass http://${API_UPSTREAM};
+        proxy_set_header Host $host;
+        proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
+    }
+
     location /healthz {
         add_header Content-Type application/json;
         return 200 '{"status":"ok"}';

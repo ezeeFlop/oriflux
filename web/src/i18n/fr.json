@@ -64,7 +64,34 @@
       "web": "Web",
       "app": "App",
       "api": "API"
-    }
+    },
+    "members": "Membres",
+    "memberEmail": "Email du membre",
+    "memberRole": "Rôle",
+    "invite": "Inviter",
+    "inviteFailed": "Invitation impossible (le rôle propriétaire est réservé au propriétaire).",
+    "role": {
+      "owner": "Propriétaire",
+      "admin": "Admin",
+      "viewer": "Lecteur"
+    },
+    "digest": "Digest email",
+    "digestOff": "Vous n'êtes pas abonné au digest de cette organisation.",
+    "digestActive": "Abonné — {{cadence}}, en {{language}}.",
+    "digestCadence": "Fréquence",
+    "digestLanguage": "Langue du digest",
+    "digestSubscribe": "Enregistrer l'abonnement",
+    "digestUnsubscribe": "Se désabonner",
+    "cadence": {
+      "weekly": "Hebdomadaire",
+      "monthly": "Mensuel"
+    },
+    "shares": "Partages publics",
+    "noShares": "Aucun lien de partage.",
+    "createShare": "Créer un lien de partage",
+    "shareModalTitle": "Lien créé — copiez-le maintenant",
+    "shareModalWarning": "Cette URL ne sera plus jamais affichée : le serveur n'en conserve qu'une empreinte.",
+    "copyLink": "Copier le lien"
   },
   "footer": {
     "geoAttribution": "Géolocalisation IP par"

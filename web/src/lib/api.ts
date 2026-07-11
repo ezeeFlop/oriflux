@@ -176,6 +176,77 @@ export function revokeKey(keyId: string): Promise<void> {
   return apiFetch<void>(`/api/v1/keys/${keyId}`, { method: "DELETE" });
 }
 
+export type Role = "owner" | "admin" | "viewer";
+
+export interface Member {
+  user_id: string;
+  email: string;
+  name: string;
+  role: Role;
+}
+
+export function listMembers(orgId: string): Promise<Member[]> {
+  return apiFetch<Member[]>(`/api/v1/orgs/${orgId}/members`);
+}
+
+export function addMember(orgId: string, member: { email: string; role: Role }): Promise<void> {
+  return apiFetch<void>(`/api/v1/orgs/${orgId}/members`, {
+    method: "POST",
+    body: JSON.stringify(member),
+  });
+}
+
+export interface DigestPref {
+  cadence: "weekly" | "monthly";
+  language: "fr" | "en" | "es";
+}
+
+/** 404 means "not subscribed" — surfaced as null, not an error. */
+export async function getDigestPref(orgId: string): Promise<DigestPref | null> {
+  try {
+    return await apiFetch<DigestPref>(`/api/v1/orgs/${orgId}/digest`);
+  } catch (error) {
+    if (error instanceof ApiError && error.status === 404) return null;
+    throw error;
+  }
+}
+
+export function setDigestPref(orgId: string, pref: DigestPref): Promise<DigestPref> {
+  return apiFetch<DigestPref>(`/api/v1/orgs/${orgId}/digest`, {
+    method: "PUT",
+    body: JSON.stringify(pref),
+  });
+}
+
+export function unsubscribeDigest(orgId: string): Promise<void> {
+  return apiFetch<void>(`/api/v1/orgs/${orgId}/digest`, { method: "DELETE" });
+}
+
+/** The share URL is copyable at mint time only (the server keeps a hash). */
+export interface MintedShare {
+  id: string;
+  token: string;
+  public_path: string;
+}
+
+export interface ShareRow {
+  id: string;
+  created_at: string;
+  revoked: boolean;
+}
+
+export function mintShare(projectId: string): Promise<MintedShare> {
+  return apiFetch<MintedShare>(`/api/v1/projects/${projectId}/share`, { method: "POST" });
+}
+
+export function listShares(projectId: string): Promise<ShareRow[]> {
+  return apiFetch<ShareRow[]>(`/api/v1/projects/${projectId}/shares`);
+}
+
+export function revokeShare(shareId: string): Promise<void> {
+  return apiFetch<void>(`/api/v1/share/${shareId}`, { method: "DELETE" });
+}
+
 export interface Goal {
   id: string;
   name: string;
