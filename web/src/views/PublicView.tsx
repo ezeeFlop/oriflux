@@ -8,7 +8,7 @@
 import { useQuery } from "@tanstack/react-query";
 import { useTranslation } from "react-i18next";
 import { useParams } from "react-router-dom";
-import Choropleth from "../components/Choropleth";
+import Choropleth, { countryValues } from "../components/Choropleth";
 import { Panel, RankedTable } from "../components/widgets";
 import { formatNumber } from "../lib/format";
 
@@ -73,11 +73,7 @@ export default function PublicView() {
     );
   }
 
-  const countryValues = new Map<string, number>(
-    (countries.data ?? [])
-      .filter((row) => typeof row.country === "string" && row.country !== "")
-      .map((row) => [String(row.country), row.value ?? 0]),
-  );
+  const countryMap = countryValues(countries.data);
 
   return (
     <div className="min-h-screen bg-paper">
@@ -99,7 +95,7 @@ export default function PublicView() {
         </div>
         <Panel title={t("web.geo")}>
           <Choropleth
-            values={countryValues}
+            values={countryMap}
             selected={null}
             formatValue={formatNumber}
             legendLabel={t("metric.visitors")}

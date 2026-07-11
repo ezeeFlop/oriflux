@@ -8,7 +8,8 @@ import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { useTranslation } from "react-i18next";
 import { useParams } from "react-router-dom";
 
-import { Panel } from "../components/widgets";
+import AlertEventRow from "../components/AlertEventRow";
+import { FIELD, Panel, PRIMARY_BUTTON } from "../components/widgets";
 import {
   createAlertRule,
   deleteAlertRule,
@@ -19,9 +20,6 @@ import {
 } from "../lib/api";
 import { useDashboard } from "../lib/state";
 
-const PRIMARY_BUTTON =
-  "rounded-md bg-flame px-3 py-1.5 text-sm font-semibold text-white hover:bg-flame-strong disabled:opacity-40";
-const FIELD = "rounded-md border border-line bg-surface px-2 py-1.5 text-sm";
 
 /** metrics that make sense as thresholds — all registry names */
 const ALERT_METRICS = [
@@ -72,6 +70,21 @@ function RulesPanel({ orgId, projectId }: { orgId: string; projectId: string }) 
     },
   });
 
+  const [editing, setEditing] = useState<{ id: string; name: string; threshold: string } | null>(
+    null,
+  );
+  const edit = useMutation({
+    mutationFn: () =>
+      patchAlertRule((editing as { id: string }).id, {
+        name: (editing as { name: string }).name,
+        threshold: Number((editing as { threshold: string }).threshold),
+      }),
+    onSuccess: () => {
+      setEditing(null);
+      invalidate();
+    },
+  });
+
   const toggle = useMutation({
     mutationFn: (rule: AlertRule) => patchAlertRule(rule.id, { enabled: !rule.enabled }),
     onSuccess: invalidate,
@@ -93,11 +106,54 @@ function RulesPanel({ orgId, projectId }: { orgId: string; projectId: string }) 
             >
               {rule.enabled ? t("alerts.active") : t("alerts.paused")}
             </span>
-            <strong className="min-w-0 flex-1 truncate">{rule.name}</strong>
-            <span className="text-ink-soft">
-              {t(`metric.${rule.metric}`)} {rule.condition === "gt" ? ">" : "<"}{" "}
-              <span className="tnum">{rule.threshold}</span> / {rule.window_minutes} min
-            </span>
+            {editing?.id === rule.id ? (
+              <form
+                className="flex min-w-0 flex-1 flex-wrap items-center gap-2"
+                onSubmit={(event) => {
+                  event.preventDefault();
+                  edit.mutate();
+                }}
+              >
+                <input
+                  value={editing.name}
+                  onChange={(event) => setEditing({ ...editing, name: event.target.value })}
+                  aria-label={t("alerts.ruleName")}
+                  className={`min-w-0 flex-1 ${FIELD}`}
+                />
+                <input
+                  type="number"
+                  step="any"
+                  value={editing.threshold}
+                  onChange={(event) => setEditing({ ...editing, threshold: event.target.value })}
+                  aria-label={t("alerts.threshold")}
+                  className={`w-24 ${FIELD}`}
+                />
+                <button type="submit" className={PRIMARY_BUTTON}>
+                  {t("alerts.save")}
+                </button>
+              </form>
+            ) : (
+              <>
+                <strong className="min-w-0 flex-1 truncate">{rule.name}</strong>
+                <span className="text-ink-soft">
+                  {t(`metric.${rule.metric}`)} {rule.condition === "gt" ? ">" : "<"}{" "}
+                  <span className="tnum">{rule.threshold}</span> / {rule.window_minutes} min
+                </span>
+              </>
+            )}
+            <button
+              onClick={() =>
+                setEditing(
+                  editing?.id === rule.id
+                    ? null
+                    : { id: rule.id, name: rule.name, threshold: String(rule.threshold) },
+                )
+              }
+              aria-label={t("alerts.edit")}
+              className="rounded-md border border-line px-2 py-1 text-xs font-medium text-ink-soft hover:border-flame hover:text-flame"
+            >
+              ✎
+            </button>
             <button
               onClick={() => toggle.mutate(rule)}
               className="rounded-md border border-line px-2 py-1 text-xs font-medium text-ink-soft hover:border-flame hover:text-flame"
@@ -182,7 +238,7 @@ function RulesPanel({ orgId, projectId }: { orgId: string; projectId: string }) 
 }
 
 function EventsPanel({ orgId, projectId }: { orgId: string; projectId: string }) {
-  const { t, i18n } = useTranslation();
+  const { t } = useTranslation();
   const events = useQuery({
     queryKey: ["alert-events", orgId],
     queryFn: () => listAlertEvents(orgId),
@@ -198,16 +254,7 @@ function EventsPanel({ orgId, projectId }: { orgId: string; projectId: string })
       <ul className="divide-y divide-line/60">
         {visible.map((event) => (
           <li key={event.id} className="flex flex-wrap items-center gap-2 py-2 text-sm">
-            <span className={event.resolved_at ? "text-up" : "text-down"} aria-hidden>
-              ●
-            </span>
-            <strong>{event.rule_name}</strong>
-            <span className="text-ink-soft">{t(`metric.${event.metric}`)}</span>
-            <span className="tnum font-semibold">{event.value}</span>
-            <span className="ml-auto text-xs text-ink-soft">
-              {event.resolved_at ? t("home.alertResolved") : t("home.alertFiring")} ·{" "}
-              {new Date(event.fired_at).toLocaleString(i18n.language)}
-            </span>
+            <AlertEventRow event={event} />
           </li>
         ))}
         {events.data && visible.length === 0 && (

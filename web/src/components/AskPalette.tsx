@@ -102,7 +102,10 @@ export default function AskPalette() {
           <div className="mt-3 space-y-3">
             {result.answer && <p className="text-sm">{result.answer}</p>}
             {isTimeSeries(result.results) && (
-              <TimeseriesChart rows={result.results} granularity="day" />
+              <TimeseriesChart
+                rows={result.results}
+                granularity={String((result.query as { granularity?: unknown }).granularity ?? "day")}
+              />
             )}
             {!isTimeSeries(result.results) && result.results.length > 0 && (
               <table className="w-full text-xs">

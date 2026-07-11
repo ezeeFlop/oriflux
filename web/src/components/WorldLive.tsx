@@ -1,9 +1,10 @@
-/** Live world map (issue #40): active countries pulse on a lightweight
- *  equirectangular dot map — country centroids only (~1.5 KB), no 3D
- *  dependency (bundle impact measured in the PR/commit). Quiet countries
- *  fade out with the payload. */
+/** Live world map (issues #40/#47): active countries pulse over the same
+ *  bundled basemap as the choropleth — no tiles, no CDN. Quiet countries
+ *  fade out with the payload; the outline keeps the world readable when
+ *  only one country is active. */
 
 import { useTranslation } from "react-i18next";
+import { MAP_HEIGHT, MAP_WIDTH, projectPoint, WORLD_SHAPES } from "./Choropleth";
 
 // ISO 3166-1 alpha-2 → [longitude, latitude] centroids (common subset;
 // unknown codes simply don't render — the ranked list below the map
@@ -28,11 +29,6 @@ const CENTROIDS: Record<string, [number, number]> = {
   LV: [24.6, 56.9], EE: [25.0, 58.6], IS: [-19.0, 64.9], LU: [6.1, 49.8],
 };
 
-function project(lon: number, lat: number): [number, number] {
-  // equirectangular into a 360×160 viewBox (lat clamped to ±80)
-  return [lon + 180, 80 - Math.max(-80, Math.min(80, lat))];
-}
-
 export default function WorldLive({
   countries,
 }: {
@@ -42,19 +38,24 @@ export default function WorldLive({
   const max = Math.max(1, ...countries.map((c) => c.value));
   return (
     <div>
-      <svg viewBox="0 0 360 160" className="w-full rounded-lg border border-line bg-surface">
-        {/* graticule for spatial context — no basemap needed at this size */}
-        {[40, 80, 120].map((y) => (
-          <line key={y} x1="0" y1={y} x2="360" y2={y} stroke="var(--line)" strokeWidth="0.3" />
-        ))}
-        {[60, 120, 180, 240, 300].map((x) => (
-          <line key={x} x1={x} y1="0" x2={x} y2="160" stroke="var(--line)" strokeWidth="0.3" />
+      <svg
+        viewBox={`0 0 ${MAP_WIDTH} ${MAP_HEIGHT}`}
+        className="w-full rounded-lg border border-line bg-paper"
+      >
+        {WORLD_SHAPES.map((shape) => (
+          <path
+            key={shape.a2 ?? shape.name}
+            d={shape.d}
+            fill="var(--surface)"
+            stroke="var(--line)"
+            strokeWidth={0.5}
+          />
         ))}
         {countries.map(({ country, value }) => {
           const centroid = CENTROIDS[country];
           if (!centroid) return null;
-          const [x, y] = project(centroid[0], centroid[1]);
-          const radius = 2 + 5 * (value / max);
+          const [x, y] = projectPoint(centroid[0], centroid[1]);
+          const radius = 5 + 12 * (value / max);
           return (
             <g key={country}>
               <circle cx={x} cy={y} r={radius} fill="var(--color-flame)" opacity="0.25">
@@ -65,7 +66,7 @@ export default function WorldLive({
                   repeatCount="indefinite"
                 />
               </circle>
-              <circle cx={x} cy={y} r={Math.max(1.4, radius * 0.45)} fill="var(--color-flame)" />
+              <circle cx={x} cy={y} r={Math.max(3, radius * 0.45)} fill="var(--color-flame)" />
               <title>{`${country}: ${value}`}</title>
             </g>
           );

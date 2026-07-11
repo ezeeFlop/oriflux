@@ -150,7 +150,10 @@
     "referrer": "Référent",
     "direct": "Direct / aucun",
     "empty": "Aucune donnée sur cette période",
-    "worldTotal": "Monde entier"
+    "worldTotal": "Monde entier",
+    "audience": "Audience",
+    "locale": "Langue",
+    "asn": "Réseau (ASN)"
   },
   "api": {
     "title": "Analytics API",
@@ -287,7 +290,9 @@
     "noRules": "Aucune règle d'alerte pour ce projet.",
     "events": "Événements d'alerte",
     "noEvents": "Aucun événement d'alerte.",
-    "diagnosisNote": "Le diagnostic détaillé accompagne chaque notification (Slack/email) au moment du déclenchement."
+    "diagnosisNote": "Le diagnostic détaillé accompagne chaque notification (Slack/email) au moment du déclenchement.",
+    "edit": "Modifier la règle",
+    "save": "Enregistrer"
   },
   "live": {
     "polling": "repli 10 s",

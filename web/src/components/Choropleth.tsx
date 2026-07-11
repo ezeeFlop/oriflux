@@ -11,8 +11,10 @@ import type { Topology, Objects } from "topojson-specification";
 import { iso31661 } from "iso-3166";
 import world from "world-atlas/countries-110m.json";
 
-const WIDTH = 960;
-const HEIGHT = 470;
+export const MAP_WIDTH = 960;
+export const MAP_HEIGHT = 470;
+const WIDTH = MAP_WIDTH;
+const HEIGHT = MAP_HEIGHT;
 
 interface CountryShape {
   a2: string | null;
@@ -20,21 +22,35 @@ interface CountryShape {
   d: string;
 }
 
-const SHAPES: CountryShape[] = (() => {
-  const numericToA2 = new Map(iso31661.map((c) => [c.numeric.padStart(3, "0"), c.alpha2]));
+const PROJECTION = (() => {
   const topology = world as unknown as Topology<Objects>;
   const collection = feature(
     topology,
     topology.objects.countries,
   ) as unknown as FeatureCollection<Geometry, { name?: string }>;
-  const projection = geoNaturalEarth1().fitExtent(
+  return geoNaturalEarth1().fitExtent(
     [
       [4, 4],
       [WIDTH - 4, HEIGHT - 4],
     ],
     collection,
   );
-  const path = geoPath(projection);
+})();
+
+/** Project a [longitude, latitude] into the shared map space. */
+export function projectPoint(lon: number, lat: number): [number, number] {
+  return PROJECTION([lon, lat]) ?? [0, 0];
+}
+
+/** The bundled world outline, shared by the choropleth and the live map. */
+export const WORLD_SHAPES: CountryShape[] = (() => {
+  const numericToA2 = new Map(iso31661.map((c) => [c.numeric.padStart(3, "0"), c.alpha2]));
+  const topology = world as unknown as Topology<Objects>;
+  const collection = feature(
+    topology,
+    topology.objects.countries,
+  ) as unknown as FeatureCollection<Geometry, { name?: string }>;
+  const path = geoPath(PROJECTION);
   return collection.features
     .map((f) => ({
       a2: numericToA2.get(String(f.id).padStart(3, "0")) ?? null,
@@ -43,6 +59,20 @@ const SHAPES: CountryShape[] = (() => {
     }))
     .filter((shape) => shape.d !== "" && shape.a2 !== "AQ");
 })();
+
+const SHAPES = WORLD_SHAPES;
+
+/** ISO2 → value map from registry rows carrying a `country` key — the shape
+ *  every map consumer (web, API, public) builds. */
+export function countryValues(
+  rows: { country?: unknown; value: number | null }[] | undefined,
+): Map<string, number> {
+  return new Map(
+    (rows ?? [])
+      .filter((row) => typeof row.country === "string" && row.country !== "")
+      .map((row) => [String(row.country), row.value ?? 0]),
+  );
+}
 
 export interface ChoroplethProps {
   /** ISO2 → value; countries absent from the map render as "no data" */

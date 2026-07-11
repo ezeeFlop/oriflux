@@ -3,7 +3,7 @@ import { useQuery } from "@tanstack/react-query";
 import { useTranslation } from "react-i18next";
 import { useParams } from "react-router-dom";
 
-import Choropleth from "../components/Choropleth";
+import Choropleth, { countryValues } from "../components/Choropleth";
 import { Panel, RankedTable, SkeletonRows, StatCard, Tabs } from "../components/widgets";
 import type { QueryRow } from "../lib/api";
 import { deltaPercent, formatMs, formatNumber, formatPercent } from "../lib/format";
@@ -196,13 +196,15 @@ function InfraPanel({ projectId }: { projectId: string }) {
   );
 }
 
-const GEO_METRICS = ["api_requests", "api_error_rate_5xx", "api_latency_p95"] as const;
+const GEO_METRICS = ["api_requests", "api_error_rate_5xx", "api_latency_p50", "api_latency_p95", "api_latency_p99"] as const;
 type GeoMetric = (typeof GEO_METRICS)[number];
 
 const GEO_FORMATTERS: Record<GeoMetric, (value: number | null) => string> = {
   api_requests: formatNumber,
   api_error_rate_5xx: formatPercent,
+  api_latency_p50: formatMs,
   api_latency_p95: formatMs,
+  api_latency_p99: formatMs,
 };
 
 /** Caller geography (issue #51): the same embedded choropleth as the web
@@ -219,11 +221,7 @@ function ApiGeoPanel({ projectId }: { projectId: string }) {
     metric, dimensions: ["country"], projectId, projectOnly: true, ignoreGeo: true,
   });
   const rows = mapQuery.data?.results ?? [];
-  const values = new Map<string, number>(
-    rows
-      .filter((row) => typeof row.country === "string" && row.country !== "")
-      .map((row) => [String(row.country), row.value ?? 0]),
-  );
+  const values = countryValues(rows);
   const format = GEO_FORMATTERS[metric];
 
   return (

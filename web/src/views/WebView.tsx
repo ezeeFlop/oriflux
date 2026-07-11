@@ -2,7 +2,7 @@ import { useState } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { useTranslation } from "react-i18next";
 import { useParams } from "react-router-dom";
-import Choropleth from "../components/Choropleth";
+import Choropleth, { countryValues } from "../components/Choropleth";
 import TimeseriesChart from "../components/TimeseriesChart";
 
 import { Panel, RankedTable, StatCard, Tabs } from "../components/widgets";
@@ -14,6 +14,7 @@ import { useDashboard, type TrafficClass } from "../lib/state";
 const TRAFFIC_CLASSES: TrafficClass[] = ["all", "human", "bot", "ai_agent"];
 const UTM_TABS = ["utm_source", "utm_medium", "utm_campaign"] as const;
 const DEVICE_TABS = ["browser", "os", "device"] as const;
+const AUDIENCE_TABS = ["locale", "asn"] as const;
 const GEO_LEVELS = ["country", "region", "city"] as const;
 type GeoLevel = (typeof GEO_LEVELS)[number];
 
@@ -101,11 +102,7 @@ function GeoPanel({ projectId }: { projectId: string }) {
     keepPreviousData: false,
   });
 
-  const values = new Map<string, number>(
-    (mapQuery.data?.results ?? [])
-      .filter((row) => typeof row.country === "string" && row.country !== "")
-      .map((row) => [String(row.country), row.value ?? 0]),
-  );
+  const values = countryValues(mapQuery.data?.results);
 
   const crumbs = [
     { label: t("web.worldTotal"), onClick: () => setGeo(null, null) },
@@ -278,6 +275,8 @@ export default function WebView() {
   const { granularity } = useDashboard();
   const [utmTab, setUtmTab] = useState<(typeof UTM_TABS)[number]>("utm_source");
   const [deviceTab, setDeviceTab] = useState<(typeof DEVICE_TABS)[number]>("browser");
+  const [audienceTab, setAudienceTab] = useState<(typeof AUDIENCE_TABS)[number]>("locale");
+  const audience = useMetric({ metric: "visitors", dimensions: [audienceTab], projectId });
 
   const timeseries = useMetric({
     metric: "visitors",
@@ -357,6 +356,19 @@ export default function WebView() {
           }
         >
           <RankedTable rows={devices.data?.results} dimension={deviceTab} />
+        </Panel>
+        <Panel
+          title={t("web.audience")}
+          actions={
+            <Tabs
+              value={audienceTab}
+              options={AUDIENCE_TABS}
+              onChange={setAudienceTab}
+              labelFor={(tab) => t(`web.${tab}`)}
+            />
+          }
+        >
+          <RankedTable rows={audience.data?.results} dimension={audienceTab} />
         </Panel>
         <AiVisibilityPanel projectId={projectId} />
         <VitalsPanel projectId={projectId} />

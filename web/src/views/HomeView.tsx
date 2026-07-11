@@ -1,6 +1,6 @@
-/** Portfolio home (issue #10, UC1) — one tile per product, anomalous first.
- *  Live numbers via React Query refetchInterval (10 s polling, no WebSocket
- *  per décision 2026-07-10). */
+/** Portfolio home (issues #10/#47) — one tile per product, anomalous first,
+ *  plus recent alerts, insights, explained anomalies and the live globe
+ *  (WebSocket with a 10 s polling fallback). */
 
 import { useQueries, useQuery } from "@tanstack/react-query";
 import { useMemo } from "react";
@@ -11,6 +11,7 @@ import { listAlertEvents, listAnomalies, listInsights, runQuery, auth, type Proj
 import { formatNumber, formatPercent } from "../lib/format";
 import { lastMinutes, periodFor } from "../lib/periods";
 import { useLive } from "../lib/useLive";
+import AlertEventRow from "../components/AlertEventRow";
 import WorldLive from "../components/WorldLive";
 import { useDashboard } from "../lib/state";
 
@@ -168,7 +169,7 @@ function InsightsSection() {
  *  on the project's alerts screen. The diagnosis itself rides the alert
  *  notification (design of #36); the anomalies feed below carries its own. */
 function AlertsSection() {
-  const { t, i18n } = useTranslation();
+  const { t } = useTranslation();
   const { search } = useLocation();
   const events = useQuery({
     queryKey: ["alert-events", auth.orgId],
@@ -182,20 +183,7 @@ function AlertsSection() {
       <h2 className="font-display text-base font-bold">{t("home.recentAlerts")}</h2>
       <div className="mt-2 space-y-1.5">
         {events.data.slice(0, 5).map((event) => {
-          const body = (
-            <>
-              <span className={event.resolved_at ? "text-up" : "text-down"} aria-hidden>
-                ●
-              </span>
-              <strong>{event.rule_name}</strong>
-              <span className="text-ink-soft">{t(`metric.${event.metric}`)}</span>
-              <span className="tnum font-semibold">{event.value}</span>
-              <span className="ml-auto text-xs text-ink-soft">
-                {event.resolved_at ? t("home.alertResolved") : t("home.alertFiring")} ·{" "}
-                {new Date(event.fired_at).toLocaleString(i18n.language)}
-              </span>
-            </>
-          );
+          const body = <AlertEventRow event={event} />;
           const rowClass =
             "flex flex-wrap items-center gap-2 rounded-lg border border-line bg-surface px-3 py-2 text-sm";
           return event.project_id ? (
@@ -260,9 +248,6 @@ function AnomaliesSection() {
 
 function LiveSection() {
   const { t } = useTranslation();
-  const { projects } = useDashboard();
-  const filterAll = undefined;
-  void filterAll;
   const pagesNow = useQueries({
     queries: [
       {
@@ -287,7 +272,6 @@ function LiveSection() {
       },
     ],
   });
-  void projects;
 
   const live = useLive();
   const pageRows = live ? live.pages : pagesNow[0]?.data?.results;

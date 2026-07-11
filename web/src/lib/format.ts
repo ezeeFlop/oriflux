@@ -45,3 +45,12 @@ export function formatBucket(bucket: string, granularity: string): string {
   }
   return new Intl.DateTimeFormat(locale(), { day: "2-digit", month: "short" }).format(date);
 }
+
+/** Format a value according to its registry metric (rates → %, latencies →
+ *  ms, everything else → plain numbers). */
+export function formatMetricValue(metric: string, value: number | null): string {
+  if (metric.includes("rate")) return formatPercent(value);
+  if (metric.includes("latency") || metric.startsWith("web_vital")) return formatMs(value);
+  if (metric === "session_duration") return formatDuration(value);
+  return formatNumber(value);
+}

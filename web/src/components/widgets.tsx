@@ -6,6 +6,11 @@ import { useTranslation } from "react-i18next";
 import { deltaPercent, formatNumber } from "../lib/format";
 import type { QueryRow } from "../lib/api";
 
+/** Shared form styling for the settings/alerts/annotations screens. */
+export const PRIMARY_BUTTON =
+  "rounded-md bg-flame px-3 py-1.5 text-sm font-semibold text-white hover:bg-flame-strong disabled:opacity-40";
+export const FIELD = "rounded-md border border-line bg-surface px-2 py-1.5 text-sm";
+
 export function Panel({
   title,
   children,

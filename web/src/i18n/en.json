@@ -150,7 +150,10 @@
     "referrer": "Referrer",
     "direct": "Direct / none",
     "empty": "No data for this period",
-    "worldTotal": "Worldwide"
+    "worldTotal": "Worldwide",
+    "audience": "Audience",
+    "locale": "Language",
+    "asn": "Network (ASN)"
   },
   "api": {
     "title": "API analytics",
@@ -287,7 +290,9 @@
     "noRules": "No alert rules for this project.",
     "events": "Alert events",
     "noEvents": "No alert events.",
-    "diagnosisNote": "The detailed diagnosis rides each notification (Slack/email) at firing time."
+    "diagnosisNote": "The detailed diagnosis rides each notification (Slack/email) at firing time.",
+    "edit": "Edit rule",
+    "save": "Save"
   },
   "live": {
     "polling": "10 s fallback",

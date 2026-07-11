@@ -24,7 +24,7 @@ export default function LiveView() {
   const live = useLive();
 
   const projectFilter = [{ dimension: "project_id", op: "eq" as const, value: projectId }];
-  const [pagesNow, countriesNow] = useQueries({
+  const [pagesNow, countriesNow, countNow] = useQueries({
     queries: [
       {
         queryKey: ["live-pages", projectId],
@@ -48,10 +48,25 @@ export default function LiveView() {
           }),
         refetchInterval: LIVE_POLL_MS,
       },
+      {
+        queryKey: ["live-count", projectId],
+        queryFn: () =>
+          runQuery({
+            metric: "visitors",
+            filters: projectFilter,
+            period: lastMinutes(0.5),
+          }),
+        refetchInterval: LIVE_POLL_MS,
+      },
     ],
   });
 
-  const liveCount = live?.projects.find((p) => p.id === projectId)?.live ?? null;
+  // WS payload when connected; the 30 s registry count otherwise — the
+  // counter must never stay blank just because the socket dropped
+  const liveCount =
+    live?.projects.find((p) => p.id === projectId)?.live ??
+    countNow.data?.results?.[0]?.value ??
+    null;
   const projectName = projects.find((p) => p.id === projectId)?.name ?? "";
   const countryRows = countriesNow.data?.results ?? [];
 

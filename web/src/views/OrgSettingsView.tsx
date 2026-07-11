@@ -2,7 +2,7 @@ import { useState } from "react";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { useTranslation } from "react-i18next";
 
-import { Panel } from "../components/widgets";
+import { FIELD, Panel, PRIMARY_BUTTON } from "../components/widgets";
 import {
   createProject,
   createSource,
@@ -23,10 +23,6 @@ import { DigestSection, MembersSection, SharesSection } from "./OrgSettingsSecti
 // custom-events slice and has no paste-ready snippet yet)
 const SOURCE_TYPES: SourceType[] = ["web", "api"];
 
-const PRIMARY_BUTTON =
-  "rounded-md bg-flame px-3 py-1.5 text-sm font-semibold text-white hover:bg-flame-strong disabled:opacity-40";
-const FIELD =
-  "rounded-md border border-line bg-surface px-2 py-1.5 text-sm";
 
 function CopyButton({ text, label }: { text: string; label: string }) {
   const { t } = useTranslation();

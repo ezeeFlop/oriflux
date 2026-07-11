@@ -6,7 +6,7 @@ import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { useTranslation } from "react-i18next";
 import { useParams } from "react-router-dom";
 
-import { Panel } from "../components/widgets";
+import { FIELD, Panel, PRIMARY_BUTTON } from "../components/widgets";
 import {
   createAnnotation,
   deleteAnnotation,
@@ -15,9 +15,6 @@ import {
 } from "../lib/api";
 import { useDashboard } from "../lib/state";
 
-const PRIMARY_BUTTON =
-  "rounded-md bg-flame px-3 py-1.5 text-sm font-semibold text-white hover:bg-flame-strong disabled:opacity-40";
-const FIELD = "rounded-md border border-line bg-surface px-2 py-1.5 text-sm";
 
 const KINDS: Annotation["kind"][] = ["release", "campaign", "incident", "note"];
 
