@@ -127,6 +127,30 @@ class Goal(Base):
     created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), default=_utcnow)
 
 
+class AnnotationKind(enum.StrEnum):
+    release = "release"
+    campaign = "campaign"
+    incident = "incident"
+    note = "note"
+
+
+class Annotation(Base):
+    """Timeline marker (PRD §5.3, issue #25): release/campaign/incident,
+    overlaid on dashboard charts and anchoring before/after comparisons."""
+
+    __tablename__ = "annotations"
+
+    id: Mapped[uuid.UUID] = mapped_column(Uuid, primary_key=True, default=uuid.uuid4)
+    org_id: Mapped[uuid.UUID] = mapped_column(ForeignKey("organizations.id"))
+    project_id: Mapped[uuid.UUID] = mapped_column(ForeignKey("projects.id"))
+    kind: Mapped[AnnotationKind] = mapped_column(
+        Enum(AnnotationKind, native_enum=False, length=12)
+    )
+    text: Mapped[str] = mapped_column(String(512))
+    happened_at: Mapped[datetime] = mapped_column(DateTime(timezone=True))
+    created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), default=_utcnow)
+
+
 class AlertCondition(enum.StrEnum):
     gt = "gt"
     lt = "lt"

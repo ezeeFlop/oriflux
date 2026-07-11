@@ -176,6 +176,22 @@ export function runRetention(request: {
   });
 }
 
+export interface Annotation {
+  id: string;
+  kind: "release" | "campaign" | "incident" | "note";
+  text: string;
+  happened_at: string;
+}
+
+export function listAnnotations(
+  projectId: string,
+  period: { start: string; end: string },
+): Promise<Annotation[]> {
+  return apiFetch<Annotation[]>(
+    `/api/v1/projects/${projectId}/annotations?start=${encodeURIComponent(period.start)}&end=${encodeURIComponent(period.end)}`,
+  );
+}
+
 export interface Me {
   id: string;
   email: string;

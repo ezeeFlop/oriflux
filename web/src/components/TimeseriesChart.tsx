@@ -3,6 +3,7 @@ import {
   AreaChart,
   CartesianGrid,
   Line,
+  ReferenceLine,
   ResponsiveContainer,
   Tooltip,
   XAxis,
@@ -17,10 +18,12 @@ export default function TimeseriesChart({
   rows,
   compareRows,
   granularity,
+  annotations,
 }: {
   rows: QueryRow[] | undefined;
   compareRows?: QueryRow[] | null;
   granularity: string;
+  annotations?: { bucket: string; label: string }[];
 }) {
   const { t } = useTranslation();
   if (!rows) return <SkeletonRows />;
@@ -42,6 +45,20 @@ export default function TimeseriesChart({
             </linearGradient>
           </defs>
           <CartesianGrid stroke="var(--line)" strokeDasharray="2 4" vertical={false} />
+          {annotations?.map((annotation, index) => (
+            <ReferenceLine
+              key={index}
+              x={annotation.bucket}
+              stroke="var(--ink-soft)"
+              strokeDasharray="4 3"
+              label={{
+                value: "▾ " + annotation.label,
+                position: "insideTopRight",
+                fill: "var(--ink-soft)",
+                fontSize: 10,
+              }}
+            />
+          ))}
           <XAxis
             dataKey="bucket"
             tick={{ fill: "var(--ink-soft)", fontSize: 11 }}

@@ -136,4 +136,16 @@ if [ "${DO_PUSH}" = "true" ] && [ "${DO_DEPLOY}" = "true" ]; then
     fi
 fi
 
+# Release annotation (issue #25): mark the deploy on the Oriflux timeline.
+# Opt-in: set ORIFLUX_ANNOTATE_KEY (an ingest key of the project) and
+# ORIFLUX_ANNOTATE_PROJECT (the project id). Failure never fails the deploy.
+if [ -n "${ORIFLUX_ANNOTATE_KEY:-}" ] && [ -n "${ORIFLUX_ANNOTATE_PROJECT:-}" ]; then
+    SHA=$(git rev-parse --short HEAD 2>/dev/null || echo "unknown")
+    curl -s -m 10 -o /dev/null -X POST \
+        "${ORIFLUX_ANNOTATE_URL:-https://api.oriflux.sponge-theory.dev}/api/v1/projects/${ORIFLUX_ANNOTATE_PROJECT}/annotations" \
+        -H "Authorization: Bearer ${ORIFLUX_ANNOTATE_KEY}" -H "Content-Type: application/json" \
+        -d "{\"kind\":\"release\",\"text\":\"deploy ${SHA}\",\"happened_at\":\"$(date -u +%Y-%m-%dT%H:%M:%SZ)\"}" \
+        && echo -e "${GREEN}✓ release annotation posted (${SHA})${NC}" || true
+fi
+
 echo -e "${GREEN}Done.${NC}"

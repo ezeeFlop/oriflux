@@ -8,13 +8,14 @@ import { Panel, RankedTable, StatCard, Tabs } from "../components/widgets";
 import {
   createGoal,
   deleteGoal,
+  listAnnotations,
   listGoals,
   runFunnel,
   runRetention,
   type FunnelStep,
   type QueryFilter,
 } from "../lib/api";
-import { formatDuration, formatNumber, formatPercent } from "../lib/format";
+import { formatBucket, formatDuration, formatNumber, formatPercent } from "../lib/format";
 import { compareScalar, scalar, useMetric } from "../lib/useMetric";
 import { useDashboard, type TrafficClass } from "../lib/state";
 
@@ -470,6 +471,15 @@ export default function WebView() {
     withGranularity: true,
     projectId,
   });
+  const { period } = useDashboard();
+  const annotations = useQuery({
+    queryKey: ["annotations", projectId, period],
+    queryFn: () => listAnnotations(projectId, period),
+  });
+  const annotationMarks = (annotations.data ?? []).map((annotation) => ({
+    bucket: formatBucket(annotation.happened_at, granularity),
+    label: annotation.text,
+  }));
   const pages = useMetric({ metric: "visitors", dimensions: ["page"], projectId });
   const referrers = useMetric({ metric: "visitors", dimensions: ["referrer"], projectId });
   const utm = useMetric({ metric: "visitors", dimensions: [utmTab], projectId });
@@ -497,6 +507,7 @@ export default function WebView() {
           rows={timeseries.data?.results}
           compareRows={timeseries.data?.compare_results}
           granularity={granularity}
+          annotations={annotationMarks}
         />
       </Panel>
 
