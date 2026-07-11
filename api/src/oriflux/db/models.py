@@ -75,6 +75,7 @@ class Organization(Base):
     # soft reference to plans.slug (no FK: plans are config-like, and the
     # quota gate fails open on a missing row)
     plan_slug: Mapped[str] = mapped_column(String(32), default="free", server_default="free")
+    stripe_customer_id: Mapped[str | None] = mapped_column(String(64))
     created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), default=_utcnow)
 
     projects: Mapped[list["Project"]] = relationship(back_populates="organization")
@@ -339,6 +340,16 @@ class AlertEvent(Base):
     value: Mapped[float] = mapped_column(Float)
     fired_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), default=_utcnow)
     resolved_at: Mapped[datetime | None] = mapped_column(DateTime(timezone=True))
+
+
+class StripeEvent(Base):
+    """Processed Stripe webhook ids (issue #63): the idempotence ledger —
+    a replayed event hits the primary key and becomes a no-op."""
+
+    __tablename__ = "stripe_events"
+
+    id: Mapped[str] = mapped_column(String(255), primary_key=True)
+    processed_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), default=_utcnow)
 
 
 class ApiKey(Base):

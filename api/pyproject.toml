@@ -21,6 +21,7 @@ dependencies = [
     "fastapi-mcp>=0.3",
     "celery[redis]>=5.4",
     "minio>=7.2.20",
+    "stripe>=15.3.0",
 ]
 
 [dependency-groups]

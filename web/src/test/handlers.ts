@@ -58,6 +58,9 @@ export const handlers = [
   http.get("/api/v1/projects/:projectId/sources", () => HttpResponse.json([])),
   http.get("/api/v1/orgs/:orgId/keys", () => HttpResponse.json([])),
   http.get("/api/v1/orgs/:orgId/members", () => HttpResponse.json([])),
+  http.get("/api/v1/orgs/:orgId/billing", () =>
+    HttpResponse.json({ enabled: false, plan_slug: "internal", has_customer: false, plans: [] }),
+  ),
   http.get("/api/v1/orgs/:orgId/usage", () =>
     HttpResponse.json({
       plan_slug: "internal",

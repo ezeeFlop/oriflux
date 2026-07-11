@@ -31,6 +31,11 @@ class Settings(BaseSettings):
     ingest_rate_limit_per_key: int = 600
     # monthly event quota overshoot allowance before 429 (issue #60)
     ingest_quota_tolerance_pct: int = 10
+    # Stripe billing (issue #63) — empty keys = billing disabled, instance
+    # fully functional on the free/internal plans
+    stripe_secret_key: str = ""
+    stripe_webhook_secret: str = ""
+    web_base_url: str = "https://oriflux.sponge-theory.dev"
     ingest_rate_limit_per_ip: int = 1200
 
     # Enrichment (issues #4, #14): local .mmdb databases + monthly refresh.

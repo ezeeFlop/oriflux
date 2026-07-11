@@ -95,7 +95,12 @@
     "usage": "Plan & usage",
     "usageEvents": "événements ce mois-ci",
     "usageUnlimited": "Plan interne — sans limite d'événements.",
-    "quotaWarning": "Quota d'événements à {{pct}} % ce mois-ci — envisagez un plan supérieur."
+    "quotaWarning": "Quota d'événements à {{pct}} % ce mois-ci — envisagez un plan supérieur.",
+    "billing": "Abonnement",
+    "subscribe": "Passer en {{plan}}",
+    "manageSubscription": "Gérer l'abonnement (factures, annulation)",
+    "noUpgrades": "Aucun plan supérieur disponible.",
+    "planQuota": "{{quota}} événements / mois"
   },
   "footer": {
     "geoAttribution": "Géolocalisation IP par"

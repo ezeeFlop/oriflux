@@ -188,6 +188,37 @@ export function getUsage(orgId: string): Promise<Usage> {
   return apiFetch<Usage>(`/api/v1/orgs/${orgId}/usage`);
 }
 
+export interface BillingPlan {
+  slug: string;
+  name: string;
+  monthly_events: number | null;
+  subscribable: boolean;
+}
+
+export interface Billing {
+  enabled: boolean;
+  plan_slug: string;
+  has_customer: boolean;
+  plans: BillingPlan[];
+}
+
+export function getBilling(orgId: string): Promise<Billing> {
+  return apiFetch<Billing>(`/api/v1/orgs/${orgId}/billing`);
+}
+
+export function createCheckout(orgId: string, planSlug: string): Promise<{ url: string }> {
+  return apiFetch<{ url: string }>(`/api/v1/orgs/${orgId}/billing/checkout`, {
+    method: "POST",
+    body: JSON.stringify({ plan_slug: planSlug }),
+  });
+}
+
+export function createPortal(orgId: string): Promise<{ url: string }> {
+  return apiFetch<{ url: string }>(`/api/v1/orgs/${orgId}/billing/portal`, {
+    method: "POST",
+  });
+}
+
 export type Role = "owner" | "admin" | "viewer";
 
 export interface Member {

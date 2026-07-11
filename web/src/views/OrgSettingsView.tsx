@@ -17,7 +17,7 @@ import {
 } from "../lib/api";
 import { integrationSnippet } from "../lib/snippets";
 import { useDashboard } from "../lib/state";
-import { DigestSection, MembersSection, SharesSection, UsageSection } from "./OrgSettingsSections";
+import { BillingSection, DigestSection, MembersSection, SharesSection, UsageSection } from "./OrgSettingsSections";
 
 // creatable source kinds (issue #45: web or API; "app" arrives with the
 // custom-events slice and has no paste-ready snippet yet)
@@ -358,6 +358,7 @@ export default function OrgSettingsView() {
         {t("nav.orgSettings")}
       </h1>
       <UsageSection orgId={orgId} />
+      <BillingSection orgId={orgId} />
       <ProjectsSection
         orgId={orgId}
         onIssued={(key, source) => setIssued({ issued: key, source })}

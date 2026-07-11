@@ -95,7 +95,12 @@
     "usage": "Plan & usage",
     "usageEvents": "events this month",
     "usageUnlimited": "Internal plan — no event limit.",
-    "quotaWarning": "Event quota at {{pct}}% this month — consider upgrading."
+    "quotaWarning": "Event quota at {{pct}}% this month — consider upgrading.",
+    "billing": "Billing",
+    "subscribe": "Upgrade to {{plan}}",
+    "manageSubscription": "Manage subscription (invoices, cancel)",
+    "noUpgrades": "No higher plan available.",
+    "planQuota": "{{quota}} events / month"
   },
   "footer": {
     "geoAttribution": "IP Geolocation by"

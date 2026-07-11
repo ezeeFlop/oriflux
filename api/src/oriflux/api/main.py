@@ -37,7 +37,11 @@ from oriflux.api import (
     public,
     tools,
 )
+from oriflux.api import (
+    billing as billing_router,
+)
 from oriflux.api.deps import require_read_org
+from oriflux.billing import BillingGateway, StripeGateway
 from oriflux.config import Settings, get_settings
 from oriflux.db import create_engine, create_session_factory
 from oriflux.db.migrate import run_migrations
@@ -88,6 +92,7 @@ def create_app(
     google_verifier: GoogleVerifier | None = None,
     ai_gateway: AiGateway | None = None,
     redis: Redis | None = None,
+    billing_gateway: BillingGateway | None = None,
 ) -> FastAPI:
     setup_logging()
     settings = settings or get_settings()
@@ -111,6 +116,9 @@ def create_app(
 
     app = FastAPI(title="oriflux_api", lifespan=lifespan)
     app.state.settings = settings
+    app.state.billing = billing_gateway or StripeGateway(
+        settings.stripe_secret_key, settings.stripe_webhook_secret
+    )
     if redis is not None:
         app.state.redis = redis
     app.state.google_verifier = google_verifier or make_google_verifier(
@@ -131,6 +139,7 @@ def create_app(
     app.include_router(infra.router)
     app.include_router(public.router)
     app.include_router(classification.router)
+    app.include_router(billing_router.router)
 
     def get_executor() -> QueryExecutor:
         if executor is not None:

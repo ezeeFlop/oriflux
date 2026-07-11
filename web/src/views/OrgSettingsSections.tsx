@@ -8,6 +8,9 @@ import { useTranslation } from "react-i18next";
 import { FIELD, Panel, PRIMARY_BUTTON } from "../components/widgets";
 import {
   addMember,
+  createCheckout,
+  createPortal,
+  getBilling,
   getUsage,
   getDigestPref,
   listMembers,
@@ -20,6 +23,7 @@ import {
   type MintedShare,
   type Role,
 } from "../lib/api";
+import { redirectTo } from "../lib/redirect";
 import { useDashboard } from "../lib/state";
 
 const CHIP =
@@ -63,6 +67,61 @@ export function UsageSection({ orgId }: { orgId: string }) {
         </div>
       ) : (
         <p className="mt-2 text-xs text-ink-soft">{t("settings.usageUnlimited")}</p>
+      )}
+    </Panel>
+  );
+}
+
+export function BillingSection({ orgId }: { orgId: string }) {
+  const { t } = useTranslation();
+  const billing = useQuery({
+    queryKey: ["billing", orgId],
+    queryFn: () => getBilling(orgId),
+  });
+  const checkout = useMutation({
+    mutationFn: (planSlug: string) => createCheckout(orgId, planSlug),
+    onSuccess: ({ url }) => redirectTo(url),
+  });
+  const portal = useMutation({
+    mutationFn: () => createPortal(orgId),
+    onSuccess: ({ url }) => redirectTo(url),
+  });
+
+  const data = billing.data;
+  if (!data?.enabled) return null; // keyless instance: billing stays invisible
+
+  const upgrades = data.plans.filter((p) => p.subscribable && p.slug !== data.plan_slug);
+
+  return (
+    <Panel title={t("settings.billing")}>
+      <ul className="divide-y divide-line/60">
+        {upgrades.map((plan) => (
+          <li key={plan.slug} className="flex items-center gap-3 py-2 text-sm">
+            <span className={CHIP}>{plan.name}</span>
+            <span className="min-w-0 flex-1 text-ink-soft">
+              {plan.monthly_events !== null
+                ? t("settings.planQuota", { quota: plan.monthly_events.toLocaleString() })
+                : t("settings.usageUnlimited")}
+            </span>
+            <button onClick={() => checkout.mutate(plan.slug)} className={PRIMARY_BUTTON}>
+              {t("settings.subscribe", { plan: plan.name })}
+            </button>
+          </li>
+        ))}
+        {upgrades.length === 0 && (
+          <li className="py-3 text-sm text-ink-soft">{t("settings.noUpgrades")}</li>
+        )}
+      </ul>
+      {data.has_customer && (
+        <button
+          onClick={() => portal.mutate()}
+          className="mt-3 rounded-md border border-line px-3 py-1.5 text-sm text-ink-soft hover:border-flame hover:text-flame"
+        >
+          {t("settings.manageSubscription")}
+        </button>
+      )}
+      {(checkout.isError || portal.isError) && (
+        <p className="mt-2 text-xs text-down">{t("common.error")}</p>
       )}
     </Panel>
   );
