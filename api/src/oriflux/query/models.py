@@ -30,7 +30,7 @@ class Period(BaseModel):
 
 class Filter(BaseModel):
     dimension: str
-    op: Literal["eq", "neq", "in"]
+    op: Literal["eq", "neq", "in", "prefix"]
     value: str | list[str]
 
     @field_validator("dimension")
@@ -41,6 +41,14 @@ class Filter(BaseModel):
                 f"unknown dimension: {value!r} — available: {', '.join(sorted(DIMENSIONS))}"
             )
         return value
+
+    @model_validator(mode="after")
+    def _prefix_takes_a_single_string(self) -> "Filter":
+        if self.op == "prefix" and not isinstance(self.value, str):
+            raise ValueError("prefix filters take a single string value")
+        if self.op == "in" and not isinstance(self.value, list):
+            raise ValueError("in filters take a list of values")
+        return self
 
 
 class QueryRequest(BaseModel):

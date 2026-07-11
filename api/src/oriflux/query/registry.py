@@ -93,9 +93,15 @@ METRICS: dict[str, MetricSpec] = {
         sql="round(avg(duration_s), 1)",
         event_filter=_PAGEVIEWS,
     ),
-    # ── product analytics (§5.2, issue #17) ──────────────────────────────
+    # ── product analytics (§5.2, issues #17/#18) ─────────────────────────
     "custom_events": MetricSpec(
         name="custom_events", shape="event", sql="count()",
+        event_filter="event_name != 'pageview'",
+    ),
+    # unique converting visitors — goal rates divide this by visitors so a
+    # repeat conversion can never push a rate past 100%
+    "custom_event_visitors": MetricSpec(
+        name="custom_event_visitors", shape="event", sql="uniq(visitor_hash)",
         event_filter="event_name != 'pageview'",
     ),
     # ── API analytics (§5.3) — pre-aggregated api_minutely rows ──────────

@@ -1,13 +1,23 @@
 {
-  "app": { "name": "Oriflux", "tagline": "The origin of flows" },
+  "app": {
+    "name": "Oriflux",
+    "tagline": "The origin of flows"
+  },
   "login": {
     "title": "Sign in",
     "subtitle": "The Sponge Theory analytics control plane",
     "google": "Continue with Google",
     "missingClientId": "Google client id not configured (VITE_GOOGLE_CLIENT_ID)."
   },
-  "nav": { "home": "Portfolio", "web": "Web", "api": "API", "logout": "Sign out" },
-  "footer": { "geoAttribution": "IP Geolocation by" },
+  "nav": {
+    "home": "Portfolio",
+    "web": "Web",
+    "api": "API",
+    "logout": "Sign out"
+  },
+  "footer": {
+    "geoAttribution": "IP Geolocation by"
+  },
   "period": {
     "label": "Period",
     "24h": "24 hours",
@@ -98,5 +108,19 @@
     "project": "Project",
     "back": "Back",
     "others": "others"
+  },
+  "goals": {
+    "title": "Goals",
+    "name": "Name",
+    "target": "Target",
+    "conversions": "Conversions",
+    "rate": "Rate",
+    "kind": "Type",
+    "event": "Event",
+    "page": "Page",
+    "add": "Add",
+    "delete": "Delete",
+    "empty": "No goals yet — declare a page or an event to track conversions.",
+    "error": "Could not save the goal (admin role and a valid target are required)."
   }
 }

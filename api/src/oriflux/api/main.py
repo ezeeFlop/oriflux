@@ -17,7 +17,7 @@ from fastapi_mcp import FastApiMCP
 from pydantic import BaseModel
 from sqlalchemy.ext.asyncio import AsyncSession, async_sessionmaker
 
-from oriflux.api import admin, alerts, auth, tools
+from oriflux.api import admin, alerts, auth, goals, tools
 from oriflux.api.deps import require_read_org
 from oriflux.config import Settings, get_settings
 from oriflux.db import create_engine, create_session_factory
@@ -87,6 +87,7 @@ def create_app(
     app.include_router(admin.router)
     app.include_router(tools.router)
     app.include_router(alerts.router)
+    app.include_router(goals.router)
 
     def get_executor() -> QueryExecutor:
         if executor is not None:

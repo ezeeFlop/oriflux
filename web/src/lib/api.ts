@@ -81,6 +81,7 @@ export async function apiFetch<T>(path: string, init?: RequestInit): Promise<T> 
     const body = await response.text();
     throw new ApiError(response.status, body);
   }
+  if (response.status === 204) return undefined as T;
   return (await response.json()) as T;
 }
 
@@ -99,6 +100,39 @@ export interface Project {
 
 export function listProjects(orgId: string): Promise<Project[]> {
   return apiFetch<Project[]>(`/api/v1/orgs/${orgId}/projects`);
+}
+
+export interface Goal {
+  id: string;
+  name: string;
+  kind: "event" | "page";
+  target: string;
+  conversions: number | null;
+  conversion_rate: number | null;
+}
+
+export function listGoals(
+  projectId: string,
+  period?: { start: string; end: string },
+): Promise<Goal[]> {
+  const query = period
+    ? `?start=${encodeURIComponent(period.start)}&end=${encodeURIComponent(period.end)}`
+    : "";
+  return apiFetch<Goal[]>(`/api/v1/projects/${projectId}/goals${query}`);
+}
+
+export function createGoal(
+  projectId: string,
+  goal: { name: string; kind: "event" | "page"; target: string },
+): Promise<Goal> {
+  return apiFetch<Goal>(`/api/v1/projects/${projectId}/goals`, {
+    method: "POST",
+    body: JSON.stringify(goal),
+  });
+}
+
+export function deleteGoal(goalId: string): Promise<void> {
+  return apiFetch<void>(`/api/v1/goals/${goalId}`, { method: "DELETE" });
 }
 
 export interface Me {

@@ -27,6 +27,8 @@ def _filter_clause(f: Filter, index: int, params: dict[str, Any]) -> str:
         params[name] = values
         return f"{spec.sql} IN {{{name}:Array(String)}}"
     params[name] = f.value
+    if f.op == "prefix":
+        return f"startsWith({spec.sql}, {{{name}:String}})"
     return f"{spec.sql} {_OPS[f.op]} {{{name}:String}}"
 
 

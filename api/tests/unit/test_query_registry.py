@@ -103,3 +103,42 @@ class TestCustomEventsRegistry:
         )
         assert "signup_completed" not in sql  # bound, never inlined
         assert "signup_completed" in params.values()
+
+
+class TestPrefixFilter:
+    """issue #18: page-prefix goals need a vetted startsWith filter op."""
+
+    def test_prefix_filter_compiles_to_starts_with(self) -> None:
+        sql, params = build_query(
+            q(
+                metric="pageviews",
+                filters=[{"dimension": "page", "op": "prefix", "value": "/docs/"}],
+            ),
+            org_id="org-dev",
+        )
+        assert "startsWith(url_path" in sql
+        assert "/docs/" not in sql  # bound, never inlined
+        assert "/docs/" in params.values()
+
+    def test_prefix_filter_rejects_list_values(self) -> None:
+        with pytest.raises(ValidationError):
+            q(
+                metric="pageviews",
+                filters=[{"dimension": "page", "op": "prefix", "value": ["/a", "/b"]}],
+            )
+
+
+class TestCustomEventVisitors:
+    """issue #18: goal conversion RATES divide unique converting visitors by
+    visitors — raw event counts would exceed 100% on repeat conversions."""
+
+    def test_custom_event_visitors_dedupes_by_visitor_hash(self) -> None:
+        sql, _ = build_query(
+            q(
+                metric="custom_event_visitors",
+                filters=[{"dimension": "event_name", "op": "eq", "value": "signup_completed"}],
+            ),
+            org_id="org-dev",
+        )
+        assert "uniq(visitor_hash)" in sql
+        assert "event_name != 'pageview'" in sql

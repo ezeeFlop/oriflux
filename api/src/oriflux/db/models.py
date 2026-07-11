@@ -107,6 +107,26 @@ class Source(Base):
     project: Mapped[Project] = relationship(back_populates="sources")
 
 
+class GoalKind(enum.StrEnum):
+    event = "event"
+    page = "page"
+
+
+class Goal(Base):
+    """Declarative conversion goal (PRD §5.2, issue #18): an event name or
+    a page-path prefix. Counting compiles through the query registry."""
+
+    __tablename__ = "goals"
+
+    id: Mapped[uuid.UUID] = mapped_column(Uuid, primary_key=True, default=uuid.uuid4)
+    org_id: Mapped[uuid.UUID] = mapped_column(ForeignKey("organizations.id"))
+    project_id: Mapped[uuid.UUID] = mapped_column(ForeignKey("projects.id"))
+    name: Mapped[str] = mapped_column(String(255))
+    kind: Mapped[GoalKind] = mapped_column(Enum(GoalKind, native_enum=False, length=8))
+    target: Mapped[str] = mapped_column(String(512))
+    created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), default=_utcnow)
+
+
 class AlertCondition(enum.StrEnum):
     gt = "gt"
     lt = "lt"

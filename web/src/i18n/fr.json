@@ -1,13 +1,23 @@
 {
-  "app": { "name": "Oriflux", "tagline": "L'origine des flux" },
+  "app": {
+    "name": "Oriflux",
+    "tagline": "L'origine des flux"
+  },
   "login": {
     "title": "Connexion",
     "subtitle": "Le plan de contrôle analytics de Sponge Theory",
     "google": "Continuer avec Google",
     "missingClientId": "Identifiant client Google non configuré (VITE_GOOGLE_CLIENT_ID)."
   },
-  "nav": { "home": "Portefeuille", "web": "Web", "api": "API", "logout": "Se déconnecter" },
-  "footer": { "geoAttribution": "Géolocalisation IP par" },
+  "nav": {
+    "home": "Portefeuille",
+    "web": "Web",
+    "api": "API",
+    "logout": "Se déconnecter"
+  },
+  "footer": {
+    "geoAttribution": "Géolocalisation IP par"
+  },
   "period": {
     "label": "Période",
     "24h": "24 heures",
@@ -98,5 +108,19 @@
     "project": "Projet",
     "back": "Retour",
     "others": "autres"
+  },
+  "goals": {
+    "title": "Objectifs",
+    "name": "Nom",
+    "target": "Cible",
+    "conversions": "Conversions",
+    "rate": "Taux",
+    "kind": "Type",
+    "event": "Événement",
+    "page": "Page",
+    "add": "Ajouter",
+    "delete": "Supprimer",
+    "empty": "Aucun objectif — déclarez une page ou un événement pour suivre les conversions.",
+    "error": "Impossible d'enregistrer l'objectif (rôle admin et cible valide requis)."
   }
 }
