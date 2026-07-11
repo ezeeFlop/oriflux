@@ -16,7 +16,7 @@ const LIVE_POLL_MS = 10_000;
 const TREND_POLL_MS = 60_000;
 
 interface TileData {
-  live: number;
+  live: number | null;  // null = the query errored (never rendered as a 0)
   trend: { value: number }[];
   errorRate: number | null;
   anomaly: number;
@@ -80,7 +80,9 @@ function useTiles(projects: Project[]) {
   return useMemo(() => {
     const tiles = new Map<string, TileData>();
     projects.forEach((project, index) => {
-      const liveValue = live[index]?.data?.results?.[0]?.value ?? 0;
+      const liveValue = live[index]?.isError
+        ? null
+        : (live[index]?.data?.results?.[0]?.value ?? 0);
       const trendRows = (trends[index]?.data as QueryResponse | undefined)?.results ?? [];
       const trend = trendRows.map((row) => ({ value: row.value ?? 0 }));
       const errorRate = errors[index]?.data?.results?.[0]?.value ?? null;
@@ -188,8 +190,11 @@ export default function HomeView() {
                 {tile ? (
                   <>
                     <div className="mt-2 flex items-baseline gap-2">
-                      <span className="tnum font-display text-3xl font-bold">
-                        {formatNumber(tile.live)}
+                      <span
+                        className="tnum font-display text-3xl font-bold"
+                        title={tile.live === null ? "query failed" : undefined}
+                      >
+                        {tile.live === null ? "–" : formatNumber(tile.live)}
                       </span>
                       <span className="text-xs text-ink-soft">{t("home.liveVisitors")}</span>
                     </div>
