@@ -274,6 +274,9 @@ function AnomaliesSection() {
               {t("anomalies.vsExpected", { expected: anomaly.expected })} ·{" "}
               {new Date(anomaly.window_start).toLocaleString()}
             </span>
+            {anomaly.explanation && (
+              <p className="w-full text-xs text-ink-soft">{anomaly.explanation}</p>
+            )}
           </div>
         ))}
       </div>

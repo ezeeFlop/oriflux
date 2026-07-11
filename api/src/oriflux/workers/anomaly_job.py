@@ -15,6 +15,7 @@ from sqlalchemy import select
 from sqlalchemy.exc import IntegrityError
 from sqlalchemy.ext.asyncio import AsyncSession, async_sessionmaker
 
+from oriflux.ai.explain import explain_movement
 from oriflux.db.models import AnomalyEvent, Organization, Project
 from oriflux.query.engine import build_query
 from oriflux.query.models import QueryRequest
@@ -59,6 +60,7 @@ async def run_detection(
     executor: QueryExecutor,
     *,
     now: datetime,
+    gateway: Any | None = None,
 ) -> int:
     """Score the last completed hour for every project; returns detections."""
     window_start = now.replace(minute=0, second=0, microsecond=0) - timedelta(hours=1)
@@ -90,6 +92,16 @@ async def run_detection(
                 detection = score_deviation(observed, Baseline.fit(history), window_start)
                 if detection is None:
                     continue
+                explanation = ""
+                if gateway is not None:
+                    explanation = await explain_movement(
+                        gateway, executor, org_id=str(org_id), project_id=str(project_id),
+                        metric=metric, window=(window_start, window_start + timedelta(hours=1)),
+                        headline=(
+                            f"{metric} {detection.direction} {detection.deviation_pct:+.1f}% "
+                            f"({detection.observed} vs expected {detection.expected})"
+                        ),
+                    )
                 session.add(
                     AnomalyEvent(
                         org_id=org_id,
@@ -100,6 +112,7 @@ async def run_detection(
                         observed=detection.observed,
                         deviation_pct=detection.deviation_pct,
                         window_start=window_start,
+                        explanation=explanation[:1024],
                     )
                 )
                 try:

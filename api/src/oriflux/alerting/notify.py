@@ -21,13 +21,14 @@ logger = logging.getLogger(__name__)
 _RESEND_URL = "https://api.resend.com/emails"
 
 
-def _message(rule: AlertRule, kind: str, value: float) -> str:
+def _message(rule: AlertRule, kind: str, value: float, extra: str = "") -> str:
     symbol = ">" if rule.condition == AlertCondition.gt else "<"
     state = "ALERT" if kind == "firing" else "RESOLVED"
-    return (
+    base = (
         f"[oriflux] {state} — {rule.name}: {rule.metric} = {value} "
         f"(threshold {symbol} {rule.threshold}, {rule.window_minutes} min window)"
     )
+    return f"{base}\n{extra}" if extra else base
 
 
 class AlertNotifier:
@@ -47,8 +48,8 @@ class AlertNotifier:
                 else:
                     time.sleep(2**attempt)
 
-    def notify(self, rule: AlertRule, *, kind: str, value: float) -> None:
-        text = _message(rule, kind, value)
+    def notify(self, rule: AlertRule, *, kind: str, value: float, extra: str = "") -> None:
+        text = _message(rule, kind, value, extra)
         if rule.slack_webhook_url:
             url = rule.slack_webhook_url
             if not self._settings.allow_private_webhooks:

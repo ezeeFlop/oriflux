@@ -202,6 +202,7 @@ export interface Anomaly {
   observed: number;
   deviation_pct: number;
   window_start: string;
+  explanation?: string;
 }
 
 export function listAnomalies(orgId: string): Promise<Anomaly[]> {

@@ -99,7 +99,7 @@ class RecordingNotifier:
     def __init__(self) -> None:
         self.messages: list[tuple[str, str]] = []  # (kind, text)
 
-    def notify(self, rule: AlertRule, *, kind: str, value: float) -> None:
+    def notify(self, rule: AlertRule, *, kind: str, value: float, extra: str = "") -> None:
         self.messages.append((kind, f"{rule.name}: {value}"))
 
 
@@ -248,7 +248,7 @@ class TestStateMachine:
         await seed_rule(db_sessionmaker)
 
         class ExplodingNotifier:
-            def notify(self, rule: AlertRule, *, kind: str, value: float) -> None:
+            def notify(self, rule: AlertRule, *, kind: str, value: float, extra: str = "") -> None:
                 raise ConnectionError("slack down")
 
         executor.value = 9.0

@@ -33,7 +33,7 @@ class QueryExecutor(Protocol):
 
 
 class Notifier(Protocol):
-    def notify(self, rule: AlertRule, *, kind: str, value: float) -> None: ...
+    def notify(self, rule: AlertRule, *, kind: str, value: float, extra: str = "") -> None: ...
 
 
 class Evaluator:
@@ -42,10 +42,12 @@ class Evaluator:
         session_factory: async_sessionmaker[AsyncSession],
         executor: QueryExecutor,
         notifier: Notifier,
+        explainer: Any = None,  # async (rule, value, now) -> str — optional (#36)
     ) -> None:
         self._session_factory = session_factory
         self._executor = executor
         self._notifier = notifier
+        self._explainer = explainer
 
     def _evaluate(self, rule: AlertRule, now: datetime) -> float:
         request = QueryRequest.model_validate(
@@ -63,9 +65,9 @@ class Evaluator:
         value = rows[0]["value"] if rows else None
         return float(value) if value is not None else 0.0
 
-    def _notify(self, rule: AlertRule, kind: str, value: float) -> None:
+    def _notify(self, rule: AlertRule, kind: str, value: float, extra: str = "") -> None:
         try:
-            self._notifier.notify(rule, kind=kind, value=value)
+            self._notifier.notify(rule, kind=kind, value=value, extra=extra)
         except Exception:  # noqa: BLE001 — notification failure must not stop evaluation
             logger.exception("alert notification failed (rule %s, %s)", rule.id, kind)
 
@@ -103,7 +105,13 @@ class Evaluator:
                                    fired_at=now)
                     )
                     await session.commit()
-                    await asyncio.to_thread(self._notify, rule, "firing", value)
+                    extra = ""
+                    if self._explainer is not None:
+                        try:
+                            extra = await self._explainer(rule, value, now)
+                        except Exception:  # noqa: BLE001 — optional
+                            extra = ""
+                    await asyncio.to_thread(self._notify, rule, "firing", value, extra)
                 elif not breached and open_event is not None:
                     open_event.resolved_at = now
                     await session.commit()

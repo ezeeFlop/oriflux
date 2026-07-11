@@ -24,6 +24,7 @@ class AnomalyOut(BaseModel):
     observed: float
     deviation_pct: float
     window_start: datetime
+    explanation: str = ""
 
 
 @router.get("/orgs/{org_id}/insights", operation_id="get_insights",
@@ -89,6 +90,7 @@ async def list_anomalies(
             observed=event.observed,
             deviation_pct=event.deviation_pct,
             window_start=event.window_start,
+            explanation=event.explanation,
         )
         for event, project_name in rows
     ]

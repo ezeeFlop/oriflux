@@ -145,6 +145,7 @@ class AnomalyEvent(Base):
     observed: Mapped[float] = mapped_column(Float)
     deviation_pct: Mapped[float] = mapped_column(Float)
     window_start: Mapped[datetime] = mapped_column(DateTime(timezone=True))
+    explanation: Mapped[str] = mapped_column(String(1024), default="")  # grounded diagnosis (#36)
     detected_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), default=_utcnow)
 
 

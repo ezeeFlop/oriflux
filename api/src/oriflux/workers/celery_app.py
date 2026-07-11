@@ -45,10 +45,14 @@ def _detect_anomalies_job() -> int:
     async def _run() -> int:
         engine = create_engine(settings)
         try:
+            from oriflux.ai.gateway import AiGateway
+
+            factory = create_session_factory(engine)
             return await run_detection(
-                create_session_factory(engine),
+                factory,
                 ClickHouseExecutor(clickhouse),
                 now=datetime.now(tz=UTC),
+                gateway=AiGateway(settings, factory),
             )
         finally:
             await engine.dispose()
@@ -178,11 +182,27 @@ def _evaluate_alerts_job() -> None:
     async def _run() -> None:
         engine = create_engine(settings)
         try:
-            evaluator = Evaluator(
-                create_session_factory(engine),
-                ClickHouseExecutor(clickhouse),
-                AlertNotifier(settings),
-            )
+            from datetime import timedelta
+
+            from oriflux.ai.explain import explain_movement
+            from oriflux.ai.gateway import AiGateway
+
+            factory = create_session_factory(engine)
+            executor = ClickHouseExecutor(clickhouse)
+            gateway = AiGateway(settings, factory)
+
+            async def explainer(rule: Any, value: float, now: Any) -> str:
+                if rule.project_id is None:
+                    return ""
+                return await explain_movement(
+                    gateway, executor, org_id=str(rule.org_id),
+                    project_id=str(rule.project_id), metric=rule.metric,
+                    window=(now - timedelta(minutes=rule.window_minutes), now),
+                    headline=f"{rule.metric} = {value} breached {rule.name}",
+                )
+
+            evaluator = Evaluator(factory, executor, AlertNotifier(settings),
+                                  explainer=explainer)
             await evaluator.run_once(now=datetime.now(tz=UTC))
         finally:
             await engine.dispose()
