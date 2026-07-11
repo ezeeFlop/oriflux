@@ -153,5 +153,9 @@
     "shares": "Tráfico por clase",
     "agents": "Crawlers y agentes IA",
     "pages": "Páginas más visitadas por IA"
+  },
+  "anomalies": {
+    "title": "Anomalías",
+    "vsExpected": "esperado ~{{expected}}"
   }
 }

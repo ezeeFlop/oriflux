@@ -26,12 +26,34 @@ from oriflux.config import Settings, get_settings
 from oriflux.db import create_engine, create_session_factory
 from oriflux.logs import setup_logging
 from oriflux.storage.clickhouse import ClickHouseExecutor, wait_for_clickhouse
+from oriflux.workers.anomaly_job import run_detection
 from oriflux.workers.geoip_refresh import RETRY_INTERVAL_S, maybe_refresh_geoip
 
 
 def _refresh_geoip_job() -> bool:
     settings = get_settings()
     return maybe_refresh_geoip(settings, alert=partial(ops_alert, settings))
+
+
+def _detect_anomalies_job() -> int:
+    settings = get_settings()
+    clickhouse = wait_for_clickhouse(settings)
+
+    async def _run() -> int:
+        engine = create_engine(settings)
+        try:
+            return await run_detection(
+                create_session_factory(engine),
+                ClickHouseExecutor(clickhouse),
+                now=datetime.now(tz=UTC),
+            )
+        finally:
+            await engine.dispose()
+
+    detections = asyncio.run(_run())
+    if detections:
+        ops_alert(settings, f"anomaly detection: {detections} new deviation(s) recorded")
+    return detections
 
 
 def _evaluate_alerts_job() -> None:
@@ -68,10 +90,12 @@ def create_celery(settings: Settings) -> Celery:
                 "task": "oriflux.evaluate_alerts",
                 "schedule": EVALUATION_INTERVAL_S,
             },
+            "detect-anomalies": {"task": "oriflux.detect_anomalies", "schedule": 3600},
         },
     )
     celery.task(name="oriflux.geoip_refresh")(_refresh_geoip_job)
     celery.task(name="oriflux.evaluate_alerts")(_evaluate_alerts_job)
+    celery.task(name="oriflux.detect_anomalies")(_detect_anomalies_job)
     return celery
 
 

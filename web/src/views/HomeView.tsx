@@ -2,12 +2,12 @@
  *  Live numbers via React Query refetchInterval (10 s polling, no WebSocket
  *  per décision 2026-07-10). */
 
-import { useQueries } from "@tanstack/react-query";
+import { useQueries, useQuery } from "@tanstack/react-query";
 import { useMemo } from "react";
 import { useTranslation } from "react-i18next";
 import { Link } from "react-router-dom";
 import { Panel, RankedTable, SkeletonRows } from "../components/widgets";
-import { runQuery, type Project, type QueryResponse } from "../lib/api";
+import { listAnomalies, runQuery, auth, type Project, type QueryResponse } from "../lib/api";
 import { formatNumber, formatPercent } from "../lib/format";
 import { lastMinutes, periodFor } from "../lib/periods";
 import { useDashboard } from "../lib/state";
@@ -99,6 +99,44 @@ function useTiles(projects: Project[]) {
     });
     return tiles;
   }, [projects, live, trends, errors]);
+}
+
+function AnomaliesSection() {
+  const { t } = useTranslation();
+  const anomalies = useQuery({
+    queryKey: ["anomalies", auth.orgId],
+    queryFn: () => listAnomalies(auth.orgId ?? ""),
+    enabled: Boolean(auth.orgId),
+    refetchInterval: 60_000,
+  });
+  if (!anomalies.data || anomalies.data.length === 0) return null;
+  return (
+    <section>
+      <h2 className="font-display text-base font-bold">{t("anomalies.title")}</h2>
+      <div className="mt-2 space-y-1.5">
+        {anomalies.data.slice(0, 6).map((anomaly) => (
+          <div
+            key={anomaly.id}
+            className="flex flex-wrap items-center gap-2 rounded-lg border border-line bg-surface px-3 py-2 text-sm"
+          >
+            <span className={anomaly.direction === "drop" ? "text-flame" : "text-amber-600"}>
+              {anomaly.direction === "drop" ? "▼" : "▲"}
+            </span>
+            <strong>{anomaly.project_name}</strong>
+            <span className="text-ink-soft">{t(`metric.${anomaly.metric}`)}</span>
+            <span className="tnum font-semibold">
+              {anomaly.deviation_pct > 0 ? "+" : ""}
+              {anomaly.deviation_pct}%
+            </span>
+            <span className="text-xs text-ink-soft">
+              {t("anomalies.vsExpected", { expected: anomaly.expected })} ·{" "}
+              {new Date(anomaly.window_start).toLocaleString()}
+            </span>
+          </div>
+        ))}
+      </div>
+    </section>
+  );
 }
 
 function LiveSection() {
@@ -218,6 +256,7 @@ export default function HomeView() {
       )}
 
       <h2 className="font-display text-base font-bold">{t("home.liveNow")}</h2>
+      <AnomaliesSection />
       <LiveSection />
     </div>
   );

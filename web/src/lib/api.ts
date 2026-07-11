@@ -192,6 +192,22 @@ export function listAnnotations(
   );
 }
 
+export interface Anomaly {
+  id: string;
+  project_id: string;
+  project_name: string;
+  metric: string;
+  direction: "drop" | "spike";
+  expected: number;
+  observed: number;
+  deviation_pct: number;
+  window_start: string;
+}
+
+export function listAnomalies(orgId: string): Promise<Anomaly[]> {
+  return apiFetch<Anomaly[]>(`/api/v1/orgs/${orgId}/anomalies`);
+}
+
 export interface Me {
   id: string;
   email: string;

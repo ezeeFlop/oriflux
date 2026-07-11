@@ -57,6 +57,7 @@ class Organization(Base):
     id: Mapped[uuid.UUID] = mapped_column(Uuid, primary_key=True, default=uuid.uuid4)
     slug: Mapped[str] = mapped_column(String(64), unique=True)
     name: Mapped[str] = mapped_column(String(255))
+    anomalies_muted: Mapped[bool] = mapped_column(Boolean, default=False)
     created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), default=_utcnow)
 
     projects: Mapped[list["Project"]] = relationship(back_populates="organization")
@@ -125,6 +126,24 @@ class Goal(Base):
     kind: Mapped[GoalKind] = mapped_column(Enum(GoalKind, native_enum=False, length=8))
     target: Mapped[str] = mapped_column(String(512))
     created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), default=_utcnow)
+
+
+class AnomalyEvent(Base):
+    """A zero-config seasonal-baseline detection (issue #27, PRD §5.5)."""
+
+    __tablename__ = "anomaly_events"
+    __table_args__ = (UniqueConstraint("project_id", "metric", "window_start"),)
+
+    id: Mapped[uuid.UUID] = mapped_column(Uuid, primary_key=True, default=uuid.uuid4)
+    org_id: Mapped[uuid.UUID] = mapped_column(ForeignKey("organizations.id"))
+    project_id: Mapped[uuid.UUID] = mapped_column(ForeignKey("projects.id"))
+    metric: Mapped[str] = mapped_column(String(64))
+    direction: Mapped[str] = mapped_column(String(8))  # drop | spike
+    expected: Mapped[float] = mapped_column(Float)
+    observed: Mapped[float] = mapped_column(Float)
+    deviation_pct: Mapped[float] = mapped_column(Float)
+    window_start: Mapped[datetime] = mapped_column(DateTime(timezone=True))
+    detected_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), default=_utcnow)
 
 
 class AnnotationKind(enum.StrEnum):

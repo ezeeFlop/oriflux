@@ -153,5 +153,9 @@
     "shares": "Traffic by class",
     "agents": "AI crawlers & agents",
     "pages": "Top pages crawled by AI"
+  },
+  "anomalies": {
+    "title": "Anomalies",
+    "vsExpected": "expected ~{{expected}}"
   }
 }
