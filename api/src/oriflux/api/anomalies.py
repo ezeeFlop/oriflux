@@ -9,7 +9,7 @@ from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from oriflux.api.deps import get_session, require_read_org
-from oriflux.db.models import AnomalyEvent, Project
+from oriflux.db.models import AnomalyEvent, Insight, Project
 
 router = APIRouter(prefix="/api/v1", tags=["anomalies"])
 
@@ -24,6 +24,40 @@ class AnomalyOut(BaseModel):
     observed: float
     deviation_pct: float
     window_start: datetime
+
+
+@router.get("/orgs/{org_id}/insights", operation_id="get_insights",
+            summary="Daily insights feed (numbers + grounded prose)")
+async def list_insights(
+    org_id: uuid.UUID,
+    limit: int = 20,
+    caller_org: str = Depends(require_read_org),
+    session: AsyncSession = Depends(get_session),
+) -> list[dict[str, object]]:
+    if str(org_id) != caller_org:
+        raise HTTPException(status_code=403, detail="organization mismatch")
+    rows = (
+        await session.execute(
+            select(Insight, Project.name)
+            .join(Project, Insight.project_id == Project.id)
+            .where(Insight.org_id == org_id)
+            .order_by(Insight.created_at.desc())
+            .limit(min(limit, 100))
+        )
+    ).all()
+    return [
+        {
+            "id": str(insight.id),
+            "project_name": project_name,
+            "day": insight.day,
+            "kind": insight.kind,
+            "metric": insight.metric,
+            "numbers": insight.numbers,
+            "query": insight.query,
+            "text": insight.text,
+        }
+        for insight, project_name in rows
+    ]
 
 
 @router.get("/orgs/{org_id}/anomalies")

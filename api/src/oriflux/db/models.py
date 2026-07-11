@@ -203,6 +203,27 @@ class AiUsage(Base):
     created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), default=_utcnow)
 
 
+class Insight(Base):
+    """A daily insight (issue #35): the numbers ARE the record; the prose
+    is optional and always grounded in them (query object stored too)."""
+
+    __tablename__ = "insights"
+    __table_args__ = (UniqueConstraint("project_id", "day", "key"),)
+
+    id: Mapped[uuid.UUID] = mapped_column(Uuid, primary_key=True, default=uuid.uuid4)
+    org_id: Mapped[uuid.UUID] = mapped_column(ForeignKey("organizations.id"))
+    project_id: Mapped[uuid.UUID] = mapped_column(ForeignKey("projects.id"))
+    day: Mapped[str] = mapped_column(String(10))  # YYYY-MM-DD
+    key: Mapped[str] = mapped_column(String(64))
+    kind: Mapped[str] = mapped_column(String(16))
+    metric: Mapped[str] = mapped_column(String(64))
+    numbers: Mapped[dict[str, Any]] = mapped_column(JSON)
+    query: Mapped[dict[str, Any]] = mapped_column(JSON)
+    text: Mapped[str] = mapped_column(String(1024), default="")
+    language: Mapped[str] = mapped_column(String(2), default="fr")
+    created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), default=_utcnow)
+
+
 class ConnectorProvider(enum.StrEnum):
     stripe = "stripe"
     lemonsqueezy = "lemonsqueezy"

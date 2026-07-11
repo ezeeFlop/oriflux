@@ -173,5 +173,8 @@
     "budget": "Presupuesto mensual de IA agotado.",
     "cannotCompile": "No se pudo convertir la pregunta en una consulta — reformule.",
     "showQuery": "ver la consulta ejecutada"
+  },
+  "insights": {
+    "title": "Insights"
   }
 }

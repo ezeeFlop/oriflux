@@ -173,5 +173,8 @@
     "budget": "Monthly AI budget exhausted.",
     "cannotCompile": "Could not turn that question into a query — try rephrasing.",
     "showQuery": "show the executed query"
+  },
+  "insights": {
+    "title": "Insights"
   }
 }

@@ -7,7 +7,7 @@ import { useMemo, useState } from "react";
 import { useTranslation } from "react-i18next";
 import { Link } from "react-router-dom";
 import { Panel, RankedTable, SkeletonRows } from "../components/widgets";
-import { askOriflux, listAnomalies, runQuery, auth, ApiError, type AskResult, type Project, type QueryResponse } from "../lib/api";
+import { askOriflux, listAnomalies, listInsights, runQuery, auth, ApiError, type AskResult, type Project, type QueryResponse } from "../lib/api";
 import { formatNumber, formatPercent } from "../lib/format";
 import { lastMinutes, periodFor } from "../lib/periods";
 import { useDashboard } from "../lib/state";
@@ -207,6 +207,42 @@ function RevenueStrip() {
   );
 }
 
+function InsightsSection() {
+  const { t } = useTranslation();
+  const insights = useQuery({
+    queryKey: ["insights", auth.orgId],
+    queryFn: () => listInsights(auth.orgId ?? ""),
+    enabled: Boolean(auth.orgId),
+    refetchInterval: 300_000,
+  });
+  if (!insights.data || insights.data.length === 0) return null;
+  return (
+    <section>
+      <h2 className="font-display text-base font-bold">{t("insights.title")}</h2>
+      <div className="mt-2 space-y-1.5">
+        {insights.data.slice(0, 6).map((insight) => (
+          <div
+            key={insight.id}
+            className="flex flex-wrap items-baseline gap-2 rounded-lg border border-line bg-surface px-3 py-2 text-sm"
+          >
+            <span className={insight.numbers.delta_pct >= 0 ? "text-emerald-600" : "text-flame"}>
+              {insight.numbers.delta_pct >= 0 ? "▲" : "▼"}
+            </span>
+            <strong>{insight.project_name}</strong>
+            <span className="flex-1">
+              {insight.text ||
+                `${t(`metric.${insight.metric}`)} : ${insight.numbers.current} (${
+                  insight.numbers.delta_pct >= 0 ? "+" : ""
+                }${insight.numbers.delta_pct}%)`}
+            </span>
+            <span className="tnum text-xs text-ink-soft">{insight.day}</span>
+          </div>
+        ))}
+      </div>
+    </section>
+  );
+}
+
 function AnomaliesSection() {
   const { t } = useTranslation();
   const anomalies = useQuery({
@@ -364,6 +400,7 @@ export default function HomeView() {
       <h2 className="font-display text-base font-bold">{t("home.liveNow")}</h2>
       <AskBar />
       <RevenueStrip />
+      <InsightsSection />
       <AnomaliesSection />
       <LiveSection />
     </div>

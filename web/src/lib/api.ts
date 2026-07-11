@@ -235,6 +235,21 @@ export function askOriflux(question: string, projectId?: string): Promise<AskRes
   });
 }
 
+export interface Insight {
+  id: string;
+  project_name: string;
+  day: string;
+  kind: string;
+  metric: string;
+  numbers: { current: number; previous: number; delta_pct: number; window: string };
+  query: Record<string, unknown>;
+  text: string;
+}
+
+export function listInsights(orgId: string): Promise<Insight[]> {
+  return apiFetch<Insight[]>(`/api/v1/orgs/${orgId}/insights`);
+}
+
 export interface Me {
   id: string;
   email: string;

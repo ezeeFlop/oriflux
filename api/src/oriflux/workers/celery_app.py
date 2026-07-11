@@ -30,6 +30,7 @@ from oriflux.workers.anomaly_job import run_detection
 from oriflux.workers.digest_job import run_digests
 from oriflux.workers.export_job import run_exports
 from oriflux.workers.geoip_refresh import RETRY_INTERVAL_S, maybe_refresh_geoip
+from oriflux.workers.insight_job import run_insights
 
 
 def _refresh_geoip_job() -> bool:
@@ -144,6 +145,32 @@ def _run_exports_job() -> int:
         return 0
 
 
+def _run_insights_job() -> int:
+    settings = get_settings()
+    clickhouse = wait_for_clickhouse(settings)
+
+    async def _run() -> int:
+        engine = create_engine(settings)
+        try:
+            from oriflux.ai.gateway import AiGateway
+
+            factory = create_session_factory(engine)
+            return await run_insights(
+                factory,
+                ClickHouseExecutor(clickhouse),
+                AiGateway(settings, factory),
+                now=datetime.now(tz=UTC),
+            )
+        finally:
+            await engine.dispose()
+
+    try:
+        return asyncio.run(_run())
+    except Exception as exc:  # noqa: BLE001 — alert, never crash the worker
+        ops_alert(settings, f"insight job FAILED: {exc}")
+        return 0
+
+
 def _evaluate_alerts_job() -> None:
     settings = get_settings()
     clickhouse = wait_for_clickhouse(settings)
@@ -181,6 +208,7 @@ def create_celery(settings: Settings) -> Celery:
             "detect-anomalies": {"task": "oriflux.detect_anomalies", "schedule": 3600},
             "send-digests": {"task": "oriflux.send_digests", "schedule": 3600},
             "run-exports": {"task": "oriflux.run_exports", "schedule": 24 * 3600},
+            "run-insights": {"task": "oriflux.run_insights", "schedule": 24 * 3600},
         },
     )
     celery.task(name="oriflux.geoip_refresh")(_refresh_geoip_job)
@@ -188,6 +216,7 @@ def create_celery(settings: Settings) -> Celery:
     celery.task(name="oriflux.detect_anomalies")(_detect_anomalies_job)
     celery.task(name="oriflux.send_digests")(_send_digests_job)
     celery.task(name="oriflux.run_exports")(_run_exports_job)
+    celery.task(name="oriflux.run_insights")(_run_insights_job)
     return celery
 
 

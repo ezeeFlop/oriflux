@@ -173,5 +173,8 @@
     "budget": "Budget IA mensuel épuisé.",
     "cannotCompile": "Impossible de transformer la question en requête — reformulez.",
     "showQuery": "voir la requête exécutée"
+  },
+  "insights": {
+    "title": "Insights"
   }
 }
