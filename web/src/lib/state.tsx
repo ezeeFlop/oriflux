@@ -28,8 +28,11 @@ interface Dashboard {
   setCompare: (on: boolean) => void;
   trafficClass: TrafficClass;
   setTrafficClass: (klass: TrafficClass) => void;
-  /** filters shared by every web widget: project + optional traffic class */
-  webFilters: (projectId: string) => QueryFilter[];
+  /** geo cross-filter (issue #50) — URL-backed like period/compare */
+  geo: { country: string | null; region: string | null };
+  setGeo: (country: string | null, region: string | null) => void;
+  /** filters shared by every web widget: project + traffic class + geo */
+  webFilters: (projectId: string, options?: { ignoreGeo?: boolean }) => QueryFilter[];
   period: { start: string; end: string };
   granularity: "hour" | "day" | "week" | "month";
   logout: () => void;
@@ -66,6 +69,25 @@ export function DashboardProvider({ children }: { children: ReactNode }) {
 
   const setPeriodKey = useCallback((key: PeriodKey) => setParam("period", key), [setParam]);
   const setCompare = useCallback((on: boolean) => setParam("compare", on ? "1" : null), [setParam]);
+
+  const geoCountry = searchParams.get("country");
+  const geoRegion = searchParams.get("region");
+  const setGeo = useCallback(
+    (country: string | null, region: string | null) => {
+      setSearchParams(
+        (previous) => {
+          const next = new URLSearchParams(previous);
+          if (country === null) next.delete("country");
+          else next.set("country", country);
+          if (region === null) next.delete("region");
+          else next.set("region", region);
+          return next;
+        },
+        { replace: true },
+      );
+    },
+    [setSearchParams],
+  );
 
   const { data: me = null, isLoading: loadingSession } = useQuery({
     queryKey: ["me"],
@@ -110,10 +132,16 @@ export function DashboardProvider({ children }: { children: ReactNode }) {
       setCompare,
       trafficClass,
       setTrafficClass,
-      webFilters: (projectId: string) => {
+      geo: { country: geoCountry, region: geoRegion },
+      setGeo,
+      webFilters: (projectId: string, options?: { ignoreGeo?: boolean }) => {
         const filters: QueryFilter[] = [{ dimension: "project_id", op: "eq", value: projectId }];
         if (trafficClass !== "all") {
           filters.push({ dimension: "traffic_class", op: "eq", value: trafficClass });
+        }
+        if (!options?.ignoreGeo) {
+          if (geoCountry) filters.push({ dimension: "country", op: "eq", value: geoCountry });
+          if (geoRegion) filters.push({ dimension: "region", op: "eq", value: geoRegion });
         }
         return filters;
       },
@@ -121,7 +149,7 @@ export function DashboardProvider({ children }: { children: ReactNode }) {
       granularity: granularityFor(periodKey),
       logout,
     };
-  }, [me, loadingSession, effectiveOrg, setOrgId, projects, periodKey, compare, trafficClass, logout]);
+  }, [me, loadingSession, effectiveOrg, setOrgId, projects, periodKey, setPeriodKey, compare, setCompare, trafficClass, geoCountry, geoRegion, setGeo, logout]);
 
   return <DashboardContext.Provider value={value}>{children}</DashboardContext.Provider>;
 }

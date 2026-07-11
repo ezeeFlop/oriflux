@@ -13,16 +13,26 @@ interface MetricOptions {
   projectId: string;
   /** override the shared filters (e.g. API view has no traffic_class) */
   projectOnly?: boolean;
+  /** the geo panel's own map must not be filtered by the country it sets */
+  ignoreGeo?: boolean;
+  /** drill tables change dimension on click: showing the previous level's
+   *  rows as placeholder would mislabel them — show the skeleton instead */
+  keepPreviousData?: boolean;
   refetchIntervalMs?: number;
   periodOverride?: { start: string; end: string };
   granularityOverride?: "hour" | "day" | "week" | "month";
 }
 
 export function useMetric(options: MetricOptions) {
-  const { period, granularity, compare, webFilters } = useDashboard();
+  const { period, granularity, compare, webFilters, geo } = useDashboard();
   const filters: QueryFilter[] = options.projectOnly
     ? [{ dimension: "project_id", op: "eq", value: options.projectId }]
-    : webFilters(options.projectId);
+    : webFilters(options.projectId, { ignoreGeo: options.ignoreGeo });
+  // projectOnly queries (API shapes, AI visibility) still honor the country
+  // cross-filter — but only country: region/city are events-only dimensions
+  if (options.projectOnly && !options.ignoreGeo && geo.country) {
+    filters.push({ dimension: "country", op: "eq", value: geo.country });
+  }
   if (options.extraFilters) filters.push(...options.extraFilters);
 
   const request = {
@@ -40,7 +50,8 @@ export function useMetric(options: MetricOptions) {
     queryKey: ["query", request],
     queryFn: () => runQuery(request),
     refetchInterval: options.refetchIntervalMs,
-    placeholderData: (previous) => previous,
+    placeholderData:
+      options.keepPreviousData === false ? undefined : (previous) => previous,
   });
 }
 

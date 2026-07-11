@@ -36,7 +36,7 @@ describe("web view", () => {
       "Taux de rebond",
       "Durée de session",
     ]) {
-      expect(await screen.findByText(label)).toBeInTheDocument();
+      expect((await screen.findAllByText(label)).length).toBeGreaterThan(0);
     }
     const metrics = new Set(queries.map((q) => q.metric));
     for (const metric of ["visitors", "pageviews", "sessions", "bounce_rate", "session_duration"]) {
@@ -47,7 +47,7 @@ describe("web view", () => {
   it("propagates the traffic-class filter into every registry query", async () => {
     const user = userEvent.setup();
     renderApp("/p/p1/web");
-    await screen.findByText("Visiteurs");
+    await screen.findAllByText("Visiteurs");
     queries = [];
     await user.click(screen.getByRole("button", { name: "Bots" }));
     await waitFor(() => expect(queries.length).toBeGreaterThan(0));
@@ -59,7 +59,7 @@ describe("web view", () => {
 
   it("asks for previous_period when compare is on in the URL", async () => {
     renderApp("/p/p1/web?compare=1");
-    await screen.findByText("Visiteurs");
+    await screen.findAllByText("Visiteurs");
     await waitFor(() =>
       expect(queries.some((q) => q.compare_to === "previous_period")).toBe(true),
     );

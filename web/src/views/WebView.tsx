@@ -2,6 +2,7 @@ import { useState } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { useTranslation } from "react-i18next";
 import { useParams } from "react-router-dom";
+import Choropleth from "../components/Choropleth";
 import TimeseriesChart from "../components/TimeseriesChart";
 
 import { Panel, RankedTable, StatCard, Tabs } from "../components/widgets";
@@ -77,27 +78,47 @@ function StatRow({ projectId }: { projectId: string }) {
   );
 }
 
+/** Geography (issue #50): an embedded-basemap choropleth where clicking a
+ *  country cross-filters the WHOLE dashboard (the filter lives in the URL),
+ *  plus a country → region → city drill-down table beside it. */
 function GeoPanel({ projectId }: { projectId: string }) {
   const { t } = useTranslation();
-  const [path, setPath] = useState<{ country?: string; region?: string }>({});
-  const level: GeoLevel = path.region ? "city" : path.country ? "region" : "country";
-  const extraFilters: QueryFilter[] = [];
-  if (path.country) extraFilters.push({ dimension: "country", op: "eq", value: path.country });
-  if (path.region) extraFilters.push({ dimension: "region", op: "eq", value: path.region });
+  const { geo, setGeo } = useDashboard();
+  const level: GeoLevel = geo.region ? "city" : geo.country ? "region" : "country";
 
-  const query = useMetric({ metric: "visitors", dimensions: [level], extraFilters, projectId });
+  // the map always shows every country — it must not be filtered by the
+  // very country it selects (the drill table, like the rest, is)
+  const mapQuery = useMetric({
+    metric: "visitors",
+    dimensions: ["country"],
+    projectId,
+    ignoreGeo: true,
+  });
+  const tableQuery = useMetric({
+    metric: "visitors",
+    dimensions: [level],
+    projectId,
+    keepPreviousData: false,
+  });
+
+  const values = new Map<string, number>(
+    (mapQuery.data?.results ?? [])
+      .filter((row) => typeof row.country === "string" && row.country !== "")
+      .map((row) => [String(row.country), row.value ?? 0]),
+  );
 
   const crumbs = [
-    { label: t("web.worldTotal"), onClick: () => setPath({}) },
-    ...(path.country
-      ? [{ label: path.country, onClick: () => setPath({ country: path.country }) }]
+    { label: t("web.worldTotal"), onClick: () => setGeo(null, null) },
+    ...(geo.country
+      ? [{ label: geo.country, onClick: () => setGeo(geo.country, null) }]
       : []),
-    ...(path.region ? [{ label: path.region, onClick: () => undefined }] : []),
+    ...(geo.region ? [{ label: geo.region, onClick: () => undefined }] : []),
   ];
 
   return (
     <Panel
       title={t("web.geo")}
+      className="md:col-span-2"
       actions={
         <nav className="flex items-center gap-1 text-xs text-ink-soft">
           {crumbs.map((crumb, index) => (
@@ -111,17 +132,26 @@ function GeoPanel({ projectId }: { projectId: string }) {
         </nav>
       }
     >
-      <RankedTable
-        rows={query.data?.results}
-        dimension={level}
-        onRowClick={
-          level === "city"
-            ? undefined
-            : (raw) =>
-                raw &&
-                setPath(level === "country" ? { country: raw } : { ...path, region: raw })
-        }
-      />
+      <div className="grid gap-4 md:grid-cols-[2fr_1fr]">
+        <Choropleth
+          values={values}
+          selected={geo.country}
+          onSelect={(a2) => setGeo(a2 === geo.country ? null : a2, null)}
+          formatValue={formatNumber}
+          legendLabel={t("metric.visitors")}
+        />
+        <RankedTable
+          rows={tableQuery.data?.results}
+          dimension={level}
+          onRowClick={
+            level === "city"
+              ? undefined
+              : (raw) =>
+                  raw &&
+                  (level === "country" ? setGeo(raw, null) : setGeo(geo.country, raw))
+          }
+        />
+      </div>
     </Panel>
   );
 }

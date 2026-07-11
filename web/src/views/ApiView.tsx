@@ -3,11 +3,13 @@ import { useQuery } from "@tanstack/react-query";
 import { useTranslation } from "react-i18next";
 import { useParams } from "react-router-dom";
 
-import { Panel, RankedTable, SkeletonRows, StatCard } from "../components/widgets";
+import Choropleth from "../components/Choropleth";
+import { Panel, RankedTable, SkeletonRows, StatCard, Tabs } from "../components/widgets";
 import type { QueryRow } from "../lib/api";
 import { deltaPercent, formatMs, formatNumber, formatPercent } from "../lib/format";
 import { fetchInfra } from "../lib/api";
 import { compareScalar, scalar, useMetric } from "../lib/useMetric";
+import { useDashboard } from "../lib/state";
 
 type SortKey = "volume" | "errors" | "p95";
 
@@ -194,6 +196,69 @@ function InfraPanel({ projectId }: { projectId: string }) {
   );
 }
 
+const GEO_METRICS = ["api_requests", "api_error_rate_5xx", "api_latency_p95"] as const;
+type GeoMetric = (typeof GEO_METRICS)[number];
+
+const GEO_FORMATTERS: Record<GeoMetric, (value: number | null) => string> = {
+  api_requests: formatNumber,
+  api_error_rate_5xx: formatPercent,
+  api_latency_p95: formatMs,
+};
+
+/** Caller geography (issue #51): the same embedded choropleth as the web
+ *  view, colored by volume, 5xx rate or p95 latency per caller country —
+ *  where no web-analytics tool goes. Clicking a country cross-filters the
+ *  whole API view (country only: the api aggregate has no region/city,
+ *  by design of the 2000-key ingest cap). */
+function ApiGeoPanel({ projectId }: { projectId: string }) {
+  const { t } = useTranslation();
+  const { geo, setGeo } = useDashboard();
+  const [metric, setMetric] = useState<GeoMetric>("api_requests");
+
+  const mapQuery = useMetric({
+    metric, dimensions: ["country"], projectId, projectOnly: true, ignoreGeo: true,
+  });
+  const rows = mapQuery.data?.results ?? [];
+  const values = new Map<string, number>(
+    rows
+      .filter((row) => typeof row.country === "string" && row.country !== "")
+      .map((row) => [String(row.country), row.value ?? 0]),
+  );
+  const format = GEO_FORMATTERS[metric];
+
+  return (
+    <Panel
+      title={t("api.callerGeo")}
+      className="md:col-span-3"
+      actions={
+        <Tabs
+          value={metric}
+          options={GEO_METRICS}
+          onChange={setMetric}
+          labelFor={(option) => t(`metric.${option}`)}
+        />
+      }
+    >
+      <div className="grid gap-4 md:grid-cols-[2fr_1fr]">
+        <Choropleth
+          values={values}
+          selected={geo.country}
+          onSelect={(a2) => setGeo(a2 === geo.country ? null : a2, null)}
+          formatValue={(value) => format(value)}
+          legendLabel={t(`metric.${metric}`)}
+        />
+        <RankedTable
+          rows={rows}
+          dimension="country"
+          labelFor={(raw) => raw || t("api.unresolved")}
+          valueFormatter={(value) => format(value)}
+          onRowClick={(raw) => raw && setGeo(raw === geo.country ? null : raw, null)}
+        />
+      </div>
+    </Panel>
+  );
+}
+
 export default function ApiView() {
   const { t } = useTranslation();
   const { projectId = "" } = useParams();
@@ -205,10 +270,6 @@ export default function ApiView() {
   const statusClasses = useMetric({
     metric: "api_requests", dimensions: ["status_class"], projectId, projectOnly: true,
   });
-  const callerGeo = useMetric({
-    metric: "api_requests", dimensions: ["country"], projectId, projectOnly: true,
-  });
-
   const stat = (
     query: ReturnType<typeof useMetric>,
     label: string,
@@ -276,13 +337,7 @@ export default function ApiView() {
           )}
         </Panel>
         <ConsumerPanel projectId={projectId} />
-        <Panel title={t("api.callerGeo")}>
-          <RankedTable
-            rows={callerGeo.data?.results}
-            dimension="country"
-            labelFor={(raw) => raw || t("api.unresolved")}
-          />
-        </Panel>
+        <ApiGeoPanel projectId={projectId} />
       </div>
     </div>
   );
