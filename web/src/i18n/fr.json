@@ -122,5 +122,17 @@
     "delete": "Supprimer",
     "empty": "Aucun objectif — déclarez une page ou un événement pour suivre les conversions.",
     "error": "Impossible d'enregistrer l'objectif (rôle admin et cible valide requis)."
+  },
+  "funnel": {
+    "title": "Funnel",
+    "scope": "Portée",
+    "session": "par session",
+    "identified": "utilisateurs identifiés",
+    "sessionOption": "Anonyme (session unique)",
+    "identifiedOption": "Utilisateurs identifiés (multi-jours)",
+    "addStep": "Ajouter une étape",
+    "removeStep": "Retirer l'étape",
+    "conversion": "Conversion :",
+    "sessionNote": "Les funnels anonymes sont limités à une session/journée — le hash journalier rotatif rend les séquences anonymes plus longues impossibles par conception."
   }
 }

@@ -135,6 +135,29 @@ export function deleteGoal(goalId: string): Promise<void> {
   return apiFetch<void>(`/api/v1/goals/${goalId}`, { method: "DELETE" });
 }
 
+export interface FunnelStep {
+  kind: "event" | "page";
+  target: string;
+}
+
+export interface FunnelResult {
+  scope: "session" | "identified";
+  steps: { step: number; target: string; entered: number }[];
+  conversion_rate: number;
+}
+
+export function runFunnel(request: {
+  steps: FunnelStep[];
+  scope: "session" | "identified";
+  project_id: string;
+  period: { start: string; end: string };
+}): Promise<FunnelResult> {
+  return apiFetch<FunnelResult>("/api/v1/funnel", {
+    method: "POST",
+    body: JSON.stringify(request),
+  });
+}
+
 export interface Me {
   id: string;
   email: string;

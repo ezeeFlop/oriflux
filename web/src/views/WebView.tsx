@@ -5,7 +5,14 @@ import { useParams } from "react-router-dom";
 import TimeseriesChart from "../components/TimeseriesChart";
 import { PeriodPicker } from "../components/Shell";
 import { Panel, RankedTable, StatCard, Tabs } from "../components/widgets";
-import { createGoal, deleteGoal, listGoals, type QueryFilter } from "../lib/api";
+import {
+  createGoal,
+  deleteGoal,
+  listGoals,
+  runFunnel,
+  type FunnelStep,
+  type QueryFilter,
+} from "../lib/api";
 import { formatDuration, formatNumber, formatPercent } from "../lib/format";
 import { compareScalar, scalar, useMetric } from "../lib/useMetric";
 import { useDashboard, type TrafficClass } from "../lib/state";
@@ -239,6 +246,114 @@ function GoalsPanel({ projectId }: { projectId: string }) {
   );
 }
 
+function FunnelPanel({ projectId }: { projectId: string }) {
+  const { t } = useTranslation();
+  const { period } = useDashboard();
+  const [steps, setSteps] = useState<FunnelStep[]>([
+    { kind: "page", target: "/" },
+    { kind: "event", target: "" },
+  ]);
+  const [scope, setScope] = useState<"session" | "identified">("session");
+
+  const ready = steps.length >= 2 && steps.every((s) => s.target.trim().length > 0);
+  const funnel = useQuery({
+    queryKey: ["funnel", projectId, steps, scope, period],
+    queryFn: () => runFunnel({ steps, scope, project_id: projectId, period }),
+    enabled: ready,
+  });
+
+  const setStep = (index: number, patch: Partial<FunnelStep>) =>
+    setSteps((current) =>
+      current.map((step, i) => (i === index ? { ...step, ...patch } : step)),
+    );
+  const max = Math.max(1, ...(funnel.data?.steps.map((s) => s.entered) ?? [1]));
+
+  return (
+    <Panel
+      title={t("funnel.title")}
+      className="md:col-span-2"
+      actions={
+        <div className="flex items-center gap-2">
+          <span className="rounded bg-flame-soft px-1.5 py-0.5 text-[10px] uppercase text-flame">
+            {t(`funnel.${scope}`)}
+          </span>
+          <select
+            value={scope}
+            onChange={(e) => setScope(e.target.value as "session" | "identified")}
+            aria-label={t("funnel.scope")}
+            className="rounded-md border border-line bg-surface px-2 py-1 text-xs"
+          >
+            <option value="session">{t("funnel.sessionOption")}</option>
+            <option value="identified">{t("funnel.identifiedOption")}</option>
+          </select>
+        </div>
+      }
+    >
+      <div className="space-y-1.5">
+        {steps.map((step, index) => (
+          <div key={index} className="flex items-center gap-2">
+            <span className="w-4 text-xs tabular-nums text-ink-soft">{index + 1}.</span>
+            <select
+              value={step.kind}
+              onChange={(e) => setStep(index, { kind: e.target.value as "event" | "page" })}
+              className="rounded-md border border-line bg-surface px-2 py-1 text-xs"
+            >
+              <option value="page">{t("goals.page")}</option>
+              <option value="event">{t("goals.event")}</option>
+            </select>
+            <input
+              value={step.target}
+              onChange={(e) => setStep(index, { target: e.target.value })}
+              placeholder={step.kind === "page" ? "/pricing" : "signup_completed"}
+              className="w-48 rounded-md border border-line bg-surface px-2 py-1 text-xs font-mono"
+            />
+            {funnel.data?.steps[index] && (
+              <div className="flex flex-1 items-center gap-2">
+                <div className="h-4 flex-1 overflow-hidden rounded bg-flame-soft">
+                  <div
+                    className="h-full rounded bg-flame transition-all"
+                    style={{ width: `${(funnel.data.steps[index].entered / max) * 100}%` }}
+                  />
+                </div>
+                <span className="w-14 text-right text-xs tabular-nums">
+                  {formatNumber(funnel.data.steps[index].entered)}
+                </span>
+              </div>
+            )}
+            {steps.length > 2 && (
+              <button
+                onClick={() => setSteps((c) => c.filter((_, i) => i !== index))}
+                aria-label={t("funnel.removeStep")}
+                className="text-xs text-ink-soft hover:text-flame"
+              >
+                ✕
+              </button>
+            )}
+          </div>
+        ))}
+      </div>
+      <div className="mt-2 flex items-center justify-between">
+        <button
+          onClick={() => setSteps((c) => [...c, { kind: "page", target: "" }])}
+          disabled={steps.length >= 8}
+          className="text-xs font-medium text-flame hover:underline disabled:opacity-40"
+        >
+          + {t("funnel.addStep")}
+        </button>
+        {funnel.data && (
+          <span className="text-xs text-ink-soft">
+            {t("funnel.conversion")}{" "}
+            <strong className="text-ink">{formatPercent(funnel.data.conversion_rate)}</strong>
+          </span>
+        )}
+      </div>
+      {scope === "session" && (
+        <p className="mt-1 text-[11px] text-ink-soft">{t("funnel.sessionNote")}</p>
+      )}
+    </Panel>
+  );
+}
+
 export default function WebView() {
   const { t } = useTranslation();
   const { projectId = "" } = useParams();
@@ -319,6 +434,7 @@ export default function WebView() {
           <RankedTable rows={devices.data?.results} dimension={deviceTab} />
         </Panel>
         <GoalsPanel projectId={projectId} />
+        <FunnelPanel projectId={projectId} />
       </div>
     </div>
   );

@@ -122,5 +122,17 @@
     "delete": "Delete",
     "empty": "No goals yet — declare a page or an event to track conversions.",
     "error": "Could not save the goal (admin role and a valid target are required)."
+  },
+  "funnel": {
+    "title": "Funnel",
+    "scope": "Scope",
+    "session": "session-scoped",
+    "identified": "identified users",
+    "sessionOption": "Anonymous (single session)",
+    "identifiedOption": "Identified users (multi-day)",
+    "addStep": "Add a step",
+    "removeStep": "Remove step",
+    "conversion": "Conversion:",
+    "sessionNote": "Anonymous funnels are limited to a single session/day — the daily rotating hash makes longer anonymous sequences impossible by design."
   }
 }

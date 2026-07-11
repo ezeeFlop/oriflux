@@ -24,6 +24,7 @@ from oriflux.db import create_engine, create_session_factory
 from oriflux.db.migrate import run_migrations
 from oriflux.logs import setup_logging
 from oriflux.query.engine import build_query
+from oriflux.query.funnel import FunnelRequest, build_funnel
 from oriflux.query.models import Period, QueryRequest
 from oriflux.security.google import GoogleVerifier, make_google_verifier
 
@@ -128,6 +129,37 @@ def create_app(
             compare_results=compare_results,
             sql=sql,
         )
+
+    @app.post(
+        "/api/v1/funnel",
+        operation_id="query_funnel",
+        summary="Run a typed funnel query (windowFunnel; session-scoped or identified)",
+    )
+    async def funnel(
+        request: FunnelRequest,
+        org_id: str = Depends(require_read_org),
+        executor: QueryExecutor = Depends(get_executor),
+    ) -> dict[str, Any]:
+        sql, params = build_funnel(request, org_id=org_id)
+        rows = await asyncio.to_thread(executor.execute, sql, params)
+        if request.segment_by is not None:
+            return {"scope": request.scope, "segment_by": request.segment_by,
+                    "segments": rows, "sql": sql}
+        counts = rows[0] if rows else {}
+        entered = [
+            int(counts.get(f"step_{i + 1}", 0) or 0) for i in range(len(request.steps))
+        ]
+        steps = [
+            {"step": i + 1, "target": step.target, "entered": entered[i]}
+            for i, step in enumerate(request.steps)
+        ]
+        first, last = entered[0], entered[-1]
+        return {
+            "scope": request.scope,
+            "steps": steps,
+            "conversion_rate": 0.0 if first == 0 else round(100 * last / first, 1),
+            "sql": sql,
+        }
 
     @app.get("/healthz")
     async def healthz() -> dict[str, str]:
