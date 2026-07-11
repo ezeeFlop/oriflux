@@ -337,6 +337,20 @@ export function listAnnotations(
   );
 }
 
+export function createAnnotation(
+  projectId: string,
+  annotation: { kind: Annotation["kind"]; text: string; happened_at: string },
+): Promise<Annotation> {
+  return apiFetch<Annotation>(`/api/v1/projects/${projectId}/annotations`, {
+    method: "POST",
+    body: JSON.stringify(annotation),
+  });
+}
+
+export function deleteAnnotation(annotationId: string): Promise<void> {
+  return apiFetch<void>(`/api/v1/annotations/${annotationId}`, { method: "DELETE" });
+}
+
 export interface Anomaly {
   id: string;
   project_id: string;

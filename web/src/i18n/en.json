@@ -283,5 +283,25 @@
     "events": "Alert events",
     "noEvents": "No alert events.",
     "diagnosisNote": "The detailed diagnosis rides each notification (Slack/email) at firing time."
+  },
+  "live": {
+    "polling": "10 s fallback",
+    "map": "Activity map (30 min)"
+  },
+  "annotationsView": {
+    "inPeriod": "Annotations in this period",
+    "text": "Annotation text",
+    "kindLabel": "Kind",
+    "when": "Date and time",
+    "add": "Annotate",
+    "delete": "Delete annotation",
+    "empty": "No annotations in this period.",
+    "chartNote": "Annotations show as markers on the time-series charts.",
+    "kind": {
+      "release": "Release",
+      "campaign": "Campaign",
+      "incident": "Incident",
+      "note": "Note"
+    }
   }
 }

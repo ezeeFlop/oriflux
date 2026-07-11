@@ -5,9 +5,11 @@ import { PROJECT_SECTIONS, type SectionKey } from "./lib/sections";
 import { DashboardProvider } from "./lib/state";
 import ApiView from "./views/ApiView";
 import AlertsView from "./views/AlertsView";
+import AnnotationsView from "./views/AnnotationsView";
 import ComingSoon from "./views/ComingSoon";
 import GoalsView from "./views/GoalsView";
 import HomeView from "./views/HomeView";
+import LiveView from "./views/LiveView";
 import ProductView from "./views/ProductView";
 import Login from "./views/Login";
 import OrgSettingsView from "./views/OrgSettingsView";
@@ -21,6 +23,8 @@ const SECTION_VIEWS: Partial<Record<SectionKey, JSX.Element>> = {
   product: <ProductView />,
   goals: <GoalsView />,
   alerts: <AlertsView />,
+  live: <LiveView />,
+  annotations: <AnnotationsView />,
 };
 
 function RequireAuth({ children }: { children: JSX.Element }) {

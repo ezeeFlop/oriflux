@@ -283,5 +283,25 @@
     "events": "Eventos de alerta",
     "noEvents": "Sin eventos de alerta.",
     "diagnosisNote": "El diagnóstico detallado acompaña cada notificación (Slack/email) al dispararse."
+  },
+  "live": {
+    "polling": "reserva 10 s",
+    "map": "Mapa de actividad (30 min)"
+  },
+  "annotationsView": {
+    "inPeriod": "Anotaciones del período",
+    "text": "Texto de la anotación",
+    "kindLabel": "Tipo",
+    "when": "Fecha y hora",
+    "add": "Anotar",
+    "delete": "Eliminar anotación",
+    "empty": "Sin anotaciones en este período.",
+    "chartNote": "Las anotaciones aparecen como marcadores en los gráficos temporales.",
+    "kind": {
+      "release": "Release",
+      "campaign": "Campaña",
+      "incident": "Incidente",
+      "note": "Nota"
+    }
   }
 }
