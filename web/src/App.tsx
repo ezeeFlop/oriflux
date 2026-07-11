@@ -14,6 +14,7 @@ import ProductView from "./views/ProductView";
 import Login from "./views/Login";
 import OrgSettingsView from "./views/OrgSettingsView";
 import PublicView from "./views/PublicView";
+import WelcomeView from "./views/WelcomeView";
 import WebView from "./views/WebView";
 
 /** Sections whose slice already shipped; everything else is a placeholder. */
@@ -43,6 +44,14 @@ export function AppRoutes() {
   return (
     <Routes>
       <Route path="/login" element={<Login />} />
+      <Route
+        path="/welcome"
+        element={
+          <RequireAuth>
+            <WelcomeView />
+          </RequireAuth>
+        }
+      />
       <Route path="/public/:token" element={<PublicView />} />
       <Route
         element={

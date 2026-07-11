@@ -317,5 +317,23 @@
       "incident": "Incidente",
       "note": "Nota"
     }
+  },
+  "welcome": {
+    "title": "Bienvenido a Oriflux",
+    "orgName": "Nombre de la organización",
+    "orgSlug": "Slug de la organización",
+    "createOrg": "Crear organización",
+    "orgFailed": "Creación imposible (¿slug ocupado?)",
+    "projectSlug": "Slug del proyecto",
+    "waitingFirstEvent": "Esperando el primer evento… pega el fragmento y visita tu sitio.",
+    "firstEventReceived": "¡Primer evento recibido — la integración funciona!",
+    "openPortfolio": "Abrir la cartera",
+    "skip": "Más tarde — ir al panel",
+    "step": {
+      "org": "Crea tu organización para empezar.",
+      "project": "Declara tu primer producto.",
+      "source": "¿De dónde vendrán los eventos?",
+      "integrate": "Pega el fragmento — vigilamos la llegada del primer evento."
+    }
   }
 }

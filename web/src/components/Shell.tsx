@@ -1,6 +1,6 @@
 import { useEffect, useRef, useState } from "react";
 import { useTranslation } from "react-i18next";
-import { NavLink, Outlet, useLocation, useNavigate, useParams } from "react-router-dom";
+import { Navigate, NavLink, Outlet, useLocation, useNavigate, useParams } from "react-router-dom";
 import { LANGUAGES, setLanguage, type Language } from "../i18n";
 import AskPalette, { openAskPalette } from "./AskPalette";
 import { useQuery } from "@tanstack/react-query";
@@ -272,6 +272,10 @@ function QuotaBanner() {
 
 export default function Shell() {
   const { t } = useTranslation();
+  const { me } = useDashboard();
+
+  // no organization yet → the self-serve onboarding, never an empty shell
+  if (me && me.orgs.length === 0) return <Navigate to="/welcome" replace />;
 
   return (
     <div className="flex min-h-screen">
