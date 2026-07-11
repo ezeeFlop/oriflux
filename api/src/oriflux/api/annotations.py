@@ -83,7 +83,9 @@ async def _authorize_writer(
     await require_role(session, user, project.org_id, Role.admin)
 
 
-@router.post("/projects/{project_id}/annotations", status_code=201)
+@router.post("/projects/{project_id}/annotations", status_code=201,
+             operation_id="annotate",
+             summary="Mark a release/campaign/incident on the project timeline")
 async def create_annotation(
     project_id: uuid.UUID,
     payload: AnnotationIn,

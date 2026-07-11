@@ -27,6 +27,20 @@ and revoked keys are rejected. Keys are issued per organization
 
 (Dev: `http://localhost:8101/mcp`.)
 
+## Tool inventory (phase 3 additions)
+
+| Tool | Input | Notes |
+|---|---|---|
+| `query_funnel` | typed funnel (2-8 event/page steps, scope `session`\|`identified`, window, segment) | anonymous scope caps at 24 h by design |
+| `query_retention` | activation event slug + `week`\|`month` + period | identified users only, by design |
+| `get_insights` | org id (+limit) | daily feed: numbers + grounded prose + the query object |
+| `get_alerts` | org id | firing/resolved alert events |
+| `ask_oriflux` | a natural-language question (FR/EN/ES) | compiles to the typed query — never SQL; answers cite the executed query; 503 when AI is unconfigured, 429 past the org budget |
+| `annotate` | project id + kind + text + timestamp | **the one write operation** — requires the project's *ingest* key; read keys get 403, so a read-only agent stays read-only |
+
+Agent example: « mark this release » → `annotate(project, "release", "v2.1", now)`;
+« why did signups move this week? » → `ask_oriflux` then `get_insights`.
+
 ## Tool inventory (phase 1 — read-only)
 
 | Tool | Input | Returns |

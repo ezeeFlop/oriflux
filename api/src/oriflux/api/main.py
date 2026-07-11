@@ -323,8 +323,16 @@ def create_app(
             "list_projects",
             "get_overview",
             "query_metrics",
+            "query_funnel",
+            "query_retention",
             "get_geo_breakdown",
             "get_api_health",
+            "get_insights",
+            "get_alerts",
+            "ask_oriflux",
+            # the ONE write operation: requires the project's ingest key —
+            # read keys are refused (403), the read-only default stays intact
+            "annotate",
         ],
     ).mount_http()
 

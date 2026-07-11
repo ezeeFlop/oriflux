@@ -173,7 +173,8 @@ async def delete_rule(
     await session.commit()
 
 
-@router.get("/orgs/{org_id}/alert-events")
+@router.get("/orgs/{org_id}/alert-events", operation_id="get_alerts",
+            summary="Alert events (firing/resolved) for the organization")
 async def list_events(
     org_id: uuid.UUID,
     user: User = Depends(get_current_user),
