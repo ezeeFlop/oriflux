@@ -5,7 +5,7 @@
 import { useQueries, useQuery } from "@tanstack/react-query";
 import { useMemo, useState } from "react";
 import { useTranslation } from "react-i18next";
-import { Link } from "react-router-dom";
+import { Link, useLocation } from "react-router-dom";
 import { Panel, RankedTable, SkeletonRows } from "../components/widgets";
 import { askOriflux, listAnomalies, listInsights, runQuery, auth, ApiError, type AskResult, type Project, type QueryResponse } from "../lib/api";
 import { formatNumber, formatPercent } from "../lib/format";
@@ -349,6 +349,7 @@ function LiveSection() {
 
 export default function HomeView() {
   const { t } = useTranslation();
+  const { search } = useLocation();
   const { projects } = useDashboard();
   const tiles = useTiles(projects);
 
@@ -377,7 +378,7 @@ export default function HomeView() {
             return (
               <Link
                 key={project.id}
-                to={`/p/${project.id}/web`}
+                to={{ pathname: `/p/${project.id}/web`, search }}
                 className="rise group rounded-xl border border-line bg-surface p-4 transition-shadow hover:shadow-[0_4px_20px_rgba(30,20,10,0.08)]"
               >
                 <div className="flex items-baseline justify-between">

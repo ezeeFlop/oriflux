@@ -5,12 +5,12 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>Oriflux</title>
     <script>
-      // apply the stored theme before first paint (no flash)
-      const stored = localStorage.getItem("oriflux.theme");
-      const dark =
-        stored === "dark" ||
-        (!stored && window.matchMedia("(prefers-color-scheme: dark)").matches);
-      document.documentElement.classList.toggle("dark", dark);
+      // apply the stored theme before first paint (no flash);
+      // light is the default (PRD #43: commercial posture) — dark is opt-in
+      document.documentElement.classList.toggle(
+        "dark",
+        localStorage.getItem("oriflux.theme") === "dark",
+      );
     </script>
   </head>
   <body>

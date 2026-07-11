@@ -11,9 +11,25 @@
   },
   "nav": {
     "home": "Cartera",
+    "overview": "Vista general",
     "web": "Web",
     "api": "API",
+    "live": "Live",
+    "product": "Funnels y retención",
+    "goals": "Objetivos",
+    "alerts": "Alertas",
+    "annotations": "Anotaciones",
+    "projectSettings": "Ajustes del proyecto",
+    "orgSettings": "Ajustes de la organización",
+    "projects": "Proyectos",
     "logout": "Cerrar sesión"
+  },
+  "account": {
+    "label": "Cuenta"
+  },
+  "coming": {
+    "title": "Próximamente en la renovación",
+    "body": "Esta pantalla llega en una próxima etapa de la Fase 3.5."
   },
   "footer": {
     "geoAttribution": "Geolocalización IP por"

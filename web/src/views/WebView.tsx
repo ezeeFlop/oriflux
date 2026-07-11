@@ -3,7 +3,7 @@ import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { useTranslation } from "react-i18next";
 import { useParams } from "react-router-dom";
 import TimeseriesChart from "../components/TimeseriesChart";
-import { PeriodPicker } from "../components/Shell";
+
 import { Panel, RankedTable, StatCard, Tabs } from "../components/widgets";
 import {
   createGoal,
@@ -610,10 +610,7 @@ export default function WebView() {
     <div className="space-y-4">
       <div className="flex flex-wrap items-center justify-between gap-3">
         <h1 className="font-display text-xl font-bold tracking-tight">{t("web.title")}</h1>
-        <div className="flex flex-wrap items-center gap-3">
-          <TrafficClassFilter />
-          <PeriodPicker />
-        </div>
+        <TrafficClassFilter />
       </div>
 
       <StatRow projectId={projectId} />

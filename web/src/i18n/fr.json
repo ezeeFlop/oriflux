@@ -11,9 +11,25 @@
   },
   "nav": {
     "home": "Portefeuille",
+    "overview": "Vue d'ensemble",
     "web": "Web",
     "api": "API",
+    "live": "Live",
+    "product": "Funnels & rétention",
+    "goals": "Objectifs",
+    "alerts": "Alertes",
+    "annotations": "Annotations",
+    "projectSettings": "Réglages projet",
+    "orgSettings": "Réglages de l'organisation",
+    "projects": "Projets",
     "logout": "Se déconnecter"
+  },
+  "account": {
+    "label": "Compte"
+  },
+  "coming": {
+    "title": "Bientôt dans la refonte",
+    "body": "Cet écran arrive dans une prochaine tranche de la Phase 3.5."
   },
   "footer": {
     "geoAttribution": "Géolocalisation IP par"

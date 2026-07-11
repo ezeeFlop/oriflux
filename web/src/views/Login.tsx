@@ -55,7 +55,7 @@ export default function Login() {
   }, [navigate, t]);
 
   return (
-    <div className="paper-grain flex min-h-screen items-center justify-center px-4">
+    <div className="flex min-h-screen items-center justify-center bg-paper px-4">
       <div className="rise w-full max-w-sm rounded-2xl border border-line bg-surface p-8 text-center shadow-[0_8px_30px_rgba(30,20,10,0.06)]">
         <svg viewBox="0 0 24 24" className="mx-auto h-10 w-10 text-flame" fill="currentColor">
           <path d="M4 3h13l-2.5 3.5L17 10H6v11a2 2 0 0 1-2-2V3z" />

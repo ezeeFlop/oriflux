@@ -2,7 +2,7 @@ import { useMemo, useState } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { useTranslation } from "react-i18next";
 import { useParams } from "react-router-dom";
-import { PeriodPicker } from "../components/Shell";
+
 import { Panel, RankedTable, SkeletonRows, StatCard } from "../components/widgets";
 import type { QueryRow } from "../lib/api";
 import { deltaPercent, formatMs, formatNumber, formatPercent } from "../lib/format";
@@ -231,10 +231,7 @@ export default function ApiView() {
 
   return (
     <div className="space-y-4">
-      <div className="flex flex-wrap items-center justify-between gap-3">
-        <h1 className="font-display text-xl font-bold tracking-tight">{t("api.title")}</h1>
-        <PeriodPicker />
-      </div>
+      <h1 className="font-display text-xl font-bold tracking-tight">{t("api.title")}</h1>
 
       <div className="grid grid-cols-2 gap-3 lg:grid-cols-4">
         {stat(requests, t("metric.api_requests"), formatNumber, false)}

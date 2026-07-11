@@ -11,9 +11,25 @@
   },
   "nav": {
     "home": "Portfolio",
+    "overview": "Overview",
     "web": "Web",
     "api": "API",
+    "live": "Live",
+    "product": "Funnels & retention",
+    "goals": "Goals",
+    "alerts": "Alerts",
+    "annotations": "Annotations",
+    "projectSettings": "Project settings",
+    "orgSettings": "Organization settings",
+    "projects": "Projects",
     "logout": "Sign out"
+  },
+  "account": {
+    "label": "Account"
+  },
+  "coming": {
+    "title": "Coming soon in the overhaul",
+    "body": "This screen ships in an upcoming Phase 3.5 slice."
   },
   "footer": {
     "geoAttribution": "IP Geolocation by"

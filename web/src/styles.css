@@ -1,77 +1,87 @@
 @import "tailwindcss";
 @import "@fontsource-variable/bricolage-grotesque";
 @import "@fontsource-variable/instrument-sans";
+@import "@fontsource-variable/jetbrains-mono";
 
-/* ── Oriflux design tokens — "l'oriflamme" ─────────────────────────────
-   Warm paper & ink surfaces, a single vermilion accent (the oriflamme
-   banner), tabular figures everywhere numbers live. Calm, dense, legible. */
+/* ── Oriflux design tokens — "cockpit" (Phase 3.5 overhaul) ─────────────
+   Dense, neutral, instrument-panel surfaces; the vermilion flame stays the
+   single brand accent; every figure is set in mono. Light is the default
+   (commercial posture), dark is the operations cockpit. */
 
 @theme {
   --font-display: "Bricolage Grotesque Variable", ui-sans-serif, sans-serif;
   --font-sans: "Instrument Sans Variable", ui-sans-serif, system-ui, sans-serif;
+  --font-mono: "JetBrains Mono Variable", ui-monospace, "SF Mono", monospace;
 
-  --color-flame: #d64524;
-  --color-flame-strong: #b8351a;
-  --color-flame-soft: #d6452414;
-
-  /* semantic surfaces (overridden in .dark below) */
+  /* semantic tokens — values swap per theme below */
+  --color-flame: var(--flame);
+  --color-flame-strong: var(--flame-strong);
+  --color-flame-soft: var(--flame-soft);
   --color-paper: var(--paper);
   --color-surface: var(--surface);
+  --color-surface-raised: var(--surface-raised);
   --color-ink: var(--ink);
   --color-ink-soft: var(--ink-soft);
+  --color-ink-faint: var(--ink-faint);
   --color-line: var(--line);
-  --color-up: #2c7a4b;
-  --color-down: #b8351a;
+  --color-up: var(--up);
+  --color-down: var(--down);
 
-  --color-class-human: #d64524;
-  --color-class-bot: #8a8378;
-  --color-class-ai: #6d5bd0;
+  --color-class-human: var(--flame);
+  --color-class-bot: #8b93a1;
+  --color-class-ai: #7c6bdc;
 }
 
 :root {
-  --paper: #faf8f4;
+  --paper: #f4f5f6;
   --surface: #ffffff;
-  --ink: #211d18;
-  --ink-soft: #7d766b;
-  --line: #e8e2d7;
+  --surface-raised: #ffffff;
+  --ink: #17191c;
+  --ink-soft: #5f6672;
+  --ink-faint: #9aa1ab;
+  --line: #e3e6ea;
+  --flame: #d64524;
+  --flame-strong: #b8351a;
+  --flame-soft: #d6452414;
+  --up: #1f8a4c;
+  --down: #c23b22;
   color-scheme: light;
 }
 
 .dark {
-  --paper: #171310;
-  --surface: #201b17;
-  --ink: #ede7dd;
-  --ink-soft: #9a9285;
-  --line: #322c26;
+  --paper: #0e1113;
+  --surface: #15181b;
+  --surface-raised: #1b1f23;
+  --ink: #e9ecef;
+  --ink-soft: #99a1ab;
+  --ink-faint: #5f6670;
+  --line: #262b31;
+  --flame: #ff6a3c;
+  --flame-strong: #ff8259;
+  --flame-soft: #ff6a3c1f;
+  --up: #35b46b;
+  --down: #ff5d45;
   color-scheme: dark;
 }
 
 body {
   @apply bg-paper text-ink font-sans antialiased;
-  font-feature-settings: "tnum" 0;
 }
 
 .font-display {
   font-family: var(--font-display);
 }
 
+/* every figure in the cockpit is mono + tabular */
 .tnum {
+  font-family: var(--font-mono);
   font-variant-numeric: tabular-nums;
+  font-size: 0.95em;
 }
 
 /* ranked-row fill bar used by breakdown tables */
 .rank-fill {
   background: linear-gradient(to right, var(--color-flame-soft), var(--color-flame-soft));
-}
-
-/* subtle grain on the paper background, oriflamme editorial feel */
-.paper-grain::before {
-  content: "";
-  position: fixed;
-  inset: 0;
-  pointer-events: none;
-  opacity: 0.35;
-  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='120' height='120'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='2'/%3E%3CfeColorMatrix values='0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0.02 0'/%3E%3C/filter%3E%3Crect width='120' height='120' filter='url(%23n)'/%3E%3C/svg%3E");
 }
 
 /* staggered load-in for panels */

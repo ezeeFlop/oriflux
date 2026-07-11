@@ -51,14 +51,14 @@ export default function PublicView() {
 
   if (visitors.isError) {
     return (
-      <div className="paper-grain flex min-h-screen items-center justify-center">
+      <div className="flex min-h-screen items-center justify-center bg-paper">
         <p className="text-sm text-ink-soft">{t("public.invalid")}</p>
       </div>
     );
   }
 
   return (
-    <div className="paper-grain min-h-screen">
+    <div className="min-h-screen bg-paper">
       <div className="mx-auto max-w-4xl space-y-4 px-4 py-8">
         <header className="flex items-baseline justify-between">
           <h1 className="font-display text-xl font-bold">{t("public.title")}</h1>

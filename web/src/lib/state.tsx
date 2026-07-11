@@ -10,8 +10,9 @@ import {
   useState,
   type ReactNode,
 } from "react";
+import { useSearchParams } from "react-router-dom";
 import { auth, fetchMe, listProjects, type Me, type Project, type QueryFilter } from "./api";
-import { granularityFor, periodFor, type PeriodKey } from "./periods";
+import { granularityFor, periodFor, PERIOD_KEYS, type PeriodKey } from "./periods";
 
 export type TrafficClass = "all" | "human" | "bot" | "ai_agent";
 
@@ -38,9 +39,33 @@ const DashboardContext = createContext<Dashboard | null>(null);
 
 export function DashboardProvider({ children }: { children: ReactNode }) {
   const [orgId, setOrgIdState] = useState<string | null>(auth.orgId);
-  const [periodKey, setPeriodKey] = useState<PeriodKey>("7d");
-  const [compare, setCompare] = useState(false);
   const [trafficClass, setTrafficClass] = useState<TrafficClass>("all");
+
+  // Period + compare live in the URL so any dashboard state is shareable
+  // and survives navigation (issue #44).
+  const [searchParams, setSearchParams] = useSearchParams();
+  const rawPeriod = searchParams.get("period") as PeriodKey | null;
+  const periodKey: PeriodKey =
+    rawPeriod !== null && PERIOD_KEYS.includes(rawPeriod) ? rawPeriod : "7d";
+  const compare = searchParams.get("compare") === "1";
+
+  const setParam = useCallback(
+    (name: string, value: string | null) => {
+      setSearchParams(
+        (previous) => {
+          const next = new URLSearchParams(previous);
+          if (value === null) next.delete(name);
+          else next.set(name, value);
+          return next;
+        },
+        { replace: true },
+      );
+    },
+    [setSearchParams],
+  );
+
+  const setPeriodKey = useCallback((key: PeriodKey) => setParam("period", key), [setParam]);
+  const setCompare = useCallback((on: boolean) => setParam("compare", on ? "1" : null), [setParam]);
 
   const { data: me = null, isLoading: loadingSession } = useQuery({
     queryKey: ["me"],
