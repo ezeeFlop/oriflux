@@ -146,6 +146,32 @@ class AnomalyEvent(Base):
     detected_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), default=_utcnow)
 
 
+class DigestSubscription(Base):
+    """Per-user digest preference (issue #26): cadence + language, org-wide."""
+
+    __tablename__ = "digest_subscriptions"
+    __table_args__ = (UniqueConstraint("user_id", "org_id"),)
+
+    id: Mapped[uuid.UUID] = mapped_column(Uuid, primary_key=True, default=uuid.uuid4)
+    org_id: Mapped[uuid.UUID] = mapped_column(ForeignKey("organizations.id"))
+    user_id: Mapped[uuid.UUID] = mapped_column(ForeignKey("users.id"))
+    cadence: Mapped[str] = mapped_column(String(8))  # weekly | monthly
+    language: Mapped[str] = mapped_column(String(2), default="fr")
+    created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), default=_utcnow)
+
+
+class DigestSend(Base):
+    """One row per digest actually sent — the idempotence ledger (#26)."""
+
+    __tablename__ = "digest_sends"
+    __table_args__ = (UniqueConstraint("subscription_id", "period_key"),)
+
+    id: Mapped[uuid.UUID] = mapped_column(Uuid, primary_key=True, default=uuid.uuid4)
+    subscription_id: Mapped[uuid.UUID] = mapped_column(ForeignKey("digest_subscriptions.id"))
+    period_key: Mapped[str] = mapped_column(String(16))
+    sent_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), default=_utcnow)
+
+
 class AnnotationKind(enum.StrEnum):
     release = "release"
     campaign = "campaign"

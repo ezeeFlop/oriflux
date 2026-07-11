@@ -27,6 +27,7 @@ from oriflux.db import create_engine, create_session_factory
 from oriflux.logs import setup_logging
 from oriflux.storage.clickhouse import ClickHouseExecutor, wait_for_clickhouse
 from oriflux.workers.anomaly_job import run_detection
+from oriflux.workers.digest_job import run_digests
 from oriflux.workers.geoip_refresh import RETRY_INTERVAL_S, maybe_refresh_geoip
 
 
@@ -54,6 +55,47 @@ def _detect_anomalies_job() -> int:
     if detections:
         ops_alert(settings, f"anomaly detection: {detections} new deviation(s) recorded")
     return detections
+
+
+def _send_digests_job() -> int:
+    settings = get_settings()
+    if not settings.resend_api_key:
+        return 0  # email channel disabled (documented in config)
+    clickhouse = wait_for_clickhouse(settings)
+
+    def send(to: str, subject: str, body: str) -> None:
+        import requests
+
+        response = requests.post(
+            "https://api.resend.com/emails",
+            headers={"Authorization": f"Bearer {settings.resend_api_key}"},
+            json={
+                "from": settings.alert_email_from,
+                "to": [to],
+                "subject": subject,
+                "text": body,
+            },
+            timeout=30,
+        )
+        response.raise_for_status()
+
+    async def _run() -> int:
+        engine = create_engine(settings)
+        try:
+            return await run_digests(
+                create_session_factory(engine),
+                ClickHouseExecutor(clickhouse),
+                send,
+                now=datetime.now(tz=UTC),
+            )
+        finally:
+            await engine.dispose()
+
+    try:
+        return asyncio.run(_run())
+    except Exception as exc:  # noqa: BLE001 — alert, never crash the worker
+        ops_alert(settings, f"digest send FAILED: {exc}")
+        return 0
 
 
 def _evaluate_alerts_job() -> None:
@@ -91,11 +133,13 @@ def create_celery(settings: Settings) -> Celery:
                 "schedule": EVALUATION_INTERVAL_S,
             },
             "detect-anomalies": {"task": "oriflux.detect_anomalies", "schedule": 3600},
+            "send-digests": {"task": "oriflux.send_digests", "schedule": 3600},
         },
     )
     celery.task(name="oriflux.geoip_refresh")(_refresh_geoip_job)
     celery.task(name="oriflux.evaluate_alerts")(_evaluate_alerts_job)
     celery.task(name="oriflux.detect_anomalies")(_detect_anomalies_job)
+    celery.task(name="oriflux.send_digests")(_send_digests_job)
     return celery
 
 
