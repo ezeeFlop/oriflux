@@ -1,6 +1,6 @@
 import { useTranslation } from "react-i18next";
 import { NavLink, Outlet, useParams } from "react-router-dom";
-import { setLanguage } from "../i18n";
+import { LANGUAGES, setLanguage, type Language } from "../i18n";
 import { useDashboard } from "../lib/state";
 import { PERIOD_KEYS, type PeriodKey } from "../lib/periods";
 
@@ -31,7 +31,10 @@ function ThemeToggle() {
 
 function LangToggle() {
   const { i18n, t } = useTranslation();
-  const next = i18n.language === "fr" ? "en" : "fr";
+  const current = LANGUAGES.includes(i18n.language as Language)
+    ? (i18n.language as Language)
+    : "fr";
+  const next = LANGUAGES[(LANGUAGES.indexOf(current) + 1) % LANGUAGES.length];
   return (
     <button
       onClick={() => setLanguage(next)}

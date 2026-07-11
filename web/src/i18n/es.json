@@ -1,0 +1,147 @@
+{
+  "app": {
+    "name": "Oriflux",
+    "tagline": "El origen de los flujos"
+  },
+  "login": {
+    "title": "Iniciar sesión",
+    "subtitle": "El plano de control de analítica de Sponge Theory",
+    "google": "Continuar con Google",
+    "missingClientId": "Identificador de cliente de Google no configurado (VITE_GOOGLE_CLIENT_ID)."
+  },
+  "nav": {
+    "home": "Cartera",
+    "web": "Web",
+    "api": "API",
+    "logout": "Cerrar sesión"
+  },
+  "footer": {
+    "geoAttribution": "Geolocalización IP por"
+  },
+  "period": {
+    "label": "Período",
+    "24h": "24 horas",
+    "7d": "7 días",
+    "30d": "30 días",
+    "90d": "90 días",
+    "12m": "12 meses",
+    "compare": "Comparar",
+    "vsPrevious": "vs período anterior"
+  },
+  "metric": {
+    "visitors": "Visitantes",
+    "pageviews": "Páginas vistas",
+    "sessions": "Sesiones",
+    "bounce_rate": "Tasa de rebote",
+    "session_duration": "Duración de sesión",
+    "api_requests": "Peticiones API",
+    "api_error_rate_4xx": "Errores 4xx",
+    "api_error_rate_5xx": "Errores 5xx",
+    "api_latency_p50": "Latencia p50",
+    "api_latency_p95": "Latencia p95",
+    "api_latency_p99": "Latencia p99",
+    "visitDaysNote": "Los totales multi-día son días-visita (hash diario rotativo)"
+  },
+  "trafficClass": {
+    "label": "Tráfico",
+    "all": "Todo",
+    "human": "Humanos",
+    "bot": "Bots",
+    "ai_agent": "Agentes IA",
+    "": "Sin clasificar"
+  },
+  "web": {
+    "title": "Analítica web",
+    "timeseries": "Evolución",
+    "topPages": "Páginas",
+    "topEvents": "Eventos",
+    "topReferrers": "Referentes",
+    "utm": "Campañas",
+    "utm_source": "Fuente",
+    "utm_medium": "Medio",
+    "utm_campaign": "Campaña",
+    "geo": "Geografía",
+    "devices": "Dispositivos",
+    "device": "Dispositivo",
+    "os": "SO",
+    "browser": "Navegador",
+    "country": "País",
+    "region": "Región",
+    "city": "Ciudad",
+    "page": "Página",
+    "referrer": "Referente",
+    "direct": "Directo / ninguno",
+    "empty": "Sin datos para este período",
+    "worldTotal": "Mundial"
+  },
+  "api": {
+    "title": "Analítica API",
+    "endpoints": "Endpoints",
+    "endpoint": "Endpoint",
+    "volume": "Volumen",
+    "errorRate": "Tasa 5xx",
+    "p95": "p95",
+    "statusClasses": "Códigos de estado",
+    "consumers": "Consumidores",
+    "consumer": "Consumidor",
+    "callerGeo": "Geografía del llamante",
+    "unresolved": "sin resolver",
+    "anonymous": "anónimo"
+  },
+  "home": {
+    "title": "Cartera",
+    "liveVisitors": "visitantes en vivo",
+    "trend7d": "Tendencia 7 días",
+    "apiErrors": "Errores API 5xx (24 h)",
+    "liveNow": "Ahora mismo",
+    "topPagesNow": "Páginas activas (30 min)",
+    "topCountriesNow": "Países activos (30 min)",
+    "noProjects": "Aún no hay proyectos — cree uno a través de la API de administración.",
+    "updated": "actualizado cada 10 s"
+  },
+  "common": {
+    "loading": "Cargando…",
+    "error": "Error al cargar",
+    "theme": "Tema",
+    "language": "Idioma",
+    "organization": "Organización",
+    "project": "Proyecto",
+    "back": "Volver",
+    "others": "otros"
+  },
+  "goals": {
+    "title": "Objetivos",
+    "name": "Nombre",
+    "target": "Destino",
+    "conversions": "Conversiones",
+    "rate": "Tasa",
+    "kind": "Tipo",
+    "event": "Evento",
+    "page": "Página",
+    "add": "Añadir",
+    "delete": "Eliminar",
+    "empty": "Sin objetivos — declare una página o un evento para seguir las conversiones.",
+    "error": "No se pudo guardar el objetivo (se requiere rol de administrador y un destino válido)."
+  },
+  "funnel": {
+    "title": "Embudo",
+    "scope": "Alcance",
+    "session": "por sesión",
+    "identified": "usuarios identificados",
+    "sessionOption": "Anónimo (sesión única)",
+    "identifiedOption": "Usuarios identificados (multi-día)",
+    "addStep": "Añadir un paso",
+    "removeStep": "Quitar el paso",
+    "conversion": "Conversión:",
+    "sessionNote": "Los embudos anónimos se limitan a una sesión/día — el hash diario rotativo hace imposibles por diseño las secuencias anónimas más largas."
+  },
+  "retention": {
+    "title": "Retención",
+    "activation": "Evento de activación",
+    "weekly": "Semanal",
+    "monthly": "Mensual",
+    "cohort": "Cohorte",
+    "empty": "Sin cohortes identificadas en este período — la retención requiere identify() y un evento de activación.",
+    "identifiedNote": "Solo usuarios identificados: la retención anónima entre días es imposible por diseño (la sal diaria se destruye) — eso es lo que mantiene Oriflux sin banner de consentimiento."
+  }
+}
