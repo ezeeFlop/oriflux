@@ -24,7 +24,7 @@ from sqlalchemy.ext.asyncio import AsyncSession, async_sessionmaker
 
 from oriflux.config import Settings, get_settings
 from oriflux.db import create_engine, create_session_factory
-from oriflux.enrichment.crawlers import classify_traffic
+from oriflux.enrichment.crawlers import classify_traffic, refine_traffic
 from oriflux.enrichment.geo import GeoResolver
 from oriflux.enrichment.sessions import SessionTracker
 from oriflux.enrichment.ua import parse_ua
@@ -191,14 +191,23 @@ def create_app(
 
         inline_user = payload.user_id if isinstance(payload, CustomEventIn) else ""
         user_pseudo_id = inline_user or await tracker.user_for(session_id)
-        traffic_class, _ = classify_traffic(user_agent)
+        geo = request.app.state.geo.resolve(ip)
+        ua_class, crawler_name = classify_traffic(user_agent)
+        traffic_class, class_reason = refine_traffic(
+            ua_class,
+            crawler_name,
+            user_agent=user_agent,
+            asn=geo.asn,
+            events_last_minute=await tracker.cadence(visitor_hash),
+        )
         enrichment: dict[str, Any] = {
             "org_id": key.org_id,
             "project_id": key.project_id,
             "timestamp": now,
-            "geo": request.app.state.geo.resolve(ip),
+            "geo": geo,
             "ua": parse_ua(user_agent),
             "traffic_class": traffic_class,
+            "class_reason": class_reason,
             "visitor_hash": visitor_hash,
             "session_id": session_id,
             "locale": _locale(request),

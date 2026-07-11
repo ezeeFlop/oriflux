@@ -147,5 +147,11 @@
   "vitals": {
     "title": "Web Vitals",
     "note": "p75 en el período — umbrales según las recomendaciones de Google (LCP 2,5 s / CLS 0,1 / INP 200 ms / TTFB 800 ms)."
+  },
+  "aiVisibility": {
+    "title": "Visibilidad IA",
+    "shares": "Tráfico por clase",
+    "agents": "Crawlers y agentes IA",
+    "pages": "Páginas más visitadas por IA"
   }
 }

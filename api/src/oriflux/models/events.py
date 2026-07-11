@@ -189,6 +189,7 @@ class EnrichedEvent(BaseModel):
     locale: str = ""
     # "" = unclassified; classification (issue #4) fills it, but the column exists from day one
     traffic_class: Literal["", "human", "bot", "ai_agent"] = ""
+    class_reason: str = ""  # explainable classification (#21): ua:<name> | heuristic:<name>
     value: float = 0.0  # numeric payload (Web Vitals #23); 0 for plain events
     props: dict[str, Any] = Field(default_factory=dict)
 
@@ -207,6 +208,7 @@ class EnrichedEvent(BaseModel):
         session_id: str = "",
         locale: str = "",
         user_pseudo_id: str = "",
+        class_reason: str = "",
     ) -> Self:
         geo = geo or GeoInfo()
         ua = ua or UAInfo()
@@ -234,6 +236,7 @@ class EnrichedEvent(BaseModel):
             browser=ua.browser,
             locale=locale,
             traffic_class=traffic_class,
+            class_reason=class_reason,
             visitor_hash=visitor_hash,
             session_id=session_id,
             user_pseudo_id=user_pseudo_id,
@@ -255,6 +258,7 @@ class EnrichedEvent(BaseModel):
         session_id: str = "",
         locale: str = "",
         user_pseudo_id: str = "",
+        class_reason: str = "",
     ) -> Self:
         geo = geo or GeoInfo()
         ua = ua or UAInfo()
@@ -275,6 +279,7 @@ class EnrichedEvent(BaseModel):
             browser=ua.browser,
             locale=locale,
             traffic_class=traffic_class,
+            class_reason=class_reason,
             visitor_hash=visitor_hash,
             session_id=session_id,
             user_pseudo_id=user_pseudo_id,
@@ -296,6 +301,7 @@ class EnrichedEvent(BaseModel):
         session_id: str = "",
         locale: str = "",
         user_pseudo_id: str = "",
+        class_reason: str = "",
     ) -> Self:
         geo = geo or GeoInfo()
         ua = ua or UAInfo()
@@ -316,6 +322,7 @@ class EnrichedEvent(BaseModel):
             browser=ua.browser,
             locale=locale,
             traffic_class=traffic_class,
+            class_reason=class_reason,
             visitor_hash=visitor_hash,
             session_id=session_id,
             user_pseudo_id=user_pseudo_id,

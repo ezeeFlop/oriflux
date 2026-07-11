@@ -63,3 +63,50 @@ def classify_traffic(user_agent: str) -> tuple[TrafficClass, str | None]:
         if marker in ua_lower:
             return "bot", None
     return "human", None
+
+
+# ── Behavioral heuristics (issue #21, phase 2) ──────────────────────────────
+# They only ever REFINE a "human" UA verdict — a rule hit is never overridden.
+# Pure hosting ASNs only: iCloud Private Relay egresses through Cloudflare and
+# Akamai, so CDN ASNs would misclassify millions of legitimate Safari users.
+DATACENTER_ASNS: frozenset[int] = frozenset({
+    16509,   # Amazon AWS
+    14618,   # Amazon AES
+    8075,    # Microsoft Azure
+    396982,  # Google Cloud
+    16276,   # OVH
+    24940,   # Hetzner
+    14061,   # DigitalOcean
+    63949,   # Linode/Akamai Cloud
+    20473,   # Vultr
+    45102,   # Alibaba Cloud
+})
+
+CADENCE_LIMIT_PER_MINUTE = 60  # > 1 event/s sustained is not a person browsing
+_MIN_HUMAN_UA_LENGTH = 20
+
+
+def refine_traffic(
+    ua_class: TrafficClass,
+    crawler_name: str | None,
+    *,
+    user_agent: str,
+    asn: int = 0,
+    events_last_minute: int = 0,
+) -> tuple[TrafficClass, str]:
+    """(UA verdict, context) → (final class, explainable reason).
+
+    Reasons: "ua:<CrawlerName>" / "ua:generic" for rule hits,
+    "heuristic:<name>" when a heuristic reclassified, "" for plain humans.
+    """
+    if ua_class != "human":
+        return ua_class, f"ua:{crawler_name}" if crawler_name else "ua:generic"
+    if len(user_agent) < _MIN_HUMAN_UA_LENGTH:
+        return "bot", "heuristic:no_ua"
+    if "headless" in user_agent.lower():
+        return "bot", "heuristic:headless"
+    if asn in DATACENTER_ASNS:
+        return "bot", "heuristic:datacenter_asn"
+    if events_last_minute > CADENCE_LIMIT_PER_MINUTE:
+        return "bot", "heuristic:cadence"
+    return "human", ""

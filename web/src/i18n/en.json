@@ -147,5 +147,11 @@
   "vitals": {
     "title": "Web Vitals",
     "note": "p75 over the selected period — thresholds per Google guidance (LCP 2.5s / CLS 0.1 / INP 200ms / TTFB 800ms)."
+  },
+  "aiVisibility": {
+    "title": "AI visibility",
+    "shares": "Traffic by class",
+    "agents": "AI crawlers & agents",
+    "pages": "Top pages crawled by AI"
   }
 }

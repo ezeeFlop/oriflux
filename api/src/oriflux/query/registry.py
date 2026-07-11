@@ -64,6 +64,7 @@ DIMENSIONS: dict[str, DimensionSpec] = {
     "locale": DimensionSpec(name="locale", sql="locale"),
     "traffic_class": DimensionSpec(name="traffic_class", sql="traffic_class"),
     "event_name": DimensionSpec(name="event_name", sql="event_name"),
+    "class_reason": DimensionSpec(name="class_reason", sql="class_reason"),
     # API analytics (§5.3) — read from api_minutely
     "endpoint": DimensionSpec(name="endpoint", sql="endpoint", sources=_API_ONLY),
     "method": DimensionSpec(name="method", sql="method", sources=_API_ONLY),

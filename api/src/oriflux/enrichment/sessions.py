@@ -40,6 +40,14 @@ class SessionTracker:
             f"oriflux:session-user:{session_id}", user_id, ex=SESSION_GAP_S
         )
 
+    async def cadence(self, visitor_hash: str) -> int:
+        """Events seen for this visitor in the last ~minute (heuristics #21)."""
+        key = f"oriflux:cadence:{visitor_hash}"
+        count = await self._redis.incr(key)
+        if count == 1:
+            await self._redis.expire(key, 60)
+        return int(count)
+
     async def user_for(self, session_id: str) -> str:
         raw = await self._redis.get(f"oriflux:session-user:{session_id}")
         if raw is None:

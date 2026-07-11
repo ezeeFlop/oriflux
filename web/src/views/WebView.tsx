@@ -135,6 +135,79 @@ function GeoPanel({ projectId }: { projectId: string }) {
   );
 }
 
+function AiVisibilityPanel({ projectId }: { projectId: string }) {
+  const { t } = useTranslation();
+  const aiFilter: QueryFilter[] = [
+    { dimension: "traffic_class", op: "eq", value: "ai_agent" },
+  ];
+  const shares = useMetric({
+    metric: "pageviews",
+    dimensions: ["traffic_class"],
+    projectId,
+    projectOnly: true,
+  });
+  const agents = useMetric({
+    metric: "pageviews",
+    dimensions: ["class_reason"],
+    extraFilters: aiFilter,
+    projectId,
+    projectOnly: true,
+  });
+  const pages = useMetric({
+    metric: "pageviews",
+    dimensions: ["page"],
+    extraFilters: aiFilter,
+    projectId,
+    projectOnly: true,
+  });
+
+  const total = (shares.data?.results ?? []).reduce((sum, row) => sum + (row.value ?? 0), 0);
+
+  return (
+    <Panel title={t("aiVisibility.title")} className="md:col-span-2">
+      <div className="grid gap-4 sm:grid-cols-3">
+        <div>
+          <h3 className="mb-1 text-xs uppercase tracking-wide text-ink-soft">
+            {t("aiVisibility.shares")}
+          </h3>
+          {(shares.data?.results ?? []).map((row) => {
+            const klass = String(row.traffic_class ?? "");
+            const pct = total > 0 ? ((row.value ?? 0) / total) * 100 : 0;
+            return (
+              <div key={klass} className="mb-1 flex items-center gap-2 text-xs">
+                <span className="w-20 truncate">{t(`trafficClass.${klass}`)}</span>
+                <div className="h-3 flex-1 overflow-hidden rounded bg-flame-soft">
+                  <div className="h-full bg-flame" style={{ width: `${pct}%` }} />
+                </div>
+                <span className="w-10 text-right tabular-nums">{Math.round(pct)}%</span>
+              </div>
+            );
+          })}
+          {total === 0 && <p className="text-xs text-ink-soft">{t("web.empty")}</p>}
+        </div>
+        <div>
+          <h3 className="mb-1 text-xs uppercase tracking-wide text-ink-soft">
+            {t("aiVisibility.agents")}
+          </h3>
+          <RankedTable
+            rows={agents.data?.results.map((row) => ({
+              ...row,
+              class_reason: String(row.class_reason ?? "").replace(/^ua:/, ""),
+            }))}
+            dimension="class_reason"
+          />
+        </div>
+        <div>
+          <h3 className="mb-1 text-xs uppercase tracking-wide text-ink-soft">
+            {t("aiVisibility.pages")}
+          </h3>
+          <RankedTable rows={pages.data?.results} dimension="page" />
+        </div>
+      </div>
+    </Panel>
+  );
+}
+
 const VITALS = [
   { key: "lcp", metric: "web_vital_lcp_p75", unit: "ms", good: 2500, poor: 4000 },
   { key: "cls", metric: "web_vital_cls_p75", unit: "", good: 0.1, poor: 0.25 },
@@ -591,6 +664,7 @@ export default function WebView() {
         >
           <RankedTable rows={devices.data?.results} dimension={deviceTab} />
         </Panel>
+        <AiVisibilityPanel projectId={projectId} />
         <VitalsPanel projectId={projectId} />
         <GoalsPanel projectId={projectId} />
         <FunnelPanel projectId={projectId} />
