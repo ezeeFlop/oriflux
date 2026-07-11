@@ -8,6 +8,7 @@ import { useTranslation } from "react-i18next";
 import { FIELD, Panel, PRIMARY_BUTTON } from "../components/widgets";
 import {
   addMember,
+  getUsage,
   getDigestPref,
   listMembers,
   listShares,
@@ -27,6 +28,45 @@ const CHIP =
 const ROLES: Role[] = ["viewer", "admin", "owner"];
 const CADENCES: DigestPref["cadence"][] = ["weekly", "monthly"];
 const DIGEST_LANGUAGES: DigestPref["language"][] = ["fr", "en", "es"];
+
+export function UsageSection({ orgId }: { orgId: string }) {
+  const { t } = useTranslation();
+  const usage = useQuery({
+    queryKey: ["usage", orgId],
+    queryFn: () => getUsage(orgId),
+    refetchInterval: 60_000,
+  });
+  const data = usage.data;
+  if (!data) return null;
+  const pct = data.pct;
+  return (
+    <Panel title={t("settings.usage")}>
+      <div className="flex flex-wrap items-baseline gap-3">
+        <span className={CHIP}>{data.plan_name ?? data.plan_slug}</span>
+        <span className="tnum text-sm">
+          {data.used.toLocaleString()}
+          {data.monthly_events !== null && ` / ${data.monthly_events.toLocaleString()}`}
+        </span>
+        <span className="text-xs text-ink-soft">{t("settings.usageEvents")}</span>
+        {pct !== null && (
+          <span className={`tnum text-xs font-semibold ${pct >= 80 ? "text-down" : "text-ink-soft"}`}>
+            {pct} %
+          </span>
+        )}
+      </div>
+      {pct !== null ? (
+        <div className="mt-2 h-2 rounded-full bg-line">
+          <div
+            className={`h-2 rounded-full ${pct >= 80 ? "bg-down" : "bg-flame"}`}
+            style={{ width: `${Math.min(100, pct)}%` }}
+          />
+        </div>
+      ) : (
+        <p className="mt-2 text-xs text-ink-soft">{t("settings.usageUnlimited")}</p>
+      )}
+    </Panel>
+  );
+}
 
 export function MembersSection({ orgId }: { orgId: string }) {
   const { t } = useTranslation();

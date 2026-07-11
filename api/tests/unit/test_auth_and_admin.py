@@ -5,9 +5,15 @@ ingest key issued per source; Google OAuth + JWT login works; a viewer
 cannot administer, an owner can.
 """
 
+import uuid as _uuid
+
 import httpx
 
 from tests.unit.conftest import login
+
+
+def uuid_of(value: str) -> _uuid.UUID:
+    return _uuid.UUID(value)
 
 
 class TestGoogleLogin:
@@ -250,3 +256,57 @@ class TestMembersAndSharesListing:
         assert (
             await api_client.get(f"/api/v1/projects/{project_id}/shares", headers=viewer)
         ).status_code == 403
+
+
+class TestUsage:
+    """Issue #61: plan and monthly consumption are visible to any member."""
+
+    async def test_usage_reports_plan_quota_and_counter(
+        self, api_client: httpx.AsyncClient
+    ) -> None:
+        from datetime import UTC, datetime
+
+        from oriflux.db.models import Plan
+
+        owner = await login(api_client, "alice")
+        org_id, _, _ = await create_org_chain(api_client, owner)
+
+        # seed a plan + point the org at it + a live Redis counter
+        transport = api_client._transport  # type: ignore[attr-defined]
+        app = transport.app  # type: ignore[attr-defined]
+        async with app.state.session_factory() as session:
+            from sqlalchemy import update
+
+            from oriflux.db.models import Organization
+
+            session.add(Plan(slug="pro-test", name="Pro", monthly_events=1000))
+            await session.execute(
+                update(Organization)
+                .where(Organization.id == uuid_of(org_id))
+                .values(plan_slug="pro-test")
+            )
+            await session.commit()
+        month = f"{datetime.now(tz=UTC):%Y%m}"
+        await app.state.redis.set(f"oriflux:quota:{org_id}:{month}", 250)
+
+        usage = await api_client.get(f"/api/v1/orgs/{org_id}/usage", headers=owner)
+        assert usage.status_code == 200, usage.text
+        body = usage.json()
+        assert body["plan_slug"] == "pro-test"
+        assert body["plan_name"] == "Pro"
+        assert body["monthly_events"] == 1000
+        assert body["used"] == 250
+        assert body["pct"] == 25.0
+
+    async def test_usage_on_unlimited_plan_has_no_pct(
+        self, api_client: httpx.AsyncClient
+    ) -> None:
+        owner = await login(api_client, "alice")
+        org_id, _, _ = await create_org_chain(api_client, owner)
+        usage = await api_client.get(f"/api/v1/orgs/{org_id}/usage", headers=owner)
+        assert usage.status_code == 200
+        body = usage.json()
+        # default plan_slug is free but no plans row is seeded in unit schema
+        assert body["monthly_events"] is None
+        assert body["pct"] is None
+        assert body["used"] == 0

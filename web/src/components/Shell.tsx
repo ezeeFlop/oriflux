@@ -3,6 +3,8 @@ import { useTranslation } from "react-i18next";
 import { NavLink, Outlet, useLocation, useNavigate, useParams } from "react-router-dom";
 import { LANGUAGES, setLanguage, type Language } from "../i18n";
 import AskPalette, { openAskPalette } from "./AskPalette";
+import { useQuery } from "@tanstack/react-query";
+import { getUsage } from "../lib/api";
 import { PROJECT_SECTIONS } from "../lib/sections";
 import { useDashboard } from "../lib/state";
 import { PERIOD_KEYS, type PeriodKey } from "../lib/periods";
@@ -250,6 +252,24 @@ function SidebarNav() {
   );
 }
 
+function QuotaBanner() {
+  const { t } = useTranslation();
+  const { orgId } = useDashboard();
+  const usage = useQuery({
+    queryKey: ["usage", orgId],
+    queryFn: () => getUsage(orgId as string),
+    enabled: orgId !== null,
+    refetchInterval: 300_000,
+  });
+  const pct = usage.data?.pct ?? null;
+  if (pct === null || pct < 80) return null;
+  return (
+    <div className="border-b border-down/40 bg-down/10 px-4 py-1.5 text-center text-xs font-semibold text-down">
+      {t("settings.quotaWarning", { pct })}
+    </div>
+  );
+}
+
 export default function Shell() {
   const { t } = useTranslation();
 
@@ -297,6 +317,7 @@ export default function Shell() {
           </div>
         </header>
 
+        <QuotaBanner />
         <main className="min-w-0 flex-1 px-4 py-5">
           <Outlet />
         </main>

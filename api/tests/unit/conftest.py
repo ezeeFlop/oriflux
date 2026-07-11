@@ -71,11 +71,14 @@ def fake_executor() -> FakeExecutor:
 async def api_client(
     db_sessionmaker: async_sessionmaker[AsyncSession], fake_executor: FakeExecutor
 ) -> AsyncIterator[httpx.AsyncClient]:
+    from fakeredis import FakeAsyncRedis
+
     app = create_app(
         executor=fake_executor,
         settings=TEST_SETTINGS,
         session_factory=db_sessionmaker,
         google_verifier=FakeGoogle(),
+        redis=FakeAsyncRedis(),
     )
     transport = httpx.ASGITransport(app=app)
     async with httpx.AsyncClient(transport=transport, base_url="http://api") as client:

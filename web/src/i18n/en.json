@@ -91,7 +91,11 @@
     "createShare": "Create share link",
     "shareModalTitle": "Link created — copy it now",
     "shareModalWarning": "This URL will never be shown again: the server only keeps a fingerprint.",
-    "copyLink": "Copy link"
+    "copyLink": "Copy link",
+    "usage": "Plan & usage",
+    "usageEvents": "events this month",
+    "usageUnlimited": "Internal plan — no event limit.",
+    "quotaWarning": "Event quota at {{pct}}% this month — consider upgrading."
   },
   "footer": {
     "geoAttribution": "IP Geolocation by"

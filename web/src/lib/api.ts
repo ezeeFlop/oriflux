@@ -176,6 +176,18 @@ export function revokeKey(keyId: string): Promise<void> {
   return apiFetch<void>(`/api/v1/keys/${keyId}`, { method: "DELETE" });
 }
 
+export interface Usage {
+  plan_slug: string;
+  plan_name: string | null;
+  monthly_events: number | null;
+  used: number;
+  pct: number | null;
+}
+
+export function getUsage(orgId: string): Promise<Usage> {
+  return apiFetch<Usage>(`/api/v1/orgs/${orgId}/usage`);
+}
+
 export type Role = "owner" | "admin" | "viewer";
 
 export interface Member {

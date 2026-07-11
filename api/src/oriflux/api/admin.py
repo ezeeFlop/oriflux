@@ -11,7 +11,7 @@ CORS (wired when the web dashboard exists and origins are known).
 import uuid
 from datetime import UTC, datetime
 
-from fastapi import APIRouter, Depends, HTTPException
+from fastapi import APIRouter, Depends, HTTPException, Request
 from pydantic import BaseModel
 from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
@@ -22,6 +22,7 @@ from oriflux.db.models import (
     KeyScope,
     Membership,
     Organization,
+    Plan,
     Project,
     Role,
     Source,
@@ -302,6 +303,43 @@ async def revoke_key(
     if key.revoked_at is None:
         key.revoked_at = datetime.now(tz=UTC)
         await session.commit()
+
+
+class UsageOut(BaseModel):
+    """Plan + this month's consumption (issue #61). pct is None on
+    unlimited plans (or when no plan row matches — the gate fails open)."""
+
+    plan_slug: str
+    plan_name: str | None
+    monthly_events: int | None
+    used: int
+    pct: float | None
+
+
+@router.get("/orgs/{org_id}/usage")
+async def org_usage(
+    org_id: uuid.UUID,
+    request: Request,
+    user: User = Depends(get_current_user),
+    session: AsyncSession = Depends(get_session),
+) -> UsageOut:
+    await require_role(session, user, org_id, Role.viewer)
+    org = await session.get(Organization, org_id)
+    if org is None:
+        raise HTTPException(status_code=404, detail="org not found")
+    plan = await session.get(Plan, org.plan_slug)
+    month_key = f"oriflux:quota:{org_id}:{datetime.now(tz=UTC):%Y%m}"
+    raw = await request.app.state.redis.get(month_key)
+    used = int(raw) if raw is not None else 0
+    limit = plan.monthly_events if plan is not None else None
+    pct = round(used / limit * 100, 1) if limit else None
+    return UsageOut(
+        plan_slug=org.plan_slug,
+        plan_name=plan.name if plan is not None else None,
+        monthly_events=limit,
+        used=used,
+        pct=pct,
+    )
 
 
 @router.get("/orgs/{org_id}/members")

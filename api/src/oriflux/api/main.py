@@ -18,6 +18,7 @@ from typing import Any, Protocol
 from fastapi import Depends, FastAPI, HTTPException, Response
 from fastapi_mcp import FastApiMCP
 from pydantic import BaseModel
+from redis.asyncio import Redis
 from sqlalchemy.ext.asyncio import AsyncSession, async_sessionmaker
 
 from oriflux.ai.ask import AskCompilationError, compile_question
@@ -86,12 +87,17 @@ def create_app(
     session_factory: async_sessionmaker[AsyncSession] | None = None,
     google_verifier: GoogleVerifier | None = None,
     ai_gateway: AiGateway | None = None,
+    redis: Redis | None = None,
 ) -> FastAPI:
     setup_logging()
     settings = settings or get_settings()
 
     @asynccontextmanager
     async def lifespan(app: FastAPI) -> AsyncIterator[None]:
+        owned_redis = None
+        if redis is None:
+            owned_redis = Redis.from_url(settings.redis_url)
+            app.state.redis = owned_redis
         if session_factory is None:
             await asyncio.to_thread(run_migrations, settings)
             engine = create_engine(settings)
@@ -100,9 +106,13 @@ def create_app(
             await engine.dispose()
         else:
             yield
+        if owned_redis is not None:
+            await owned_redis.aclose()
 
     app = FastAPI(title="oriflux_api", lifespan=lifespan)
     app.state.settings = settings
+    if redis is not None:
+        app.state.redis = redis
     app.state.google_verifier = google_verifier or make_google_verifier(
         settings.google_client_id
     )

@@ -91,7 +91,11 @@
     "createShare": "Créer un lien de partage",
     "shareModalTitle": "Lien créé — copiez-le maintenant",
     "shareModalWarning": "Cette URL ne sera plus jamais affichée : le serveur n'en conserve qu'une empreinte.",
-    "copyLink": "Copier le lien"
+    "copyLink": "Copier le lien",
+    "usage": "Plan & usage",
+    "usageEvents": "événements ce mois-ci",
+    "usageUnlimited": "Plan interne — sans limite d'événements.",
+    "quotaWarning": "Quota d'événements à {{pct}} % ce mois-ci — envisagez un plan supérieur."
   },
   "footer": {
     "geoAttribution": "Géolocalisation IP par"

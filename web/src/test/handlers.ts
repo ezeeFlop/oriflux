@@ -58,6 +58,15 @@ export const handlers = [
   http.get("/api/v1/projects/:projectId/sources", () => HttpResponse.json([])),
   http.get("/api/v1/orgs/:orgId/keys", () => HttpResponse.json([])),
   http.get("/api/v1/orgs/:orgId/members", () => HttpResponse.json([])),
+  http.get("/api/v1/orgs/:orgId/usage", () =>
+    HttpResponse.json({
+      plan_slug: "internal",
+      plan_name: "Internal",
+      monthly_events: null,
+      used: 0,
+      pct: null,
+    }),
+  ),
   http.get("/api/v1/orgs/:orgId/digest", () =>
     HttpResponse.json({ detail: "no digest subscription" }, { status: 404 }),
   ),
