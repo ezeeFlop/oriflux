@@ -7,7 +7,7 @@ import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { useTranslation } from "react-i18next";
 import { useParams } from "react-router-dom";
 
-import { FIELD, Panel, PRIMARY_BUTTON, ScreenSubtitle } from "../components/widgets";
+import { CopyButton, FIELD, Panel, PRIMARY_BUTTON, ScreenSubtitle } from "../components/widgets";
 import {
   ApiError,
   createConnector,
@@ -21,24 +21,6 @@ import {
 
 const CHIP =
   "rounded-full border border-line px-2 py-0.5 text-[11px] font-semibold uppercase text-ink-soft";
-
-function CopyButton({ text, label }: { text: string; label: string }) {
-  const { t } = useTranslation();
-  const [copied, setCopied] = useState(false);
-  return (
-    <button
-      onClick={() => {
-        void navigator.clipboard?.writeText(text);
-        setCopied(true);
-        setTimeout(() => setCopied(false), 2000);
-      }}
-      aria-label={label}
-      className="rounded-md border border-line px-2 py-1 text-xs font-medium text-ink-soft hover:border-flame hover:text-flame"
-    >
-      {copied ? t("settings.copied") : t("settings.copy")}
-    </button>
-  );
-}
 
 function ConnectorsPanel({ projectId }: { projectId: string }) {
   const { t } = useTranslation();

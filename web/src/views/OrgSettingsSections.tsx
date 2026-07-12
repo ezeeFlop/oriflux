@@ -5,7 +5,7 @@ import { useState } from "react";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { useTranslation } from "react-i18next";
 
-import { FIELD, Panel, PRIMARY_BUTTON } from "../components/widgets";
+import { CopyButton, FIELD, Panel, PRIMARY_BUTTON } from "../components/widgets";
 import {
   addMember,
   createCheckout,
@@ -282,7 +282,6 @@ export function DigestSection({ orgId }: { orgId: string }) {
 function ShareLinkModal({ share, onClose }: { share: MintedShare; onClose: () => void }) {
   const { t } = useTranslation();
   const url = `${window.location.origin}${share.public_path}`;
-  const [copied, setCopied] = useState(false);
   return (
     <div className="fixed inset-0 z-40 flex items-center justify-center bg-ink/40 px-4">
       <div
@@ -296,17 +295,7 @@ function ShareLinkModal({ share, onClose }: { share: MintedShare; onClose: () =>
           <code className="tnum min-w-0 flex-1 break-all rounded-md border border-line bg-paper px-2 py-1.5 text-xs">
             {url}
           </code>
-          <button
-            onClick={() => {
-              void navigator.clipboard?.writeText(url);
-              setCopied(true);
-              setTimeout(() => setCopied(false), 2000);
-            }}
-            aria-label={t("settings.copyLink")}
-            className="rounded-md border border-line px-2 py-1 text-xs font-medium text-ink-soft hover:border-flame hover:text-flame"
-          >
-            {copied ? t("settings.copied") : t("settings.copy")}
-          </button>
+          <CopyButton text={url} label={t("settings.copyLink")} />
         </div>
         <div className="mt-4 text-right">
           <button onClick={onClose} className={PRIMARY_BUTTON}>

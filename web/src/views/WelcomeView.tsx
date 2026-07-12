@@ -9,7 +9,7 @@ import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { useTranslation } from "react-i18next";
 import { Navigate, useNavigate } from "react-router-dom";
 
-import { FIELD, PRIMARY_BUTTON } from "../components/widgets";
+import { CopyButton, FIELD, PRIMARY_BUTTON } from "../components/widgets";
 import {
   apiFetch,
   auth,
@@ -27,24 +27,6 @@ import { integrationSnippet } from "../lib/snippets";
 import { lastMinutes } from "../lib/periods";
 
 type Step = "org" | "project" | "source" | "integrate";
-
-function CopyButton({ text, label }: { text: string; label: string }) {
-  const { t } = useTranslation();
-  const [copied, setCopied] = useState(false);
-  return (
-    <button
-      onClick={() => {
-        void navigator.clipboard?.writeText(text);
-        setCopied(true);
-        setTimeout(() => setCopied(false), 2000);
-      }}
-      aria-label={label}
-      className="rounded-md border border-line px-2 py-1 text-xs font-medium text-ink-soft hover:border-flame hover:text-flame"
-    >
-      {copied ? t("settings.copied") : t("settings.copy")}
-    </button>
-  );
-}
 
 function Flame() {
   return (

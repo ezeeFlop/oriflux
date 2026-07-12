@@ -2,7 +2,7 @@ import { useState } from "react";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { useTranslation } from "react-i18next";
 
-import { FIELD, Panel, PRIMARY_BUTTON, ScreenSubtitle } from "../components/widgets";
+import { CopyButton, FIELD, Panel, PRIMARY_BUTTON, ScreenSubtitle } from "../components/widgets";
 import {
   createProject,
   createSource,
@@ -23,24 +23,6 @@ import { BillingSection, DigestSection, MembersSection, SharesSection, UsageSect
 // custom-events slice and has no paste-ready snippet yet)
 const SOURCE_TYPES: SourceType[] = ["web", "api"];
 
-
-function CopyButton({ text, label }: { text: string; label: string }) {
-  const { t } = useTranslation();
-  const [copied, setCopied] = useState(false);
-  return (
-    <button
-      onClick={() => {
-        void navigator.clipboard?.writeText(text);
-        setCopied(true);
-        setTimeout(() => setCopied(false), 2000);
-      }}
-      aria-label={label}
-      className="rounded-md border border-line px-2 py-1 text-xs font-medium text-ink-soft hover:border-flame hover:text-flame"
-    >
-      {copied ? t("settings.copied") : t("settings.copy")}
-    </button>
-  );
-}
 
 /** The one and only time the plaintext is visible (the server keeps a hash). */
 function IssuedKeyModal({
