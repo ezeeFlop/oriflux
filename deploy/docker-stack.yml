@@ -46,6 +46,10 @@ x-oriflux-env: &oriflux-env
   ORIFLUX_FERNET_KEY: ${ORIFLUX_FERNET_KEY:-}  # connectors (#24): python -c "from cryptography.fernet import Fernet; print(Fernet.generate_key().decode())"
   ORIFLUX_SPT_MODELS_URL: ${ORIFLUX_SPT_MODELS_URL:-}  # AI layer (#33): SPT Models gateway; empty = AI disabled
   ORIFLUX_SPT_MODELS_API_KEY: ${ORIFLUX_SPT_MODELS_API_KEY:-}
+  # model slugs from the SPT Models catalogue (defaults are gateway aliases)
+  ORIFLUX_SPT_CHAT_MODEL: ${ORIFLUX_SPT_CHAT_MODEL:-spt-chat}
+  ORIFLUX_SPT_EMBED_MODEL: ${ORIFLUX_SPT_EMBED_MODEL:-spt-embed}
+  ORIFLUX_SPT_RERANK_MODEL: ${ORIFLUX_SPT_RERANK_MODEL:-spt-rerank}
   ORIFLUX_ZEUS_URL: ${ORIFLUX_ZEUS_URL:-}  # infra correlation (#29): e.g. https://zeus.sponge-theory.dev
   ORIFLUX_ZEUS_USERNAME: ${ORIFLUX_ZEUS_USERNAME:-}
   ORIFLUX_ZEUS_PASSWORD: ${ORIFLUX_ZEUS_PASSWORD:-}

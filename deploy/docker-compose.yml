@@ -13,6 +13,12 @@ x-service-env: &service-env
   ORIFLUX_GEOIP_DIR: /var/lib/oriflux/geoip
   ORIFLUX_GEOIP_PROVIDER: ${ORIFLUX_GEOIP_PROVIDER:-dbip}  # dbip (keyless) | maxmind (needs key)
   ORIFLUX_MAXMIND_LICENSE_KEY: ${MAXMIND_LICENSE_KEY:-}  # only used by the maxmind provider
+  # AI layer (optional in dev — empty URL keeps it cleanly disabled)
+  ORIFLUX_SPT_MODELS_URL: ${ORIFLUX_SPT_MODELS_URL:-}
+  ORIFLUX_SPT_MODELS_API_KEY: ${ORIFLUX_SPT_MODELS_API_KEY:-}
+  ORIFLUX_SPT_CHAT_MODEL: ${ORIFLUX_SPT_CHAT_MODEL:-spt-chat}
+  ORIFLUX_SPT_EMBED_MODEL: ${ORIFLUX_SPT_EMBED_MODEL:-spt-embed}
+  ORIFLUX_SPT_RERANK_MODEL: ${ORIFLUX_SPT_RERANK_MODEL:-spt-rerank}
 
 x-healthz: &healthz
   test: ["CMD", "python", "-c", "import urllib.request; urllib.request.urlopen('http://localhost:8000/healthz')"]
