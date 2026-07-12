@@ -84,6 +84,8 @@ webhook (cliphaven/neokanban pattern).
 # health
 curl -s https://in.oriflux.sponge-theory.dev/healthz
 curl -s https://api.oriflux.sponge-theory.dev/healthz
+curl -s https://oriflux.sponge-theory.dev/healthz        # landing (+ /docs/)
+curl -s https://app.oriflux.sponge-theory.dev/healthz    # dashboard (after the app.* proxy host exists)
 
 # walking-skeleton demo end-to-end (keys printed by the bootstrap step)
 curl -s -X POST https://in.oriflux.sponge-theory.dev/api/v1/events \
