@@ -122,6 +122,7 @@ if [ "${DO_PUSH}" = "true" ]; then
         --platform "${TARGET_PLATFORM}" \
         ${NO_CACHE} \
         --push \
+        --build-arg PUBLIC_LIVE_DEMO_URL="${PUBLIC_LIVE_DEMO_URL:-}" \
         -f "${LANDING_DIR}/Dockerfile" \
         -t "${LANDING_IMAGE}:${TAG}" \
         -t "${LANDING_IMAGE}:${APP_VERSION}" \
