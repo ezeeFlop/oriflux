@@ -6,7 +6,7 @@ import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { useTranslation } from "react-i18next";
 import { useParams } from "react-router-dom";
 
-import { Panel } from "../components/widgets";
+import { DocsLink, Panel, ScreenSubtitle } from "../components/widgets";
 import { createGoal, deleteGoal, listGoals } from "../lib/api";
 import { formatNumber, formatPercent } from "../lib/format";
 import { useDashboard } from "../lib/state";
@@ -80,7 +80,9 @@ export function GoalsPanel({ projectId }: { projectId: string }) {
           </tbody>
         </table>
       ) : (
-        <p className="py-2 text-sm text-ink-soft">{t("goals.empty")}</p>
+        <p className="flex flex-wrap items-baseline gap-2 py-2 text-sm text-ink-soft">
+          {t("goals.empty")} <DocsLink slug="getting-started" />
+        </p>
       )}
 
       <form
@@ -130,6 +132,7 @@ export default function GoalsView() {
   return (
     <div className="space-y-4">
       <h1 className="font-display text-xl font-bold tracking-tight">{t("goals.title")}</h1>
+      <ScreenSubtitle id="goals" />
       <GoalsPanel projectId={projectId} />
     </div>
   );

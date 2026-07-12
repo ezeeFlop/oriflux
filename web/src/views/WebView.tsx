@@ -5,7 +5,8 @@ import { useParams } from "react-router-dom";
 import Choropleth, { countryValues } from "../components/Choropleth";
 import TimeseriesChart from "../components/TimeseriesChart";
 
-import { Panel, RankedTable, StatCard, Tabs } from "../components/widgets";
+import IntegrateEmptyState from "../components/IntegrateEmptyState";
+import { Panel, RankedTable, ScreenSubtitle, StatCard, Tabs } from "../components/widgets";
 import { listAnnotations, type QueryFilter } from "../lib/api";
 import { formatBucket, formatDuration, formatNumber, formatPercent } from "../lib/format";
 import { compareScalar, scalar, useMetric } from "../lib/useMetric";
@@ -302,12 +303,20 @@ export default function WebView() {
     projectId,
   });
 
+  // "no data" means the project, not the current filters: the probe ignores
+  // traffic class and geo so a filtered-out view never claims "instrument me"
+  const probe = useMetric({ metric: "pageviews", projectId, projectOnly: true });
+  const webEmpty = probe.data !== undefined && (scalar(probe.data) ?? 0) === 0;
+
   return (
     <div className="space-y-4">
       <div className="flex flex-wrap items-center justify-between gap-3">
         <h1 className="font-display text-xl font-bold tracking-tight">{t("web.title")}</h1>
         <TrafficClassFilter />
       </div>
+      <ScreenSubtitle id="web" />
+
+      {webEmpty && <IntegrateEmptyState projectId={projectId} type="web" />}
 
       <StatRow projectId={projectId} />
 

@@ -4,7 +4,8 @@ import { useTranslation } from "react-i18next";
 import { useParams } from "react-router-dom";
 
 import Choropleth, { countryValues } from "../components/Choropleth";
-import { Panel, RankedTable, SkeletonRows, StatCard, Tabs } from "../components/widgets";
+import IntegrateEmptyState from "../components/IntegrateEmptyState";
+import { Panel, RankedTable, ScreenSubtitle, SkeletonRows, StatCard, Tabs } from "../components/widgets";
 import type { QueryRow } from "../lib/api";
 import { deltaPercent, formatMs, formatNumber, formatPercent } from "../lib/format";
 import { fetchInfra } from "../lib/api";
@@ -287,10 +288,14 @@ export default function ApiView() {
   );
 
   const statusRows: QueryRow[] | undefined = statusClasses.data?.results;
+  const apiEmpty = requests.data !== undefined && (scalar(requests.data) ?? 0) === 0;
 
   return (
     <div className="space-y-4">
       <h1 className="font-display text-xl font-bold tracking-tight">{t("api.title")}</h1>
+      <ScreenSubtitle id="api" />
+
+      {apiEmpty && <IntegrateEmptyState projectId={projectId} type="api" />}
 
       <div className="grid grid-cols-2 gap-3 lg:grid-cols-4">
         {stat(requests, t("metric.api_requests"), formatNumber, false)}

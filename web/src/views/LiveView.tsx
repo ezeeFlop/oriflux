@@ -7,7 +7,7 @@ import { useQueries } from "@tanstack/react-query";
 import { useTranslation } from "react-i18next";
 import { useParams } from "react-router-dom";
 
-import { Panel, RankedTable } from "../components/widgets";
+import { Panel, RankedTable, ScreenSubtitle } from "../components/widgets";
 import WorldLive from "../components/WorldLive";
 import { runQuery } from "../lib/api";
 import { formatNumber } from "../lib/format";
@@ -82,6 +82,7 @@ export default function LiveView() {
           <span className="text-[10px] uppercase text-ink-soft">{t("live.polling")}</span>
         )}
       </div>
+      <ScreenSubtitle id="live" />
 
       <div className="flex items-baseline gap-2">
         <span className="tnum font-display text-4xl font-bold">

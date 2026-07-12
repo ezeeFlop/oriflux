@@ -9,7 +9,7 @@ import { useTranslation } from "react-i18next";
 import { useParams } from "react-router-dom";
 
 import AlertEventRow from "../components/AlertEventRow";
-import { FIELD, Panel, PRIMARY_BUTTON } from "../components/widgets";
+import { DocsLink, FIELD, Panel, PRIMARY_BUTTON, ScreenSubtitle } from "../components/widgets";
 import {
   createAlertRule,
   deleteAlertRule,
@@ -170,7 +170,9 @@ function RulesPanel({ orgId, projectId }: { orgId: string; projectId: string }) 
           </li>
         ))}
         {rules.data && visible.length === 0 && (
-          <li className="py-3 text-sm text-ink-soft">{t("alerts.noRules")}</li>
+          <li className="flex flex-wrap items-baseline gap-2 py-3 text-sm text-ink-soft">
+            {t("alerts.noRules")} <DocsLink slug="getting-started" />
+          </li>
         )}
       </ul>
       <form
@@ -276,6 +278,7 @@ export default function AlertsView() {
   return (
     <div className="space-y-4">
       <h1 className="font-display text-xl font-bold tracking-tight">{t("nav.alerts")}</h1>
+      <ScreenSubtitle id="alerts" />
       <RulesPanel orgId={orgId} projectId={projectId} />
       <EventsPanel orgId={orgId} projectId={projectId} />
     </div>

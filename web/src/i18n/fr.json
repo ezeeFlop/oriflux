@@ -366,5 +366,28 @@
     "zeusClear": "Dissocier",
     "zeusUnset": "Aucun service associé.",
     "zeusUnavailable": "Service associé, mais Zeus est injoignable (ou instance sans Zeus)."
+  },
+  "subtitle": {
+    "home": "Tous vos produits d'un coup d'œil — visiteurs live, tendances et alertes récentes.",
+    "overview": "La synthèse du produit : web, API et temps réel sur la période sélectionnée.",
+    "web": "L'audience de votre site — visiteurs, pages, sources et géographie, sans cookies.",
+    "api": "Le trafic de votre API — volume, erreurs et latence par endpoint, consommateur et pays.",
+    "live": "L'activité des 30 dernières minutes, actualisée toutes les 10 secondes.",
+    "product": "Funnels et rétention — conversions étape par étape et cohortes d'utilisateurs identifiés.",
+    "goals": "Vos objectifs de conversion — pages ou événements clés suivis sur la période.",
+    "alerts": "Des seuils sur vos métriques, notifiés sur Slack ou par email dès qu'ils sont franchis.",
+    "annotations": "Releases, campagnes et incidents — le contexte derrière les variations des graphiques.",
+    "projectSettings": "Sources, connecteurs revenus et intégration Zeus de ce projet.",
+    "orgSettings": "Projets, clés, membres, partages, plan et facturation de l'organisation."
+  },
+  "emptyState": {
+    "docsLink": "Consulter la documentation →",
+    "webTitle": "Aucun événement web sur la période",
+    "webBody": "Collez ce snippet dans le <head> de votre site : les données apparaissent en quelques secondes, sans cookies ni bannière de consentement.",
+    "apiTitle": "Aucun trafic API sur la période",
+    "apiBody": "Installez le SDK Python et ajoutez le middleware à votre application FastAPI — moins d'une milliseconde de surcharge par requête.",
+    "generate": "Générer la clé et le snippet",
+    "keyOnce": "La clé ne sera plus jamais affichée — copiez le snippet maintenant.",
+    "issueFailed": "Émission impossible (rôle admin requis)."
   }
 }

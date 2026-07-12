@@ -10,7 +10,7 @@ import { Link, useLocation, useParams } from "react-router-dom";
 
 import AlertEventRow from "../components/AlertEventRow";
 import TimeseriesChart from "../components/TimeseriesChart";
-import { Panel, StatCard } from "../components/widgets";
+import { Panel, ScreenSubtitle, StatCard } from "../components/widgets";
 import { auth, listAlertEvents, listAnnotations, runQuery } from "../lib/api";
 import { formatMs, formatNumber, formatPercent } from "../lib/format";
 import { lastMinutes } from "../lib/periods";
@@ -133,6 +133,7 @@ export default function OverviewView() {
           {projectName ? ` — ${projectName}` : ""}
         </h1>
       </div>
+      <ScreenSubtitle id="overview" />
 
       {notInstrumented && <InstrumentationNotice projectId={projectId} />}
 

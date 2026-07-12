@@ -366,5 +366,28 @@
     "zeusClear": "Unlink",
     "zeusUnset": "No service mapped.",
     "zeusUnavailable": "Service mapped, but Zeus is unreachable (or this instance has no Zeus)."
+  },
+  "subtitle": {
+    "home": "All your products at a glance — live visitors, trends and recent alerts.",
+    "overview": "The product summary: web, API and real time over the selected period.",
+    "web": "Your site's audience — visitors, pages, sources and geography, cookie-free.",
+    "api": "Your API traffic — volume, errors and latency by endpoint, consumer and country.",
+    "live": "The last 30 minutes of activity, refreshed every 10 seconds.",
+    "product": "Funnels and retention — step-by-step conversions and identified-user cohorts.",
+    "goals": "Your conversion goals — key pages or events tracked over the period.",
+    "alerts": "Thresholds on your metrics, notified on Slack or by email as soon as they are crossed.",
+    "annotations": "Releases, campaigns and incidents — the context behind chart variations.",
+    "projectSettings": "Sources, revenue connectors and Zeus integration for this project.",
+    "orgSettings": "Projects, keys, members, shares, plan and billing for the organization."
+  },
+  "emptyState": {
+    "docsLink": "Read the documentation →",
+    "webTitle": "No web events in this period",
+    "webBody": "Paste this snippet into your site's <head>: data shows up within seconds, without cookies or a consent banner.",
+    "apiTitle": "No API traffic in this period",
+    "apiBody": "Install the Python SDK and add the middleware to your FastAPI app — under one millisecond of overhead per request.",
+    "generate": "Generate the key and snippet",
+    "keyOnce": "The key will never be shown again — copy the snippet now.",
+    "issueFailed": "Could not issue a key (admin role required)."
   }
 }

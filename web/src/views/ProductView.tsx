@@ -7,7 +7,7 @@ import { useQuery } from "@tanstack/react-query";
 import { useTranslation } from "react-i18next";
 import { useParams } from "react-router-dom";
 
-import { Panel } from "../components/widgets";
+import { Panel, ScreenSubtitle } from "../components/widgets";
 import { runFunnel, runRetention, type FunnelStep } from "../lib/api";
 import { formatNumber, formatPercent } from "../lib/format";
 import { useDashboard } from "../lib/state";
@@ -230,6 +230,7 @@ export default function ProductView() {
   return (
     <div className="space-y-4">
       <h1 className="font-display text-xl font-bold tracking-tight">{t("nav.product")}</h1>
+      <ScreenSubtitle id="product" />
       <FunnelPanel projectId={projectId} />
       <RetentionPanel projectId={projectId} />
     </div>

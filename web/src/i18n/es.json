@@ -366,5 +366,28 @@
     "zeusClear": "Desvincular",
     "zeusUnset": "Ningún servicio asociado.",
     "zeusUnavailable": "Servicio asociado, pero Zeus no responde (o la instancia no tiene Zeus)."
+  },
+  "subtitle": {
+    "home": "Todos sus productos de un vistazo — visitantes en vivo, tendencias y alertas recientes.",
+    "overview": "La síntesis del producto: web, API y tiempo real sobre el período seleccionado.",
+    "web": "La audiencia de su sitio — visitantes, páginas, fuentes y geografía, sin cookies.",
+    "api": "El tráfico de su API — volumen, errores y latencia por endpoint, consumidor y país.",
+    "live": "La actividad de los últimos 30 minutos, actualizada cada 10 segundos.",
+    "product": "Embudos y retención — conversiones paso a paso y cohortes de usuarios identificados.",
+    "goals": "Sus objetivos de conversión — páginas o eventos clave seguidos en el período.",
+    "alerts": "Umbrales sobre sus métricas, notificados en Slack o por email en cuanto se cruzan.",
+    "annotations": "Releases, campañas e incidentes — el contexto detrás de las variaciones de los gráficos.",
+    "projectSettings": "Fuentes, conectores de ingresos e integración Zeus de este proyecto.",
+    "orgSettings": "Proyectos, claves, miembros, compartidos, plan y facturación de la organización."
+  },
+  "emptyState": {
+    "docsLink": "Consultar la documentación →",
+    "webTitle": "Ningún evento web en el período",
+    "webBody": "Pegue este snippet en el <head> de su sitio: los datos aparecen en segundos, sin cookies ni banner de consentimiento.",
+    "apiTitle": "Sin tráfico API en el período",
+    "apiBody": "Instale el SDK de Python y añada el middleware a su aplicación FastAPI — menos de un milisegundo de sobrecarga por petición.",
+    "generate": "Generar la clave y el snippet",
+    "keyOnce": "La clave no volverá a mostrarse — copie el snippet ahora.",
+    "issueFailed": "Emisión imposible (se requiere rol de administrador)."
   }
 }

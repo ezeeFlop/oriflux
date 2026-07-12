@@ -2,7 +2,7 @@ import { useState } from "react";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { useTranslation } from "react-i18next";
 
-import { FIELD, Panel, PRIMARY_BUTTON } from "../components/widgets";
+import { FIELD, Panel, PRIMARY_BUTTON, ScreenSubtitle } from "../components/widgets";
 import {
   createProject,
   createSource,
@@ -357,6 +357,7 @@ export default function OrgSettingsView() {
       <h1 className="font-display text-xl font-bold tracking-tight">
         {t("nav.orgSettings")}
       </h1>
+      <ScreenSubtitle id="orgSettings" />
       <UsageSection orgId={orgId} />
       <BillingSection orgId={orgId} />
       <ProjectsSection

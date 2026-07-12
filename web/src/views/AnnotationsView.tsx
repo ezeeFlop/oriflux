@@ -6,7 +6,7 @@ import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { useTranslation } from "react-i18next";
 import { useParams } from "react-router-dom";
 
-import { FIELD, Panel, PRIMARY_BUTTON } from "../components/widgets";
+import { DocsLink, FIELD, Panel, PRIMARY_BUTTON, ScreenSubtitle } from "../components/widgets";
 import {
   createAnnotation,
   deleteAnnotation,
@@ -55,6 +55,7 @@ export default function AnnotationsView() {
   return (
     <div className="space-y-4">
       <h1 className="font-display text-xl font-bold tracking-tight">{t("nav.annotations")}</h1>
+      <ScreenSubtitle id="annotations" />
       <Panel title={t("annotationsView.inPeriod")}>
         <ul className="divide-y divide-line/60">
           {(annotations.data ?? []).map((annotation) => (
@@ -76,7 +77,9 @@ export default function AnnotationsView() {
             </li>
           ))}
           {annotations.data && annotations.data.length === 0 && (
-            <li className="py-3 text-sm text-ink-soft">{t("annotationsView.empty")}</li>
+            <li className="flex flex-wrap items-baseline gap-2 py-3 text-sm text-ink-soft">
+              {t("annotationsView.empty")} <DocsLink slug="getting-started" />
+            </li>
           )}
         </ul>
         <form

@@ -1,15 +1,56 @@
 /** Shared analytics widgets: stat cards, ranked breakdown tables, panels.
  *  Sober by design: numbers first, one accent, tabular figures. */
 
-import type { ReactNode } from "react";
+import { useState, type ReactNode } from "react";
 import { useTranslation } from "react-i18next";
 import { deltaPercent, formatNumber } from "../lib/format";
+import { docsUrl } from "../lib/docs";
 import type { QueryRow } from "../lib/api";
 
 /** Shared form styling for the settings/alerts/annotations screens. */
 export const PRIMARY_BUTTON =
   "rounded-md bg-flame px-3 py-1.5 text-sm font-semibold text-white hover:bg-flame-strong disabled:opacity-40";
 export const FIELD = "rounded-md border border-line bg-surface px-2 py-1.5 text-sm";
+
+/** One-line, always-visible screen purpose (issue #70) — no tooltips, no
+ *  dismissable tours: the subtitle IS the pedagogy. */
+export function ScreenSubtitle({ id }: { id: string }) {
+  const { t } = useTranslation();
+  return <p className="-mt-3 text-sm text-ink-soft">{t(`subtitle.${id}`)}</p>;
+}
+
+/** Every empty state points to its public docs guide (issue #70). */
+export function DocsLink({ slug }: { slug: string }) {
+  const { t } = useTranslation();
+  return (
+    <a
+      href={docsUrl(slug)}
+      target="_blank"
+      rel="noreferrer"
+      className="text-xs font-medium text-flame underline-offset-2 hover:underline"
+    >
+      {t("emptyState.docsLink")}
+    </a>
+  );
+}
+
+export function CopyButton({ text, label }: { text: string; label: string }) {
+  const { t } = useTranslation();
+  const [copied, setCopied] = useState(false);
+  return (
+    <button
+      onClick={() => {
+        void navigator.clipboard?.writeText(text);
+        setCopied(true);
+        setTimeout(() => setCopied(false), 2000);
+      }}
+      aria-label={label}
+      className="rounded-md border border-line px-2 py-1 text-xs font-medium text-ink-soft hover:border-flame hover:text-flame"
+    >
+      {copied ? t("settings.copied") : t("settings.copy")}
+    </button>
+  );
+}
 
 export function Panel({
   title,

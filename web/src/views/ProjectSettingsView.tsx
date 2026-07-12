@@ -7,7 +7,7 @@ import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { useTranslation } from "react-i18next";
 import { useParams } from "react-router-dom";
 
-import { FIELD, Panel, PRIMARY_BUTTON } from "../components/widgets";
+import { FIELD, Panel, PRIMARY_BUTTON, ScreenSubtitle } from "../components/widgets";
 import {
   ApiError,
   createConnector,
@@ -216,6 +216,7 @@ export default function ProjectSettingsView() {
       <h1 className="font-display text-xl font-bold tracking-tight">
         {t("nav.projectSettings")}
       </h1>
+      <ScreenSubtitle id="projectSettings" />
       <ConnectorsPanel projectId={projectId} />
       <ZeusPanel projectId={projectId} />
     </div>

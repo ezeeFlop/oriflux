@@ -6,7 +6,7 @@ import { useQueries, useQuery } from "@tanstack/react-query";
 import { useMemo } from "react";
 import { useTranslation } from "react-i18next";
 import { Link, useLocation } from "react-router-dom";
-import { Panel, RankedTable, SkeletonRows } from "../components/widgets";
+import { Panel, RankedTable, ScreenSubtitle, SkeletonRows } from "../components/widgets";
 import { listAlertEvents, listAnomalies, listInsights, runQuery, auth, type Project, type QueryResponse } from "../lib/api";
 import { formatNumber, formatPercent } from "../lib/format";
 import { lastMinutes, periodFor } from "../lib/periods";
@@ -322,6 +322,7 @@ export default function HomeView() {
           {t("home.updated")}
         </span>
       </div>
+      <ScreenSubtitle id="home" />
 
       {projects.length === 0 ? (
         <Panel title={t("home.title")}>
