@@ -340,5 +340,24 @@
       "source": "D'où viendront les événements ?",
       "integrate": "Collez le snippet — on surveille l'arrivée du premier événement."
     }
+  },
+  "projectSettings": {
+    "connectors": "Connecteurs revenus",
+    "connectorsHint": "Reliez les webhooks Stripe / Lemon Squeezy pour corréler revenus et trafic (MRR sur l'accueil).",
+    "provider": "Fournisseur",
+    "webhookSecret": "Secret de signature du webhook",
+    "addConnector": "Ajouter le connecteur",
+    "copyWebhook": "Copier l'URL du webhook",
+    "deleteConnector": "Supprimer le connecteur",
+    "noConnectors": "Aucun connecteur.",
+    "secretOnce": "Le secret est chiffré au repos et ne sera jamais ré-affiché. Configurez l'URL du webhook chez le fournisseur.",
+    "connectorsDisabled": "Connecteurs désactivés sur cette instance (clé Fernet absente).",
+    "zeus": "Intégration Zeus",
+    "zeusHint": "Associez ce projet à son service Zeus pour corréler l'infra (CPU/RAM) aux vues API.",
+    "zeusService": "Service Zeus",
+    "zeusSave": "Enregistrer",
+    "zeusClear": "Dissocier",
+    "zeusUnset": "Aucun service associé.",
+    "zeusUnavailable": "Service associé, mais Zeus est injoignable (ou instance sans Zeus)."
   }
 }

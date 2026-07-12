@@ -411,6 +411,44 @@ export function listAnomalies(orgId: string): Promise<Anomaly[]> {
   return apiFetch<Anomaly[]>(`/api/v1/orgs/${orgId}/anomalies`);
 }
 
+export interface Connector {
+  id: string;
+  provider: "stripe" | "lemonsqueezy";
+  webhook_path: string;
+}
+
+export function listConnectors(projectId: string): Promise<Connector[]> {
+  return apiFetch<Connector[]>(`/api/v1/projects/${projectId}/connectors`);
+}
+
+export function createConnector(
+  projectId: string,
+  connector: { provider: Connector["provider"]; webhook_secret: string },
+): Promise<Connector> {
+  return apiFetch<Connector>(`/api/v1/projects/${projectId}/connectors`, {
+    method: "POST",
+    body: JSON.stringify(connector),
+  });
+}
+
+export function deleteConnector(connectorId: string): Promise<void> {
+  return apiFetch<void>(`/api/v1/connectors/${connectorId}`, { method: "DELETE" });
+}
+
+export function getZeusMapping(projectId: string): Promise<{ zeus_service: string | null }> {
+  return apiFetch<{ zeus_service: string | null }>(`/api/v1/projects/${projectId}/zeus`);
+}
+
+export function setZeusMapping(
+  projectId: string,
+  zeusService: string | null,
+): Promise<{ zeus_service: string | null }> {
+  return apiFetch<{ zeus_service: string | null }>(`/api/v1/projects/${projectId}/zeus`, {
+    method: "PATCH",
+    body: JSON.stringify({ zeus_service: zeusService }),
+  });
+}
+
 export interface InfraSnapshot {
   available: boolean;
   service?: string;

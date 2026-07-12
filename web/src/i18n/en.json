@@ -340,5 +340,24 @@
       "source": "Where will events come from?",
       "integrate": "Paste the snippet — we're watching for the first event."
     }
+  },
+  "projectSettings": {
+    "connectors": "Revenue connectors",
+    "connectorsHint": "Wire Stripe / Lemon Squeezy webhooks to correlate revenue with traffic (MRR on the home).",
+    "provider": "Provider",
+    "webhookSecret": "Webhook signing secret",
+    "addConnector": "Add connector",
+    "copyWebhook": "Copy webhook URL",
+    "deleteConnector": "Delete connector",
+    "noConnectors": "No connectors.",
+    "secretOnce": "The secret is encrypted at rest and never shown again. Configure the webhook URL on the provider side.",
+    "connectorsDisabled": "Connectors are disabled on this instance (no Fernet key).",
+    "zeus": "Zeus integration",
+    "zeusHint": "Map this project to its Zeus service to correlate infra (CPU/RAM) with the API views.",
+    "zeusService": "Zeus service",
+    "zeusSave": "Save",
+    "zeusClear": "Unlink",
+    "zeusUnset": "No service mapped.",
+    "zeusUnavailable": "Service mapped, but Zeus is unreachable (or this instance has no Zeus)."
   }
 }

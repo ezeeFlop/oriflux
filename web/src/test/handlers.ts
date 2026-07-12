@@ -76,6 +76,10 @@ export const handlers = [
   http.get("/api/v1/projects/:projectId/shares", () => HttpResponse.json([])),
   http.get("/api/v1/projects/:projectId/goals", () => HttpResponse.json([])),
   http.get("/api/v1/projects/:projectId/annotations", () => HttpResponse.json([])),
+  http.get("/api/v1/projects/:projectId/connectors", () => HttpResponse.json([])),
+  http.get("/api/v1/projects/:projectId/zeus", () =>
+    HttpResponse.json({ zeus_service: null }),
+  ),
   http.get("/api/v1/projects/:projectId/infra", () =>
     HttpResponse.json({ available: false }),
   ),

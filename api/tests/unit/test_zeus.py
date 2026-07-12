@@ -8,6 +8,8 @@ None — stale/absent infra data must never break an analytics view.
 import httpx
 
 from oriflux.integrations.zeus import ZeusClient
+from tests.unit.conftest import login
+from tests.unit.test_auth_and_admin import create_org_chain
 
 BASE = "https://zeus.example"
 
@@ -63,3 +65,27 @@ class TestZeusClient:
 
         zeus = make_client(handler)
         assert await zeus.service_stats("audigeo_api") is None
+
+
+class TestZeusMappingRead:
+    async def test_mapping_is_readable_without_zeus_being_up(
+        self, api_client: httpx.AsyncClient
+    ) -> None:
+        """Issue #58: the settings form needs the current mapping even when
+        Zeus itself is unreachable or unconfigured."""
+        owner = await login(api_client, "alice")
+        _, project_id, _ = await create_org_chain(api_client, owner)
+
+        empty = await api_client.get(f"/api/v1/projects/{project_id}/zeus", headers=owner)
+        assert empty.status_code == 200
+        assert empty.json() == {"zeus_service": None}
+
+        saved = await api_client.patch(
+            f"/api/v1/projects/{project_id}/zeus",
+            json={"zeus_service": "spt-oriflux_api"},
+            headers=owner,
+        )
+        assert saved.status_code == 200
+
+        read = await api_client.get(f"/api/v1/projects/{project_id}/zeus", headers=owner)
+        assert read.json() == {"zeus_service": "spt-oriflux_api"}

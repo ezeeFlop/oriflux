@@ -11,6 +11,7 @@ import GoalsView from "./views/GoalsView";
 import HomeView from "./views/HomeView";
 import LiveView from "./views/LiveView";
 import ProductView from "./views/ProductView";
+import ProjectSettingsView from "./views/ProjectSettingsView";
 import Login from "./views/Login";
 import OrgSettingsView from "./views/OrgSettingsView";
 import PublicView from "./views/PublicView";
@@ -26,6 +27,7 @@ const SECTION_VIEWS: Partial<Record<SectionKey, JSX.Element>> = {
   alerts: <AlertsView />,
   live: <LiveView />,
   annotations: <AnnotationsView />,
+  projectSettings: <ProjectSettingsView />,
 };
 
 function RequireAuth({ children }: { children: JSX.Element }) {

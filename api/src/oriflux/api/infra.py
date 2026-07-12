@@ -38,6 +38,20 @@ def _zeus(request: Request) -> ZeusClient | None:
     return client
 
 
+@router.get("/projects/{project_id}/zeus")
+async def get_zeus_mapping(
+    project_id: uuid.UUID,
+    session: AsyncSession = Depends(get_session),
+    user: User = Depends(get_current_user),
+) -> dict[str, str | None]:
+    """The stored mapping, independent of Zeus's own availability (#58)."""
+    project = await session.get(Project, project_id)
+    if project is None:
+        raise HTTPException(status_code=404, detail="unknown project")
+    await require_role(session, user, project.org_id, Role.viewer)
+    return {"zeus_service": project.zeus_service}
+
+
 @router.patch("/projects/{project_id}/zeus")
 async def set_zeus_mapping(
     project_id: uuid.UUID,
