@@ -19,8 +19,9 @@
 #   TARGET_PLATFORM    build platforms    (default: linux/amd64,linux/arm64 —
 #                      x86 nodes + the DGX Spark arm64 node)
 #   BUILDX_BUILDER     buildx builder     (default: oriflux-multiarch)
-#   PORTAINER_WEBHOOK  stack webhook URL  (defaults to the oriflux stack's
-#                      webhook on portainer.sponge-theory.dev)
+#   PORTAINER_WEBHOOK  stack webhook URL — required to deploy. Never committed
+#                      (public repo): export it, or put it in deploy/.env
+#                      (gitignored), which this script sources if present.
 
 set -e
 
@@ -29,7 +30,10 @@ RED='\033[0;31m'; GREEN='\033[0;32m'; YELLOW='\033[1;33m'; CYAN='\033[0;36m'; NC
 REGISTRY=${REGISTRY:-"registry.sponge-theory.dev"}
 TARGET_PLATFORM=${TARGET_PLATFORM:-"linux/amd64,linux/arm64"}
 BUILDX_BUILDER=${BUILDX_BUILDER:-"oriflux-multiarch"}
-PORTAINER_WEBHOOK=${PORTAINER_WEBHOOK:-"https://portainer.sponge-theory.dev/api/stacks/webhooks/15e09df5-ebc6-45e5-90e7-96884ce96815"}
+# Load local, gitignored overrides (PORTAINER_WEBHOOK lives there, never in git).
+ENV_FILE="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)/.env"
+[ -f "${ENV_FILE}" ] && . "${ENV_FILE}"
+PORTAINER_WEBHOOK=${PORTAINER_WEBHOOK:-}
 VITE_GOOGLE_CLIENT_ID=${VITE_GOOGLE_CLIENT_ID:-"1031899381936-8g3t4qvikt248nfe76lm5kmcs39ahesq.apps.googleusercontent.com"}
 MAX_RETRIES=${MAX_RETRIES:-5}
 
