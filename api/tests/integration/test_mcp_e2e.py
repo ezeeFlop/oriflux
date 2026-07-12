@@ -13,7 +13,10 @@ from tests.integration.conftest import API_URL, Tenant
 pytestmark = pytest.mark.integration
 
 EXPECTED_TOOLS = {
+    # MVP set (#12)
     "list_projects", "get_overview", "query_metrics", "get_geo_breakdown", "get_api_health",
+    # phase 2/3 additions
+    "query_funnel", "query_retention", "get_alerts", "get_insights", "annotate", "ask_oriflux",
 }
 
 

@@ -69,9 +69,10 @@ class TestEndToEnd:
         pytest.fail("pageview did not become queryable within 5 s of ingestion")
 
     def test_unknown_metric_is_rejected_over_http(self, tenant: Tenant) -> None:
+        # NB: not "revenue" — that became a real registry metric with #57
         response = httpx.post(
             f"{API_URL}/api/v1/query",
-            json={"metric": "revenue", "period": wide_period()},
+            json={"metric": "not_a_registry_metric", "period": wide_period()},
             headers=auth(tenant.read_key),
             timeout=5,
         )
