@@ -1,0 +1,18 @@
+{
+  "name": "oriflux-landing",
+  "type": "module",
+  "version": "0.1.0",
+  "private": true,
+  "scripts": {
+    "dev": "astro dev",
+    "build": "node scripts/check-i18n-parity.mjs && astro build",
+    "check:i18n": "node scripts/check-i18n-parity.mjs",
+    "preview": "astro preview"
+  },
+  "dependencies": {
+    "astro": "^5.0.0",
+    "@fontsource-variable/bricolage-grotesque": "^5.2.10",
+    "@fontsource-variable/instrument-sans": "^5.2.5",
+    "@fontsource-variable/jetbrains-mono": "^5.2.8"
+  }
+}

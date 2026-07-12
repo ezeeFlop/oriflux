@@ -1,0 +1,120 @@
+---
+import { GITHUB_URL } from "../lib/config";
+interface Props {
+  t: any;
+  lang: "fr" | "en";
+}
+const { t, lang } = Astro.props;
+const os = t.openSource;
+const selfHostHref = lang === "fr" ? "/docs/self-hosting/" : "/en/docs/self-hosting/";
+---
+<section id="open-source" class="section opensource">
+  <div class="container os-grid">
+    <div class="os-intro">
+      <p class="section-label">{os.label}</p>
+      <h2 class="section-title">{os.title}</h2>
+      <p class="section-lede">{os.body}</p>
+      <div class="os-cta">
+        <a href={GITHUB_URL} class="btn btn-primary" rel="noopener">{os.ctaGithub}</a>
+        <a href={selfHostHref} class="btn btn-ghost">{os.ctaSelfHost}</a>
+      </div>
+      <a href={`${GITHUB_URL}/blob/main/CONTRIBUTING.md`} class="os-contrib" rel="noopener">{os.ctaContributing} →</a>
+    </div>
+
+    <div class="os-panel card">
+      <div class="os-license">
+        <span class="chip">AGPL-3.0</span>
+        <span class="os-repo num">ezeeFlop/oriflux</span>
+      </div>
+      <ul class="os-points">
+        {os.points.map((p: string) => (
+          <li>{p}</li>
+        ))}
+      </ul>
+    </div>
+  </div>
+</section>
+
+<style>
+  .opensource {
+    background: var(--surface);
+    border-top: 1px solid var(--line);
+    border-bottom: 1px solid var(--line);
+  }
+  .os-grid {
+    display: grid;
+    grid-template-columns: 1.1fr 0.9fr;
+    gap: 48px;
+    align-items: center;
+  }
+  .os-cta {
+    display: flex;
+    gap: 14px;
+    margin-top: 30px;
+    flex-wrap: wrap;
+  }
+  .os-contrib {
+    display: inline-block;
+    margin-top: 18px;
+    font-size: 0.92rem;
+    font-weight: 600;
+  }
+  .os-panel {
+    padding: 26px;
+    background: var(--surface-2);
+  }
+  .os-license {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 12px;
+    padding-bottom: 18px;
+    border-bottom: 1px solid var(--line);
+  }
+  .os-repo {
+    font-size: 0.82rem;
+    color: var(--ink-faint);
+  }
+  .os-points {
+    list-style: none;
+    padding: 0;
+    margin: 18px 0 0;
+    display: flex;
+    flex-direction: column;
+    gap: 14px;
+  }
+  .os-points li {
+    position: relative;
+    padding-left: 26px;
+    color: var(--ink-soft);
+    font-size: 0.98rem;
+    line-height: 1.45;
+  }
+  .os-points li::before {
+    content: "";
+    position: absolute;
+    left: 0;
+    top: 6px;
+    width: 14px;
+    height: 14px;
+    border-radius: 4px;
+    background: var(--flame-soft);
+    border: 1px solid var(--flame-tint);
+  }
+  .os-points li::after {
+    content: "";
+    position: absolute;
+    left: 4px;
+    top: 10px;
+    width: 6px;
+    height: 6px;
+    border-radius: 2px;
+    background: var(--flame);
+  }
+  @media (max-width: 860px) {
+    .os-grid {
+      grid-template-columns: 1fr;
+      gap: 32px;
+    }
+  }
+</style>

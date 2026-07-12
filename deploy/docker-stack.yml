@@ -129,6 +129,9 @@ services:
         condition: on-failure
         delay: 5s
 
+  # URL structure [Décision 2026-07-12]: the root host serves the landing,
+  # the dashboard lives on app.* — update the Google OAuth authorized
+  # origins when re-pasting this stack (human step).
   web:
     image: registry.sponge-theory.dev/oriflux-web:${TAG:-latest}
     healthcheck:
@@ -149,10 +152,35 @@ services:
         delay: 5s
       labels:
         - "traefik.enable=true"
-        - "traefik.http.routers.oriflux-web.rule=Host(`${WEB_HOST:-oriflux.sponge-theory.dev}`)"
+        - "traefik.http.routers.oriflux-web.rule=Host(`${WEB_HOST:-app.oriflux.sponge-theory.dev}`)"
         - "traefik.http.routers.oriflux-web.entrypoints=websecure"
         - "traefik.http.routers.oriflux-web.tls.certresolver=letsencrypt"
         - "traefik.http.services.oriflux-web.loadbalancer.server.port=80"
+
+  # ── Landing + public docs — static nginx, 6th service (#72/#73) ─────────
+  landing:
+    image: registry.sponge-theory.dev/oriflux-landing:${TAG:-latest}
+    healthcheck:
+      test: ["CMD", "wget", "--spider", "-q", "http://127.0.0.1/healthz"]
+      interval: 15s
+      timeout: 5s
+      retries: 5
+    networks:
+      - webfacing
+    deploy:
+      replicas: 1
+      resources:
+        limits: { cpus: "0.25", memory: 64M }
+        reservations: { memory: 16M }
+      restart_policy:
+        condition: on-failure
+        delay: 5s
+      labels:
+        - "traefik.enable=true"
+        - "traefik.http.routers.oriflux-landing.rule=Host(`${LANDING_HOST:-oriflux.sponge-theory.dev}`)"
+        - "traefik.http.routers.oriflux-landing.entrypoints=websecure"
+        - "traefik.http.routers.oriflux-landing.tls.certresolver=letsencrypt"
+        - "traefik.http.services.oriflux-landing.loadbalancer.server.port=80"
 
   # ── ClickHouse (pinned LTS, PRD §8.3) ───────────────────────────────────
   clickhouse:

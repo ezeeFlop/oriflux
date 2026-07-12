@@ -91,9 +91,12 @@ export function StatCard({
   note?: string;
   inverse?: boolean; // for metrics where down is good (bounce, errors, latency)
 }) {
-  const delta = compareValue
+  const rawDelta = compareValue
     ? deltaPercent(compareValue.current, compareValue.previous)
     : null;
+  // a flat 0 % says nothing, and a near-zero baseline yields absurd
+  // five-digit percentages — both read as bugs, not insight
+  const delta = rawDelta !== null && rawDelta !== 0 && Math.abs(rawDelta) <= 999 ? rawDelta : null;
   const good = delta !== null && (inverse ? delta < 0 : delta > 0);
   return (
     <div className="rise rounded-xl border border-line bg-surface px-4 py-3" title={note}>

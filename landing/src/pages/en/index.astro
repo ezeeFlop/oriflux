@@ -1,0 +1,23 @@
+---
+import Base from "../../layouts/Base.astro";
+import Hero from "../../components/Hero.astro";
+import Domains from "../../components/Domains.astro";
+import Privacy from "../../components/Privacy.astro";
+import LocalAI from "../../components/LocalAI.astro";
+import LiveDemo from "../../components/LiveDemo.astro";
+import OpenSource from "../../components/OpenSource.astro";
+import Pricing from "../../components/Pricing.astro";
+import en from "../../content/en.json";
+
+const t = en;
+const lang = "en" as const;
+---
+<Base t={t} lang={lang} path="/en/" altPath="/">
+  <Hero t={t} lang={lang} />
+  <Domains t={t} />
+  <Privacy t={t} />
+  <LocalAI t={t} />
+  <LiveDemo t={t} />
+  <OpenSource t={t} lang={lang} />
+  <Pricing t={t} lang={lang} />
+</Base>

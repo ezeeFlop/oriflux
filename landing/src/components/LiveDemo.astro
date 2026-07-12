@@ -1,0 +1,116 @@
+---
+import { LIVE_DEMO_URL } from "../lib/config";
+interface Props {
+  t: any;
+}
+const { t } = Astro.props;
+const ld = t.liveDemo;
+const hasDemo = LIVE_DEMO_URL.length > 0;
+---
+<section id="live-demo" class="section">
+  <div class="container">
+    <div class="live card">
+      <div class="live-body">
+        <div class="live-label">
+          <span class="section-label" style="margin:0">{ld.label}</span>
+          {!hasDemo && <span class="chip soon">{ld.soon}</span>}
+        </div>
+        <h2 class="live-title">{ld.title}</h2>
+        <p class="live-text">{ld.body}</p>
+        {hasDemo ? (
+          <a href={LIVE_DEMO_URL} class="btn btn-primary live-cta" rel="noopener">{ld.cta}</a>
+        ) : (
+          <p class="live-note num">{ld.note}</p>
+        )}
+      </div>
+      <div class="live-glyph" aria-hidden="true">
+        <span class="pulse-ring"></span>
+        <span class="pulse-ring d2"></span>
+        <span class="pulse-core"></span>
+      </div>
+    </div>
+  </div>
+</section>
+
+<style>
+  .live {
+    display: grid;
+    grid-template-columns: 1.6fr 1fr;
+    align-items: center;
+    gap: 32px;
+    padding: 48px;
+    overflow: hidden;
+    background: linear-gradient(135deg, var(--surface), var(--surface-2));
+  }
+  .live-label {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+  }
+  .chip.soon {
+    background: var(--surface);
+    color: var(--ink-soft);
+    border-color: var(--line-strong);
+  }
+  .live-title {
+    font-size: clamp(1.6rem, 3vw, 2.2rem);
+    margin-top: 14px;
+  }
+  .live-text {
+    margin-top: 16px;
+    color: var(--ink-soft);
+    font-size: 1.05rem;
+    line-height: 1.55;
+    max-width: 54ch;
+  }
+  .live-cta {
+    margin-top: 26px;
+  }
+  .live-note {
+    margin-top: 22px;
+    font-size: 0.82rem;
+    color: var(--ink-faint);
+  }
+  .live-glyph {
+    position: relative;
+    height: 180px;
+    display: grid;
+    place-items: center;
+  }
+  .pulse-core {
+    width: 18px;
+    height: 18px;
+    border-radius: 50%;
+    background: var(--flame);
+    box-shadow: 0 0 20px var(--flame-tint);
+  }
+  .pulse-ring {
+    position: absolute;
+    width: 60px;
+    height: 60px;
+    border-radius: 50%;
+    border: 2px solid var(--flame);
+    opacity: 0;
+    animation: ring 3s ease-out infinite;
+  }
+  .pulse-ring.d2 {
+    animation-delay: 1.5s;
+  }
+  @keyframes ring {
+    0% { transform: scale(0.4); opacity: 0.6; }
+    100% { transform: scale(2.6); opacity: 0; }
+  }
+  @media (prefers-reduced-motion: reduce) {
+    .pulse-ring { animation: none; }
+  }
+  @media (max-width: 720px) {
+    .live {
+      grid-template-columns: 1fr;
+      padding: 32px;
+    }
+    .live-glyph {
+      height: 120px;
+      order: -1;
+    }
+  }
+</style>

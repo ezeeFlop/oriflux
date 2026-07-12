@@ -56,17 +56,27 @@ webhook (cliphaven/neokanban pattern).
 
    | Domain | Forward (Scheme=http) | Port | Options |
    |---|---|---|---|
-   | `oriflux.sponge-theory.dev` | `oriflux_web` | `80` | Websockets ON, Block Common Exploits, SSL Let's Encrypt + Force SSL |
+   | `oriflux.sponge-theory.dev` | `oriflux_landing` | `80` | landing + `/docs` *[Décision 2026-07-12 : la racine = landing]* — Block Common Exploits, SSL Let's Encrypt + Force SSL |
+   | `app.oriflux.sponge-theory.dev` | `oriflux_web` | `80` | dashboard — Websockets ON, Block Common Exploits, SSL Let's Encrypt + Force SSL |
    | `in.oriflux.sponge-theory.dev` | `oriflux_ingest` | `8000` | same (NPM's default headers pass `X-Forwarded-For`, which ingest requires for geo/rate-limiting) |
    | `api.oriflux.sponge-theory.dev` | `oriflux_api` | `8000` | same, **plus** Advanced → `proxy_buffering off;` (MCP streamable HTTP at `/mcp`) |
 
+   ⚠ URL-structure migration (lot #67): `oriflux.sponge-theory.dev` used to
+   forward to `oriflux_web`. When re-pasting the stack, (1) repoint the root
+   proxy host to `oriflux_landing`, (2) create the `app.` proxy host for
+   `oriflux_web`, (3) add `https://app.oriflux.sponge-theory.dev` to the
+   Google OAuth client's authorized JavaScript origins — otherwise dashboard
+   sign-in breaks.
+
    The dashboard only needs its own domain (its nginx proxies `/api` to the api
    service internally); `in.` is for oriflux.js + SDKs, `api.` for REST/MCP
-   consumers. All three hosts already resolve via the `*.sponge-theory.dev`
+   consumers. All hosts already resolve via the `*.sponge-theory.dev`
    wildcard. The Traefik labels in the stack yml are inert while NPM fronts it —
    kept for a possible Traefik switch. The PRD's `in.oriflux.sponge-theory.ai`
    has no DNS records yet; once the `.ai` zone exists, add the domains to the
-   same proxy hosts.
+   same proxy hosts. The final product domain stays an open (deferred)
+   decision — everything is a variable (`LANDING_HOST`, `WEB_HOST`,
+   `PUBLIC_*` build args), so the switch is config-only.
 
 ## Post-deploy verification
 

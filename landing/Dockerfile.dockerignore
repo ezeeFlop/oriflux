@@ -1,0 +1,14 @@
+# BuildKit per-Dockerfile ignore — the build context is the REPO ROOT
+# (docker build -f landing/Dockerfile .), so paths are root-relative.
+# Keeps the host's macOS node_modules and build output out of the image.
+landing/node_modules
+landing/dist
+landing/.astro
+api
+web
+sdk
+deploy
+docs/adr
+docs/agents
+graphify-out
+.git

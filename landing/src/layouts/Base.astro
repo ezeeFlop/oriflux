@@ -1,0 +1,255 @@
+---
+import Logo from "../components/Logo.astro";
+import { SITE, APP_URL, GITHUB_URL, CONTACT_EMAIL } from "../lib/config";
+import "../styles/tokens.css";
+
+interface Props {
+  t: any;
+  lang: "fr" | "en";
+  /** Absolute path of THIS page (for canonical), e.g. "/", "/en/docs/privacy/". */
+  path: string;
+  /** Absolute path of the same page in the other locale (for the lang switch + hreflang). */
+  altPath: string;
+  /** Per-page <title> override; defaults to the site meta title (home). */
+  title?: string;
+  /** Per-page meta description override; defaults to the site meta description. */
+  description?: string;
+}
+const { t, lang, path, altPath, title, description } = Astro.props;
+const meta = t.meta;
+const pageTitle = title ?? meta.title;
+const pageDescription = description ?? meta.description;
+
+const homeBase = lang === "fr" ? "/" : "/en/";
+const altHomeBase = lang === "fr" ? "/en/" : "/";
+const docsBase = `${homeBase}docs/`;
+const frPath = lang === "fr" ? path : altPath;
+const enPath = lang === "fr" ? altPath : path;
+
+const canonical = `${SITE}${path}`;
+
+// Inline flame glyph as the favicon (no external request, self-contained).
+const favicon =
+  "data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24'%3E%3Cpath d='M4 3h13l-2.5 3.5L17 10H6v11a2 2 0 0 1-2-2V3z' fill='%23d64524'/%3E%3C/svg%3E";
+---
+<!doctype html>
+<html lang={lang}>
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>{pageTitle}</title>
+    <meta name="description" content={pageDescription} />
+    <meta property="og:title" content={pageTitle} />
+    <meta property="og:description" content={pageDescription} />
+    <meta property="og:type" content="website" />
+    <meta property="og:url" content={canonical} />
+    <meta property="og:locale" content={lang === "fr" ? "fr_FR" : "en_US"} />
+    <meta name="twitter:card" content="summary_large_image" />
+    <link rel="canonical" href={canonical} />
+    <link rel="alternate" hreflang="fr" href={`${SITE}${frPath}`} />
+    <link rel="alternate" hreflang="en" href={`${SITE}${enPath}`} />
+    <link rel="alternate" hreflang="x-default" href={`${SITE}${frPath}`} />
+    <link rel="icon" href={favicon} type="image/svg+xml" />
+  </head>
+  <body>
+    <a href="#main" class="skip">{lang === "fr" ? "Aller au contenu" : "Skip to content"}</a>
+    <header class="nav">
+      <div class="container nav-inner">
+        <a href={homeBase} class="nav-brand" aria-label="Oriflux"><Logo size={26} /></a>
+        <nav class="nav-links" aria-label={lang === "fr" ? "Principal" : "Primary"}>
+          <a href={`${homeBase}#domains`}>{t.nav.domains}</a>
+          <a href={`${homeBase}#privacy`}>{t.nav.privacy}</a>
+          <a href={`${homeBase}#ai`}>{t.nav.ai}</a>
+          <a href={`${homeBase}#open-source`}>{t.nav.openSource}</a>
+          <a href={`${homeBase}#pricing`}>{t.nav.pricing}</a>
+          <a href={docsBase}>{t.nav.docs}</a>
+        </nav>
+        <div class="nav-actions">
+          <a href={altPath} class="lang-switch" hreflang={lang === "fr" ? "en" : "fr"}>{t.nav.toLang}</a>
+          <a href={APP_URL} class="btn btn-primary nav-cta">{t.nav.cta}</a>
+        </div>
+      </div>
+    </header>
+
+    <main id="main">
+      <slot />
+    </main>
+
+    <footer class="footer">
+      <div class="container footer-inner">
+        <div class="footer-brand">
+          <Logo size={24} />
+          <p class="footer-tagline">{t.footer.tagline}</p>
+          <p class="footer-legal">
+            <a href={`${docsBase}privacy/`}>{t.nav.privacy}</a>
+            <span class="dot">·</span>
+            <a href={`${GITHUB_URL}/blob/main/LICENSE`} rel="noopener">{t.footer.license}</a>
+            <span class="dot">·</span>
+            <span>{t.footer.copyright}</span>
+          </p>
+        </div>
+        <div class="footer-col">
+          <h4>{t.footer.docsHeading}</h4>
+          <a href={`${docsBase}getting-started/`}>{t.footer.links.gettingStarted}</a>
+          <a href={`${docsBase}self-hosting/`}>{t.footer.links.selfHosting}</a>
+          <a href={`${docsBase}api-mcp/`}>{t.footer.links.apiMcp}</a>
+          <a href={`${docsBase}privacy/`}>{t.footer.links.privacy}</a>
+          <a href={docsBase}>{t.footer.links.docs}</a>
+        </div>
+        <div class="footer-col">
+          <h4>{t.footer.productHeading}</h4>
+          <a href={`${homeBase}#pricing`}>{t.footer.links.pricing}</a>
+          <a href={GITHUB_URL} rel="noopener">{t.footer.links.github}</a>
+          <a href={`${GITHUB_URL}/blob/main/CONTRIBUTING.md`} rel="noopener">{t.footer.links.contributing}</a>
+          <a href={`mailto:${CONTACT_EMAIL}`}>{CONTACT_EMAIL}</a>
+        </div>
+      </div>
+    </footer>
+  </body>
+</html>
+
+<style>
+  .skip {
+    position: absolute;
+    left: -9999px;
+    top: 0;
+    background: var(--flame);
+    color: #fff;
+    padding: 10px 16px;
+    border-radius: 0 0 8px 0;
+    z-index: 100;
+    font-weight: 600;
+  }
+  .skip:focus {
+    left: 0;
+    color: #fff;
+  }
+
+  .nav {
+    position: sticky;
+    top: 0;
+    z-index: 20;
+    background: rgba(244, 245, 246, 0.85);
+    backdrop-filter: saturate(1.4) blur(10px);
+    border-bottom: 1px solid var(--line);
+  }
+  .nav-inner {
+    display: flex;
+    align-items: center;
+    gap: 24px;
+    height: 64px;
+  }
+  .nav-brand {
+    flex: none;
+  }
+  .nav-links {
+    display: flex;
+    align-items: center;
+    gap: 26px;
+    margin-left: 8px;
+    font-size: 0.92rem;
+  }
+  .nav-links a {
+    color: var(--ink-soft);
+    font-weight: 500;
+  }
+  .nav-links a:hover {
+    color: var(--ink);
+  }
+  .nav-actions {
+    display: flex;
+    align-items: center;
+    gap: 16px;
+    margin-left: auto;
+  }
+  .lang-switch {
+    font-family: var(--font-mono);
+    font-size: 0.78rem;
+    font-weight: 600;
+    letter-spacing: 0.04em;
+    color: var(--ink-soft);
+    padding: 5px 9px;
+    border: 1px solid var(--line-strong);
+    border-radius: 6px;
+  }
+  .lang-switch:hover {
+    color: var(--flame);
+    border-color: var(--flame);
+  }
+  .nav-cta {
+    padding: 9px 18px;
+    font-size: 0.9rem;
+  }
+
+  .footer {
+    border-top: 1px solid var(--line);
+    background: var(--surface);
+    padding: 64px 0 48px;
+  }
+  .footer-inner {
+    display: grid;
+    grid-template-columns: 2fr 1fr 1fr;
+    gap: 40px;
+  }
+  .footer-brand {
+    max-width: 34ch;
+  }
+  .footer-tagline {
+    margin-top: 14px;
+    color: var(--ink-soft);
+    font-size: 0.95rem;
+    line-height: 1.5;
+  }
+  .footer-legal {
+    margin-top: 20px;
+    font-size: 0.85rem;
+    color: var(--ink-faint);
+  }
+  .footer-legal a {
+    color: var(--ink-soft);
+  }
+  .footer-legal a:hover {
+    color: var(--flame);
+  }
+  .footer-legal .dot {
+    margin: 0 8px;
+    color: var(--line-strong);
+  }
+  .footer-col h4 {
+    font-family: var(--font-mono);
+    font-size: 0.72rem;
+    font-weight: 600;
+    letter-spacing: 0.14em;
+    text-transform: uppercase;
+    color: var(--ink-faint);
+    margin-bottom: 16px;
+  }
+  .footer-col a {
+    display: block;
+    color: var(--ink-soft);
+    font-size: 0.92rem;
+    padding: 5px 0;
+  }
+  .footer-col a:hover {
+    color: var(--flame);
+  }
+
+  @media (max-width: 900px) {
+    .nav-links {
+      display: none;
+    }
+  }
+  @media (max-width: 720px) {
+    .footer-inner {
+      grid-template-columns: 1fr 1fr;
+    }
+    .footer-brand {
+      grid-column: 1 / -1;
+    }
+  }
+  @media (max-width: 480px) {
+    .nav-cta {
+      display: none;
+    }
+  }
+</style>

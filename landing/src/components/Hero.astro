@@ -1,0 +1,104 @@
+---
+import DemoVideo from "./DemoVideo.astro";
+import { APP_URL } from "../lib/config";
+interface Props {
+  t: any;
+  lang: "fr" | "en";
+}
+const { t, lang } = Astro.props;
+const hero = t.hero;
+const selfHostHref = lang === "fr" ? "/docs/self-hosting/" : "/en/docs/self-hosting/";
+---
+<section class="hero">
+  <div class="container">
+    <p class="hero-eyebrow"><span class="flame-dot"></span>{hero.eyebrow}</p>
+    <h1 class="hero-title">{hero.headline}</h1>
+    <p class="hero-sub">{hero.subline}</p>
+    <div class="hero-cta">
+      <a href={APP_URL} class="btn btn-primary">{hero.ctaPrimary}</a>
+      <a href={selfHostHref} class="btn btn-ghost">{hero.ctaSecondary}</a>
+    </div>
+    <div class="hero-visual">
+      <DemoVideo hero={hero} />
+    </div>
+  </div>
+</section>
+
+<style>
+  .hero {
+    padding-top: 80px;
+    padding-bottom: 56px;
+    text-align: center;
+    position: relative;
+    overflow: hidden;
+  }
+  .hero::before {
+    content: "";
+    position: absolute;
+    top: -120px;
+    left: 50%;
+    transform: translateX(-50%);
+    width: 900px;
+    height: 500px;
+    background: radial-gradient(ellipse at center, var(--flame-soft), transparent 68%);
+    pointer-events: none;
+    z-index: 0;
+  }
+  .hero > .container {
+    position: relative;
+    z-index: 1;
+  }
+  .hero-eyebrow {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    font-family: var(--font-mono);
+    font-size: 0.78rem;
+    font-weight: 500;
+    letter-spacing: 0.04em;
+    color: var(--ink-soft);
+    padding: 6px 14px;
+    border: 1px solid var(--line);
+    border-radius: 999px;
+    background: var(--surface);
+  }
+  .flame-dot {
+    width: 7px;
+    height: 7px;
+    border-radius: 50%;
+    background: var(--flame);
+  }
+  .hero-title {
+    font-size: clamp(2.2rem, 5.2vw, 3.7rem);
+    max-width: 17ch;
+    margin: 26px auto 0;
+    line-height: 1.05;
+  }
+  .hero-sub {
+    max-width: 60ch;
+    margin: 22px auto 0;
+    font-size: 1.18rem;
+    color: var(--ink-soft);
+    line-height: 1.55;
+  }
+  .hero-cta {
+    display: flex;
+    gap: 14px;
+    justify-content: center;
+    margin-top: 32px;
+    flex-wrap: wrap;
+  }
+  .hero-visual {
+    max-width: 980px;
+    margin: 60px auto 0;
+    text-align: left;
+  }
+  @media (max-width: 720px) {
+    .hero {
+      padding-top: 48px;
+    }
+    .hero-visual {
+      margin-top: 40px;
+    }
+  }
+</style>

@@ -1,0 +1,43 @@
+---
+// The Oriflux brand mark: the product's flame/pennant glyph in flame color
+// plus the "Oriflux" wordmark in the display font. `mark` renders the glyph
+// only (used in the favicon data-uri too).
+interface Props {
+  size?: number;
+  mark?: boolean;
+}
+const { size = 26, mark = false } = Astro.props;
+---
+<span class="logo" style={`--logo-size:${size}px`}>
+  <svg
+    class="logo-glyph"
+    width={size}
+    height={size}
+    viewBox="0 0 24 24"
+    fill="none"
+    aria-hidden="true"
+  >
+    <path d="M4 3h13l-2.5 3.5L17 10H6v11a2 2 0 0 1-2-2V3z" fill="var(--flame)" />
+  </svg>
+  {!mark && <span class="logo-word">Oriflux</span>}
+</span>
+
+<style>
+  .logo {
+    display: inline-flex;
+    align-items: center;
+    gap: 9px;
+    color: var(--ink);
+  }
+  .logo-glyph {
+    display: block;
+    flex: none;
+  }
+  .logo-word {
+    font-family: var(--font-display);
+    font-weight: 600;
+    font-size: calc(var(--logo-size) * 0.82);
+    letter-spacing: -0.02em;
+    color: var(--ink);
+  }
+</style>

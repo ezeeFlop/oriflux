@@ -82,6 +82,8 @@ fi
 
 WEB_IMAGE="${REGISTRY}/oriflux-web"
 WEB_DIR="${REPO_ROOT}/web"
+LANDING_IMAGE="${REGISTRY}/oriflux-landing"
+LANDING_DIR="${REPO_ROOT}/landing"
 
 if [ "${DO_PUSH}" = "true" ]; then
     echo -e "${CYAN}Building + pushing ${IMAGE} for ${TARGET_PLATFORM}...${NC}"
@@ -114,6 +116,17 @@ if [ "${DO_PUSH}" = "true" ]; then
         -t "${WEB_IMAGE}:${APP_VERSION}" \
         "${WEB_DIR}"
     echo -e "${GREEN}✓ pushed ${WEB_IMAGE}:${TAG}${NC}"
+
+    echo -e "${CYAN}Building + pushing ${LANDING_IMAGE} for ${TARGET_PLATFORM}...${NC}"
+    docker buildx build \
+        --platform "${TARGET_PLATFORM}" \
+        ${NO_CACHE} \
+        --push \
+        -f "${LANDING_DIR}/Dockerfile" \
+        -t "${LANDING_IMAGE}:${TAG}" \
+        -t "${LANDING_IMAGE}:${APP_VERSION}" \
+        "${REPO_ROOT}"
+    echo -e "${GREEN}✓ pushed ${LANDING_IMAGE}:${TAG}${NC}"
 else
     echo -e "${CYAN}Building ${IMAGE} for ${TARGET_PLATFORM} (no push)...${NC}"
     docker buildx build \

@@ -1,0 +1,33 @@
+---
+import { getCollection, render } from "astro:content";
+import Base from "../../layouts/Base.astro";
+import DocsShell from "../../components/DocsShell.astro";
+import fr from "../../content/fr.json";
+import "../../styles/docs.css";
+
+export async function getStaticPaths() {
+  const entries = await getCollection("docsFr", (e) => e.id.toLowerCase() !== "readme");
+  return entries.map((entry) => ({
+    params: { slug: entry.id },
+    props: { entry },
+  }));
+}
+
+const { entry } = Astro.props;
+const { Content } = await render(entry);
+const t = fr;
+const lang = "fr" as const;
+const slug = entry.id;
+const path = `/docs/${slug}/`;
+const altPath = `/en/docs/${slug}/`;
+const guide = t.docs.guides.find((g: any) => g.slug === slug);
+const title = guide ? `${guide.label} — Oriflux docs` : t.meta.title;
+---
+<Base t={t} lang={lang} path={path} altPath={altPath} title={title} description={guide?.desc}>
+  <DocsShell t={t} lang={lang} current={slug}>
+    <Content />
+    <div class="docs-foot">
+      <a href="/docs/" class="docs-back">← {t.docs.home}</a>
+    </div>
+  </DocsShell>
+</Base>

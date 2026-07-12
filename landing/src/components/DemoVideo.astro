@@ -1,0 +1,242 @@
+---
+// Hero visual. If hero.videoSrc is set (filled by slice #74), render the demo
+// video; otherwise render a sharp CSS/SVG "dashboard frame" mock — a browser
+// chrome card with a KPI row, an area chart and a bar row. Pure markup, no
+// external requests, no JS.
+interface Props {
+  hero: any;
+}
+const { hero } = Astro.props;
+const mock = hero.mock;
+const hasVideo = typeof hero.videoSrc === "string" && hero.videoSrc.length > 0;
+
+// Area-chart path (a plausible daily-visitors curve), 0..640 x, 0..180 y.
+const area =
+  "M0,150 C40,140 60,120 100,124 C150,129 170,96 220,100 C270,104 300,70 350,78 C410,88 440,52 500,60 C560,68 600,44 640,40";
+const areaFill = `${area} L640,180 L0,180 Z`;
+const bars = [64, 88, 52, 96, 74, 108, 60, 82];
+---
+<div class="frame card">
+  <div class="chrome">
+    <span class="dot dot-r"></span>
+    <span class="dot dot-y"></span>
+    <span class="dot dot-g"></span>
+    <span class="urlbar num">{mock.urlBar}</span>
+    <span class="live-badge"><span class="pulse"></span>{mock.live}</span>
+  </div>
+
+  {hasVideo ? (
+    <video controls preload="none" poster={hero.videoPoster} class="demo-video">
+      <source src={hero.videoSrc} type="video/mp4" />
+    </video>
+  ) : (
+    <div class="panel">
+      <div class="kpis">
+        {mock.kpis.map((k: any) => (
+          <div class="kpi">
+            <div class="kpi-label">{k.label}</div>
+            <div class="kpi-value num">{k.value}</div>
+            <div class={`kpi-delta ${k.dir}`}>{k.delta}</div>
+          </div>
+        ))}
+      </div>
+
+      <div class="charts">
+        <div class="chart chart-area">
+          <div class="chart-caption num">{mock.chartCaption}</div>
+          <svg viewBox="0 0 640 180" preserveAspectRatio="none" class="area-svg" aria-hidden="true">
+            <defs>
+              <linearGradient id="areaGrad" x1="0" y1="0" x2="0" y2="1">
+                <stop offset="0%" stop-color="var(--flame)" stop-opacity="0.22" />
+                <stop offset="100%" stop-color="var(--flame)" stop-opacity="0" />
+              </linearGradient>
+            </defs>
+            <line x1="0" y1="45" x2="640" y2="45" class="grid" />
+            <line x1="0" y1="90" x2="640" y2="90" class="grid" />
+            <line x1="0" y1="135" x2="640" y2="135" class="grid" />
+            <path d={areaFill} fill="url(#areaGrad)" />
+            <path d={area} fill="none" stroke="var(--flame)" stroke-width="2.5" stroke-linecap="round" />
+          </svg>
+        </div>
+
+        <div class="chart chart-bars">
+          <div class="chart-caption num">{mock.barsCaption}</div>
+          <div class="bars">
+            {bars.map((h) => (
+              <span class="bar" style={`--h:${h}%`}></span>
+            ))}
+          </div>
+        </div>
+      </div>
+    </div>
+  )}
+</div>
+
+<style>
+  .frame {
+    overflow: hidden;
+    box-shadow: var(--shadow-card);
+  }
+  .chrome {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    padding: 12px 16px;
+    border-bottom: 1px solid var(--line);
+    background: var(--surface-2);
+  }
+  .dot {
+    width: 11px;
+    height: 11px;
+    border-radius: 50%;
+    flex: none;
+  }
+  .dot-r {
+    background: #f0685e;
+  }
+  .dot-y {
+    background: #f2c14e;
+  }
+  .dot-g {
+    background: #57c07a;
+  }
+  .urlbar {
+    margin-left: 12px;
+    font-size: 0.78rem;
+    color: var(--ink-faint);
+    background: var(--paper);
+    border: 1px solid var(--line);
+    border-radius: 6px;
+    padding: 4px 12px;
+    flex: 1;
+    max-width: 340px;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+  }
+  .live-badge {
+    margin-left: auto;
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    font-family: var(--font-mono);
+    font-size: 0.72rem;
+    font-weight: 600;
+    color: var(--up);
+    letter-spacing: 0.04em;
+  }
+  .pulse {
+    width: 7px;
+    height: 7px;
+    border-radius: 50%;
+    background: var(--up);
+    box-shadow: 0 0 0 0 rgba(31, 138, 76, 0.4);
+    animation: pulse 2s infinite;
+  }
+  @keyframes pulse {
+    0% { box-shadow: 0 0 0 0 rgba(31, 138, 76, 0.4); }
+    70% { box-shadow: 0 0 0 7px rgba(31, 138, 76, 0); }
+    100% { box-shadow: 0 0 0 0 rgba(31, 138, 76, 0); }
+  }
+  @media (prefers-reduced-motion: reduce) {
+    .pulse { animation: none; }
+  }
+
+  .demo-video {
+    display: block;
+    width: 100%;
+    height: auto;
+    background: #000;
+  }
+
+  .panel {
+    padding: 22px;
+  }
+  .kpis {
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    gap: 14px;
+  }
+  .kpi {
+    border: 1px solid var(--line);
+    border-radius: var(--radius-sm);
+    padding: 14px 16px;
+    background: var(--surface-2);
+  }
+  .kpi-label {
+    font-size: 0.72rem;
+    color: var(--ink-faint);
+    text-transform: uppercase;
+    letter-spacing: 0.06em;
+    font-weight: 600;
+  }
+  .kpi-value {
+    font-size: 1.55rem;
+    font-weight: 600;
+    margin-top: 6px;
+    color: var(--ink);
+    letter-spacing: -0.02em;
+  }
+  .kpi-delta {
+    font-family: var(--font-mono);
+    font-size: 0.74rem;
+    margin-top: 4px;
+    font-weight: 500;
+  }
+  .kpi-delta.up { color: var(--up); }
+  .kpi-delta.down { color: var(--down); }
+  .kpi-delta.flat { color: var(--ink-faint); }
+
+  .charts {
+    display: grid;
+    grid-template-columns: 1.7fr 1fr;
+    gap: 14px;
+    margin-top: 16px;
+  }
+  .chart {
+    border: 1px solid var(--line);
+    border-radius: var(--radius-sm);
+    padding: 14px 16px 16px;
+    background: var(--surface);
+  }
+  .chart-caption {
+    font-size: 0.72rem;
+    color: var(--ink-faint);
+    margin-bottom: 12px;
+    font-weight: 500;
+  }
+  .area-svg {
+    display: block;
+    width: 100%;
+    height: 130px;
+  }
+  .grid {
+    stroke: var(--line);
+    stroke-width: 1;
+  }
+  .bars {
+    display: flex;
+    align-items: flex-end;
+    gap: 8px;
+    height: 130px;
+  }
+  .bar {
+    flex: 1;
+    height: var(--h);
+    background: linear-gradient(var(--flame), var(--flame-strong));
+    border-radius: 3px 3px 0 0;
+    opacity: 0.85;
+  }
+
+  @media (max-width: 640px) {
+    .kpis {
+      grid-template-columns: repeat(2, 1fr);
+    }
+    .charts {
+      grid-template-columns: 1fr;
+    }
+    .urlbar {
+      display: none;
+    }
+  }
+</style>

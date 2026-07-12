@@ -1,0 +1,275 @@
+{
+  "meta": {
+    "title": "Oriflux — Web, product and API analytics, cookieless, on your own infrastructure",
+    "description": "The only analytics platform that unifies web, product and API. Cookieless, GDPR by construction, real-time, with an AI layer that runs exclusively on local models. Self-hostable, AGPL-3.0."
+  },
+  "nav": {
+    "domains": "Domains",
+    "privacy": "Privacy",
+    "ai": "Local AI",
+    "openSource": "Open source",
+    "pricing": "Pricing",
+    "docs": "Docs",
+    "cta": "Try cloud",
+    "toLang": "FR"
+  },
+  "hero": {
+    "eyebrow": "Unified analytics · Sponge Theory",
+    "headline": "Web, product and API analytics. One tool, cookieless, on your own infrastructure.",
+    "subline": "Real-time, GDPR by construction, and an AI layer that runs exclusively on local models: not a single row of analytics ever leaves your infrastructure.",
+    "ctaPrimary": "Try cloud",
+    "ctaSecondary": "Self-host it",
+    "videoSrc": "",
+    "videoPoster": "",
+    "mock": {
+      "urlBar": "app.oriflux.dev/p/sponge-theory-ai",
+      "live": "Live",
+      "kpis": [
+        { "label": "Visitors", "value": "12.4k", "delta": "+8.2%", "dir": "up" },
+        { "label": "API requests", "value": "1.2M", "delta": "+3.1%", "dir": "up" },
+        { "label": "API p95", "value": "84 ms", "delta": "-11 ms", "dir": "up" },
+        { "label": "Live visitors", "value": "23", "delta": "real-time", "dir": "flat" }
+      ],
+      "chartCaption": "Visitors · last 24 hours",
+      "barsCaption": "API requests by endpoint"
+    }
+  },
+  "domains": {
+    "label": "Three domains, one tool",
+    "title": "What no tool on the market brings together",
+    "lede": "Web analytics, product analytics and API analytics usually live in three separate products. Oriflux unifies them on the same data model, the same typed query, the same dashboard.",
+    "cards": [
+      {
+        "name": "Web analytics",
+        "tag": "Cookieless, no banner",
+        "points": [
+          "Unique visitors, page views, time on page",
+          "Sources, referrers and UTM campaigns",
+          "Visitor geography and technology",
+          "Real-time view of who's on the site"
+        ]
+      },
+      {
+        "name": "Product analytics",
+        "tag": "Events & journeys",
+        "points": [
+          "Custom events via track()",
+          "Step-by-step conversion funnels",
+          "Retention and goals (identified users)",
+          "Pseudonymous identify, never PII"
+        ]
+      },
+      {
+        "name": "API analytics",
+        "tag": "Where web analytics never goes",
+        "points": [
+          "Volume and 4xx/5xx error rates",
+          "p50 / p95 / p99 latency per endpoint",
+          "By consumer, by caller country",
+          "ASGI SDK, < 1 ms overhead per request"
+        ]
+      }
+    ]
+  },
+  "privacy": {
+    "label": "Privacy",
+    "title": "Cookieless and banner-free, by construction",
+    "lede": "Compliance isn't a checkbox in the settings — it's in the architecture. Nothing to configure, nothing to negotiate with a DPO.",
+    "items": [
+      {
+        "title": "Zero cookies, zero banner",
+        "body": "No persistent identifier in the browser: no cookie, no localStorage. No consent banner to display."
+      },
+      {
+        "title": "Unique visitor via daily hash",
+        "body": "hash(daily_salt, project, IP, user-agent). The salt is destroyed every day — correlating two days is impossible, for us too."
+      },
+      {
+        "title": "The IP is never stored",
+        "body": "Resolved to country / region / ASN at ingestion, then discarded. Never written to a database, never logged."
+      },
+      {
+        "title": "DNT and GPC honored",
+        "body": "Do-Not-Track and Global Privacy Control signals are respected at ingestion: the request answers {\"tracked\": false}."
+      },
+      {
+        "title": "identify() rejects PII",
+        "body": "Only pseudonymous identifiers are accepted — anything resembling an email or a phone number is rejected at validation."
+      },
+      {
+        "title": "100% EU data residency",
+        "body": "All data stays in Europe. The AI layer runs on the same infrastructure and only ever sees aggregates."
+      }
+    ],
+    "note": "Accepted trade-off: retention and multi-day funnels exist only for identified users; anonymous funnels are scoped to a single session and labeled as such in the interface."
+  },
+  "ai": {
+    "label": "Local AI",
+    "title": "An AI layer that lets no data out",
+    "lede": "Daily insights, narrative digests, natural-language questions: all inference runs on self-hosted models (SPT Models). Never a cloud LLM, never a row of analytics that escapes.",
+    "points": [
+      {
+        "title": "Local models only",
+        "body": "Chat, embeddings and rerank run on your own GPU infrastructure. No call to any external provider."
+      },
+      {
+        "title": "Every answer is sourced",
+        "body": "Every AI answer cites its numbers and the executed query — you can verify, not just trust."
+      },
+      {
+        "title": "Typed queries, never free SQL",
+        "body": "Natural language compiles to a constrained, validated query object, never to SQL generated on the fly."
+      },
+      {
+        "title": "The AI only sees aggregates",
+        "body": "The model never receives a raw event or an identifier: only numbers that are already aggregated."
+      }
+    ]
+  },
+  "liveDemo": {
+    "label": "Live demo",
+    "title": "See for yourself",
+    "body": "A public, read-only dashboard powered by the real traffic of sponge-theory.ai. The same numbers, the same real-time view you'd have on your own instance.",
+    "cta": "Open the live demo",
+    "soon": "Soon",
+    "note": "The link shows up here as soon as the public view is online."
+  },
+  "openSource": {
+    "label": "Open source",
+    "title": "The code you deploy is the code you can read",
+    "body": "Oriflux is released under the AGPL-3.0 license. No hidden proprietary core, no \"enterprise edition\" that unlocks the essentials: the public repository is the product.",
+    "points": [
+      "Full server under AGPL-3.0",
+      "Public multi-arch images (amd64 + arm64) on GHCR",
+      "Readable docker-compose — no install.sh | sh",
+      "Python SDK published on PyPI under MIT"
+    ],
+    "ctaGithub": "See the code on GitHub",
+    "ctaContributing": "Contributing guide",
+    "ctaSelfHost": "Self-hosting guide"
+  },
+  "pricing": {
+    "label": "Pricing",
+    "title": "Simple, by event volume",
+    "lede": "Start free. Scale up when your traffic asks for it. Or host it yourself, with no limits.",
+    "annualNote": "Annual: 2 months free",
+    "cards": [
+      {
+        "name": "Free",
+        "price": "€0",
+        "period": "forever",
+        "quota": "100,000 events / month",
+        "features": [
+          "Web, product and API analytics",
+          "Real-time view (10s)",
+          "1 project, email alerts",
+          "13-month retention"
+        ],
+        "cta": "Create an account",
+        "kind": "signup"
+      },
+      {
+        "name": "Pro",
+        "price": "€19",
+        "period": "per month",
+        "quota": "1M events / month",
+        "features": [
+          "Unlimited projects",
+          "Funnels, retention, goals",
+          "Slack + email alerts",
+          "Daily AI insights"
+        ],
+        "cta": "Start with Pro",
+        "kind": "signup",
+        "featured": true
+      },
+      {
+        "name": "Scale",
+        "price": "€79",
+        "period": "per month",
+        "quota": "10M events / month",
+        "features": [
+          "Everything in Pro, plus:",
+          "Revenue connectors (Stripe / LS)",
+          "Narrative digests, Ask Oriflux",
+          "Team roles and quotas"
+        ],
+        "cta": "Start with Scale",
+        "kind": "signup"
+      },
+      {
+        "name": "Enterprise",
+        "price": "Contact us",
+        "period": "custom",
+        "quota": "Custom volume and SSO",
+        "features": [
+          "SSO / SAML",
+          "Dedicated residency",
+          "Priority support",
+          "Deployment assistance"
+        ],
+        "cta": "Contact us",
+        "kind": "contact"
+      }
+    ],
+    "selfHostLead": "Or host it yourself —",
+    "selfHostLink": "free, AGPL-3.0"
+  },
+  "footer": {
+    "tagline": "Web, product and API analytics. Cookieless, on your own infrastructure.",
+    "docsHeading": "Documentation",
+    "productHeading": "Product",
+    "links": {
+      "gettingStarted": "Getting started",
+      "selfHosting": "Self-hosting",
+      "privacy": "Privacy",
+      "apiMcp": "API & MCP",
+      "github": "GitHub",
+      "contributing": "Contribute",
+      "pricing": "Pricing",
+      "docs": "All the docs"
+    },
+    "license": "AGPL-3.0",
+    "copyright": "© Sponge Theory"
+  },
+  "docs": {
+    "title": "Documentation",
+    "lede": "Everything you need to instrument a site, an API and self-host Oriflux.",
+    "backToSite": "Back to site",
+    "onThisPage": "Guides",
+    "toLang": "FR",
+    "home": "Docs home",
+    "guides": [
+      {
+        "slug": "getting-started",
+        "label": "Getting started in 30 minutes",
+        "desc": "From creating your organization to your first event, in one script tag and one middleware."
+      },
+      {
+        "slug": "oriflux-js",
+        "label": "oriflux.js — web collection",
+        "desc": "The < 2 KB web script: integration, attributes, what's collected, DNT / GPC."
+      },
+      {
+        "slug": "python-sdk",
+        "label": "Python SDK — API analytics",
+        "desc": "The ASGI middleware: zero host impact, < 1 ms per request, 60s-window aggregation."
+      },
+      {
+        "slug": "api-mcp",
+        "label": "REST API & MCP",
+        "desc": "The typed query contract on /api/v1 and the read-only MCP server for your agents."
+      },
+      {
+        "slug": "privacy",
+        "label": "Privacy model",
+        "desc": "Cookieless by construction: daily hash, discarded IP, DNT / GPC, EU residency."
+      },
+      {
+        "slug": "self-hosting",
+        "label": "Self-hosting",
+        "desc": "Install Oriflux on your own machine: multi-arch images, readable docker-compose, requirements."
+      }
+    ]
+  }
+}

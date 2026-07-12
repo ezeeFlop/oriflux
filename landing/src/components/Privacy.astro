@@ -1,0 +1,89 @@
+---
+interface Props {
+  t: any;
+}
+const { t } = Astro.props;
+const p = t.privacy;
+---
+<section id="privacy" class="section privacy">
+  <div class="container">
+    <p class="section-label">{p.label}</p>
+    <h2 class="section-title">{p.title}</h2>
+    <p class="section-lede">{p.lede}</p>
+
+    <div class="checklist">
+      {p.items.map((item: any) => (
+        <div class="check">
+          <span class="tick" aria-hidden="true">
+            <svg viewBox="0 0 20 20" width="14" height="14" fill="none">
+              <path d="M4 10.5l3.5 3.5L16 5.5" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" />
+            </svg>
+          </span>
+          <div>
+            <h3 class="check-title">{item.title}</h3>
+            <p class="check-body">{item.body}</p>
+          </div>
+        </div>
+      ))}
+    </div>
+
+    <p class="privacy-note">{p.note}</p>
+  </div>
+</section>
+
+<style>
+  .privacy {
+    background: var(--surface);
+    border-top: 1px solid var(--line);
+    border-bottom: 1px solid var(--line);
+  }
+  .checklist {
+    display: grid;
+    grid-template-columns: repeat(2, 1fr);
+    gap: 24px 40px;
+    margin-top: 48px;
+  }
+  .check {
+    display: flex;
+    gap: 14px;
+    align-items: flex-start;
+  }
+  .tick {
+    flex: none;
+    width: 26px;
+    height: 26px;
+    border-radius: 7px;
+    display: grid;
+    place-items: center;
+    background: var(--flame-soft);
+    color: var(--flame);
+    border: 1px solid var(--flame-tint);
+    margin-top: 2px;
+  }
+  .check-title {
+    font-size: 1.05rem;
+    font-weight: 600;
+  }
+  .check-body {
+    margin-top: 6px;
+    color: var(--ink-soft);
+    font-size: 0.95rem;
+    line-height: 1.5;
+  }
+  .privacy-note {
+    margin-top: 40px;
+    padding: 18px 22px;
+    border-left: 3px solid var(--flame);
+    background: var(--surface-2);
+    border-radius: 0 var(--radius-sm) var(--radius-sm) 0;
+    color: var(--ink-soft);
+    font-size: 0.98rem;
+    line-height: 1.55;
+    max-width: 76ch;
+  }
+  @media (max-width: 720px) {
+    .checklist {
+      grid-template-columns: 1fr;
+    }
+  }
+</style>

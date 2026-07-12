@@ -1,0 +1,160 @@
+---
+import { APP_URL, CONTACT_EMAIL } from "../lib/config";
+interface Props {
+  t: any;
+  lang: "fr" | "en";
+}
+const { t, lang } = Astro.props;
+const pr = t.pricing;
+const selfHostHref = lang === "fr" ? "/docs/self-hosting/" : "/en/docs/self-hosting/";
+
+function ctaHref(kind: string) {
+  return kind === "contact" ? `mailto:${CONTACT_EMAIL}` : APP_URL;
+}
+---
+<section id="pricing" class="section">
+  <div class="container">
+    <div class="pricing-head">
+      <p class="section-label">{pr.label}</p>
+      <h2 class="section-title">{pr.title}</h2>
+      <p class="section-lede">{pr.lede}</p>
+      <span class="chip annual">{pr.annualNote}</span>
+    </div>
+
+    <div class="tiers">
+      {pr.cards.map((card: any) => (
+        <article class={`tier card ${card.featured ? "featured" : ""}`}>
+          <div class="tier-name">{card.name}</div>
+          <div class="tier-price">
+            <span class="price num">{card.price}</span>
+            <span class="period">{card.period}</span>
+          </div>
+          <div class="tier-quota num">{card.quota}</div>
+          <ul class="tier-features">
+            {card.features.map((f: string) => (
+              <li>{f}</li>
+            ))}
+          </ul>
+          <a
+            href={ctaHref(card.kind)}
+            class={`btn ${card.featured ? "btn-primary" : "btn-ghost"} tier-cta`}
+            rel={card.kind === "contact" ? undefined : "noopener"}
+          >{card.cta}</a>
+        </article>
+      ))}
+    </div>
+
+    <p class="self-host-line">
+      {pr.selfHostLead} <a href={selfHostHref}>{pr.selfHostLink}</a>
+    </p>
+  </div>
+</section>
+
+<style>
+  .pricing-head {
+    text-align: center;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+  }
+  .pricing-head .section-title,
+  .pricing-head .section-lede {
+    margin-left: auto;
+    margin-right: auto;
+  }
+  .chip.annual {
+    margin-top: 20px;
+  }
+  .tiers {
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    gap: 18px;
+    margin-top: 48px;
+    align-items: stretch;
+  }
+  .tier {
+    padding: 26px 22px;
+    display: flex;
+    flex-direction: column;
+  }
+  .tier.featured {
+    border-color: var(--flame);
+    box-shadow: 0 0 0 1px var(--flame), var(--shadow-card);
+  }
+  .tier-name {
+    font-family: var(--font-display);
+    font-weight: 600;
+    font-size: 1.15rem;
+  }
+  .tier-price {
+    margin-top: 14px;
+    display: flex;
+    align-items: baseline;
+    gap: 7px;
+  }
+  .price {
+    font-size: 1.9rem;
+    font-weight: 600;
+    color: var(--ink);
+    letter-spacing: -0.02em;
+  }
+  .period {
+    font-size: 0.85rem;
+    color: var(--ink-faint);
+  }
+  .tier-quota {
+    margin-top: 8px;
+    font-size: 0.82rem;
+    color: var(--flame-strong);
+    font-weight: 500;
+  }
+  .tier-features {
+    list-style: none;
+    padding: 0;
+    margin: 22px 0 26px;
+    display: flex;
+    flex-direction: column;
+    gap: 11px;
+    flex: 1;
+  }
+  .tier-features li {
+    position: relative;
+    padding-left: 22px;
+    font-size: 0.92rem;
+    color: var(--ink-soft);
+    line-height: 1.4;
+  }
+  .tier-features li::before {
+    content: "";
+    position: absolute;
+    left: 2px;
+    top: 7px;
+    width: 6px;
+    height: 6px;
+    border-radius: 2px;
+    background: var(--flame);
+    opacity: 0.8;
+  }
+  .tier-cta {
+    width: 100%;
+  }
+  .self-host-line {
+    text-align: center;
+    margin-top: 32px;
+    color: var(--ink-soft);
+    font-size: 1rem;
+  }
+  .self-host-line a {
+    font-weight: 600;
+  }
+  @media (max-width: 900px) {
+    .tiers {
+      grid-template-columns: repeat(2, 1fr);
+    }
+  }
+  @media (max-width: 520px) {
+    .tiers {
+      grid-template-columns: 1fr;
+    }
+  }
+</style>

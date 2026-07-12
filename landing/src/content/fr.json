@@ -1,0 +1,275 @@
+{
+  "meta": {
+    "title": "Oriflux — Web, produit et API analytics, sans cookies, sur votre infrastructure",
+    "description": "La seule plateforme analytics qui unifie web, produit et API. Sans cookies, RGPD par construction, temps réel, avec une couche IA qui tourne exclusivement sur des modèles locaux. Auto-hébergeable, AGPL-3.0."
+  },
+  "nav": {
+    "domains": "Domaines",
+    "privacy": "Vie privée",
+    "ai": "IA locale",
+    "openSource": "Open source",
+    "pricing": "Tarifs",
+    "docs": "Docs",
+    "cta": "Essayer le cloud",
+    "toLang": "EN"
+  },
+  "hero": {
+    "eyebrow": "Analytics unifiée · Sponge Theory",
+    "headline": "Web, produit et API analytics. Un seul outil, sans cookies, sur votre infrastructure.",
+    "subline": "Temps réel, RGPD par construction, et une couche IA qui tourne exclusivement sur des modèles locaux : aucune donnée d'analytics ne quitte votre infrastructure.",
+    "ctaPrimary": "Essayer le cloud",
+    "ctaSecondary": "S'auto-héberger",
+    "videoSrc": "",
+    "videoPoster": "",
+    "mock": {
+      "urlBar": "app.oriflux.dev/p/sponge-theory-ai",
+      "live": "En direct",
+      "kpis": [
+        { "label": "Visiteurs", "value": "12,4 k", "delta": "+8,2 %", "dir": "up" },
+        { "label": "Requêtes API", "value": "1,2 M", "delta": "+3,1 %", "dir": "up" },
+        { "label": "p95 API", "value": "84 ms", "delta": "-11 ms", "dir": "up" },
+        { "label": "Visiteurs live", "value": "23", "delta": "temps réel", "dir": "flat" }
+      ],
+      "chartCaption": "Visiteurs · 24 dernières heures",
+      "barsCaption": "Requêtes API par endpoint"
+    }
+  },
+  "domains": {
+    "label": "Trois domaines, un seul outil",
+    "title": "Ce qu'aucun outil du marché ne réunit",
+    "lede": "Le web analytics, le product analytics et l'API analytics vivent d'habitude dans trois produits séparés. Oriflux les unifie sur le même modèle de données, la même requête typée, le même dashboard.",
+    "cards": [
+      {
+        "name": "Web analytics",
+        "tag": "Sans cookie, sans bannière",
+        "points": [
+          "Visiteurs uniques, pages vues, temps sur page",
+          "Sources, référents et campagnes UTM",
+          "Géographie et technologie des visiteurs",
+          "Vue temps réel des visiteurs présents"
+        ]
+      },
+      {
+        "name": "Product analytics",
+        "tag": "Événements & parcours",
+        "points": [
+          "Événements custom via track()",
+          "Funnels de conversion étape par étape",
+          "Rétention et objectifs (utilisateurs identifiés)",
+          "Identification pseudonyme, jamais de PII"
+        ]
+      },
+      {
+        "name": "API analytics",
+        "tag": "Là où aucun web analytics ne va",
+        "points": [
+          "Volume et taux d'erreurs 4xx/5xx",
+          "Latences p50 / p95 / p99 par endpoint",
+          "Par consommateur, par pays d'appel",
+          "SDK ASGI, < 1 ms de surcoût par requête"
+        ]
+      }
+    ]
+  },
+  "privacy": {
+    "label": "Vie privée",
+    "title": "Sans cookie et sans bannière, par construction",
+    "lede": "La conformité n'est pas une case à cocher dans les réglages : elle est dans l'architecture. Rien à configurer, rien à négocier avec un DPO.",
+    "items": [
+      {
+        "title": "Zéro cookie, zéro bannière",
+        "body": "Aucun identifiant persistant côté navigateur : ni cookie, ni localStorage. Pas de bandeau de consentement à afficher."
+      },
+      {
+        "title": "Visiteur unique par hash journalier",
+        "body": "hash(sel_du_jour, projet, IP, user-agent). Le sel est détruit chaque jour — recouper deux journées est impossible, pour nous aussi."
+      },
+      {
+        "title": "L'IP n'est jamais stockée",
+        "body": "Résolue en pays / région / ASN à l'ingestion, puis jetée. Jamais écrite en base, jamais loggée."
+      },
+      {
+        "title": "DNT et GPC honorés",
+        "body": "Les signaux Do-Not-Track et Global Privacy Control sont respectés dès l'ingestion : la requête répond {\"tracked\": false}."
+      },
+      {
+        "title": "identify() refuse la PII",
+        "body": "Seuls des identifiants pseudonymes sont acceptés — tout ce qui ressemble à un email ou un téléphone est rejeté à la validation."
+      },
+      {
+        "title": "100 % résidence européenne",
+        "body": "Toutes les données restent en Europe. La couche IA tourne sur la même infrastructure et ne voit que des agrégats."
+      }
+    ],
+    "note": "Conséquence assumée : la rétention et les funnels multi-jours n'existent que pour les utilisateurs identifiés ; les funnels anonymes sont bornés à une session et libellés comme tels dans l'interface."
+  },
+  "ai": {
+    "label": "IA locale",
+    "title": "Une couche IA qui ne fait sortir aucune donnée",
+    "lede": "Insights quotidiens, digests narratifs, questions en langage naturel : toute l'inférence passe par des modèles auto-hébergés (SPT Models). Jamais un LLM cloud, jamais une ligne d'analytics qui s'échappe.",
+    "points": [
+      {
+        "title": "Modèles locaux uniquement",
+        "body": "Chat, embeddings et rerank tournent sur votre propre infrastructure GPU. Aucun appel vers un fournisseur externe."
+      },
+      {
+        "title": "Chaque réponse est sourcée",
+        "body": "Toute réponse de l'IA cite ses chiffres et la requête exécutée — vous pouvez vérifier, pas seulement faire confiance."
+      },
+      {
+        "title": "Requêtes typées, jamais de SQL libre",
+        "body": "Le langage naturel est compilé vers un objet de requête contraint et validé, jamais vers du SQL généré à la volée."
+      },
+      {
+        "title": "L'IA ne voit que des agrégats",
+        "body": "Le modèle ne reçoit jamais d'événement brut ni d'identifiant : uniquement des chiffres déjà agrégés."
+      }
+    ]
+  },
+  "liveDemo": {
+    "label": "Démo live",
+    "title": "Jugez sur pièces",
+    "body": "Un tableau de bord public, en lecture seule, alimenté par le trafic réel de sponge-theory.ai. Les mêmes chiffres, la même vue temps réel que vous auriez sur votre propre instance.",
+    "cta": "Ouvrir la démo live",
+    "soon": "Bientôt",
+    "note": "Le lien apparaît ici dès que la vue publique est en ligne."
+  },
+  "openSource": {
+    "label": "Open source",
+    "title": "Le code que vous déployez est celui que vous pouvez lire",
+    "body": "Oriflux est publié sous licence AGPL-3.0. Pas de cœur propriétaire caché, pas de « edition entreprise » qui débloque l'essentiel : le dépôt public est le produit.",
+    "points": [
+      "Serveur complet sous AGPL-3.0",
+      "Images multi-arch (amd64 + arm64) publiques sur GHCR",
+      "docker-compose lisible — pas de install.sh | sh",
+      "SDK Python publié sur PyPI sous licence MIT"
+    ],
+    "ctaGithub": "Voir le code sur GitHub",
+    "ctaContributing": "Guide de contribution",
+    "ctaSelfHost": "Guide d'auto-hébergement"
+  },
+  "pricing": {
+    "label": "Tarifs",
+    "title": "Simple, au volume d'événements",
+    "lede": "Commencez gratuitement. Passez à l'échelle quand votre trafic le demande. Ou hébergez-le vous-même, sans limite.",
+    "annualNote": "Annuel : 2 mois offerts",
+    "cards": [
+      {
+        "name": "Free",
+        "price": "0 €",
+        "period": "pour toujours",
+        "quota": "100 000 événements / mois",
+        "features": [
+          "Web, produit et API analytics",
+          "Vue temps réel (10 s)",
+          "1 projet, alertes email",
+          "Rétention 13 mois"
+        ],
+        "cta": "Créer un compte",
+        "kind": "signup"
+      },
+      {
+        "name": "Pro",
+        "price": "19 €",
+        "period": "par mois",
+        "quota": "1 M d'événements / mois",
+        "features": [
+          "Projets illimités",
+          "Funnels, rétention, objectifs",
+          "Alertes Slack + email",
+          "Insights IA quotidiens"
+        ],
+        "cta": "Démarrer avec Pro",
+        "kind": "signup",
+        "featured": true
+      },
+      {
+        "name": "Scale",
+        "price": "79 €",
+        "period": "par mois",
+        "quota": "10 M d'événements / mois",
+        "features": [
+          "Tout Pro, plus :",
+          "Connecteurs revenus (Stripe / LS)",
+          "Digests narratifs, Ask Oriflux",
+          "Rôles et quotas par équipe"
+        ],
+        "cta": "Démarrer avec Scale",
+        "kind": "signup"
+      },
+      {
+        "name": "Enterprise",
+        "price": "Nous contacter",
+        "period": "sur mesure",
+        "quota": "Volume et SSO sur mesure",
+        "features": [
+          "SSO / SAML",
+          "Résidence dédiée",
+          "Support prioritaire",
+          "Accompagnement au déploiement"
+        ],
+        "cta": "Nous contacter",
+        "kind": "contact"
+      }
+    ],
+    "selfHostLead": "Ou hébergez-le vous-même —",
+    "selfHostLink": "gratuit, AGPL-3.0"
+  },
+  "footer": {
+    "tagline": "Web, produit et API analytics. Sans cookies, sur votre infrastructure.",
+    "docsHeading": "Documentation",
+    "productHeading": "Produit",
+    "links": {
+      "gettingStarted": "Démarrage",
+      "selfHosting": "Auto-hébergement",
+      "privacy": "Vie privée",
+      "apiMcp": "API & MCP",
+      "github": "GitHub",
+      "contributing": "Contribuer",
+      "pricing": "Tarifs",
+      "docs": "Toute la doc"
+    },
+    "license": "AGPL-3.0",
+    "copyright": "© Sponge Theory"
+  },
+  "docs": {
+    "title": "Documentation",
+    "lede": "Tout ce qu'il faut pour instrumenter un site, une API et auto-héberger Oriflux.",
+    "backToSite": "Retour au site",
+    "onThisPage": "Guides",
+    "toLang": "EN",
+    "home": "Accueil docs",
+    "guides": [
+      {
+        "slug": "getting-started",
+        "label": "Démarrage en 30 minutes",
+        "desc": "De la création de l'organisation au premier événement, en une balise script et un middleware."
+      },
+      {
+        "slug": "oriflux-js",
+        "label": "oriflux.js — collecte web",
+        "desc": "Le script web < 2 Ko : intégration, attributs, ce qui est collecté, DNT / GPC."
+      },
+      {
+        "slug": "python-sdk",
+        "label": "SDK Python — analytics API",
+        "desc": "Le middleware ASGI : zéro impact hôte, < 1 ms par requête, agrégation par fenêtres de 60 s."
+      },
+      {
+        "slug": "api-mcp",
+        "label": "API REST & MCP",
+        "desc": "Le contrat de requêtes typé sur /api/v1 et le serveur MCP en lecture seule pour vos agents."
+      },
+      {
+        "slug": "privacy",
+        "label": "Modèle de vie privée",
+        "desc": "Cookieless par construction : hash journalier, IP jetée, DNT / GPC, résidence européenne."
+      },
+      {
+        "slug": "self-hosting",
+        "label": "Auto-hébergement",
+        "desc": "Installer Oriflux chez vous : images multi-arch, docker-compose lisible, prérequis."
+      }
+    ]
+  }
+}
