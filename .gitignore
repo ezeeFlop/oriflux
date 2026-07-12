@@ -12,3 +12,4 @@ graphify-out/
 sdk/python/dist/
 
 .playwright-mcp/
+*.local.md
