@@ -27,10 +27,6 @@
   "account": {
     "label": "Account"
   },
-  "coming": {
-    "title": "Coming soon in the overhaul",
-    "body": "This screen ships in an upcoming Phase 3.5 slice."
-  },
   "settings": {
     "projects": "Projects",
     "projectName": "Project name",
@@ -128,6 +124,17 @@
     "api_latency_p95": "p95 latency",
     "api_latency_p99": "p99 latency",
     "visitDaysNote": "Multi-day totals are visit-days (daily rotating hash)"
+  },
+  "overview": {
+    "liveNow": "Live now",
+    "trend": "Web + API trend",
+    "recentAnnotations": "Recent annotations",
+    "noAlerts": "No recent alerts on this project.",
+    "noAnnotations": "No annotations in this period.",
+    "seeAll": "See all",
+    "notInstrumented": "This project has not emitted any events in this period.",
+    "instrumentHint": "Add a source and paste the integration snippet to start measuring — the dashboard fills up from the very first event.",
+    "openSettings": "Open project settings"
   },
   "trafficClass": {
     "label": "Traffic",

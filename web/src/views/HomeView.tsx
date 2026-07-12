@@ -334,7 +334,7 @@ export default function HomeView() {
             return (
               <Link
                 key={project.id}
-                to={{ pathname: `/p/${project.id}/web`, search }}
+                to={{ pathname: `/p/${project.id}/overview`, search }}
                 className="rise group rounded-xl border border-line bg-surface p-4 transition-shadow hover:shadow-[0_4px_20px_rgba(30,20,10,0.08)]"
               >
                 <div className="flex items-baseline justify-between">

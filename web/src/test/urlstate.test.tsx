@@ -43,7 +43,7 @@ describe("period & compare in the URL", () => {
     renderApp("/?period=30d");
     const main = within(await screen.findByRole("main"));
     await user.click(await main.findByRole("heading", { name: "AudiGEO" }));
-    expect(currentLocation()).toContain("/p/p1/web");
+    expect(currentLocation()).toContain("/p/p1/overview");
     expect(currentLocation()).toContain("period=30d");
   });
 

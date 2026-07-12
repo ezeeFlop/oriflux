@@ -6,7 +6,6 @@ import { DashboardProvider } from "./lib/state";
 import ApiView from "./views/ApiView";
 import AlertsView from "./views/AlertsView";
 import AnnotationsView from "./views/AnnotationsView";
-import ComingSoon from "./views/ComingSoon";
 import GoalsView from "./views/GoalsView";
 import HomeView from "./views/HomeView";
 import LiveView from "./views/LiveView";
@@ -14,12 +13,14 @@ import ProductView from "./views/ProductView";
 import ProjectSettingsView from "./views/ProjectSettingsView";
 import Login from "./views/Login";
 import OrgSettingsView from "./views/OrgSettingsView";
+import OverviewView from "./views/OverviewView";
 import PublicView from "./views/PublicView";
 import WelcomeView from "./views/WelcomeView";
 import WebView from "./views/WebView";
 
-/** Sections whose slice already shipped; everything else is a placeholder. */
+/** Every section of the target IA has shipped — one view per route. */
 const SECTION_VIEWS: Partial<Record<SectionKey, JSX.Element>> = {
+  overview: <OverviewView />,
   web: <WebView />,
   api: <ApiView />,
   product: <ProductView />,
@@ -35,11 +36,11 @@ function RequireAuth({ children }: { children: JSX.Element }) {
   return children;
 }
 
-/** /p/:id lands on the web view until the project overview slice ships. */
+/** /p/:id lands on the overview cockpit (issue #68). */
 function ProjectIndexRedirect() {
   const { projectId } = useParams();
   const { search } = useLocation();
-  return <Navigate to={`/p/${projectId}/web${search}`} replace />;
+  return <Navigate to={`/p/${projectId}/overview${search}`} replace />;
 }
 
 export function AppRoutes() {
@@ -71,7 +72,7 @@ export function AppRoutes() {
           <Route
             key={key}
             path={`/p/:projectId/${path}`}
-            element={SECTION_VIEWS[key] ?? <ComingSoon section={key} />}
+            element={SECTION_VIEWS[key]}
           />
         ))}
       </Route>

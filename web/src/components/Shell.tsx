@@ -40,7 +40,7 @@ function ProjectLinks({ linkClass }: { linkClass: LinkClass }) {
       {projects.map((project) => (
         <NavLink
           key={project.id}
-          to={{ pathname: `/p/${project.id}/web`, search }}
+          to={{ pathname: `/p/${project.id}/overview`, search }}
           className={linkClass}
         >
           {project.name}
@@ -229,7 +229,7 @@ function SidebarNav() {
           <select
             aria-label={t("common.project")}
             value={projectId}
-            onChange={(event) => navigate(`/p/${event.target.value}/web${search}`)}
+            onChange={(event) => navigate(`/p/${event.target.value}/overview${search}`)}
             className="mb-1 mt-3 rounded-md border border-line bg-surface px-2 py-1 text-sm font-semibold"
           >
             {projects.map((project) => (

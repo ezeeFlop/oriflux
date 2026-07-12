@@ -38,11 +38,6 @@ describe("shell", () => {
     }
   });
 
-  it("renders a translated placeholder on not-yet-built sections", async () => {
-    renderApp("/p/p1/overview");
-    expect(await screen.findByText("Bientôt dans la refonte")).toBeInTheDocument();
-  });
-
   it("switches theme from the account menu and persists it", async () => {
     const user = userEvent.setup();
     renderApp("/");

@@ -17,11 +17,18 @@ import { SkeletonRows } from "./widgets";
 export default function TimeseriesChart({
   rows,
   compareRows,
+  secondaryRows,
+  seriesLabel,
+  secondaryLabel,
   granularity,
   annotations,
 }: {
   rows: QueryRow[] | undefined;
   compareRows?: QueryRow[] | null;
+  /** optional second series on the same buckets (overview: web + API) */
+  secondaryRows?: QueryRow[] | null;
+  seriesLabel?: string;
+  secondaryLabel?: string;
   granularity: string;
   annotations?: { bucket: string; label: string }[];
 }) {
@@ -32,6 +39,7 @@ export default function TimeseriesChart({
     bucket: formatBucket(String(row.bucket), granularity),
     value: row.value ?? 0,
     previous: compareRows?.[index]?.value ?? null,
+    secondary: secondaryRows?.[index]?.value ?? null,
   }));
 
   return (
@@ -83,9 +91,22 @@ export default function TimeseriesChart({
             }}
             formatter={(value: number, name: string) => [
               formatNumber(value),
-              name === "previous" ? t("period.vsPrevious") : t("web.timeseries"),
+              name === "previous"
+                ? t("period.vsPrevious")
+                : name === "secondary"
+                  ? (secondaryLabel ?? name)
+                  : (seriesLabel ?? t("web.timeseries")),
             ]}
           />
+          {secondaryRows && (
+            <Line
+              dataKey="secondary"
+              stroke="var(--color-class-ai)"
+              strokeWidth={2}
+              dot={false}
+              type="monotone"
+            />
+          )}
           {compareRows && (
             <Line
               dataKey="previous"

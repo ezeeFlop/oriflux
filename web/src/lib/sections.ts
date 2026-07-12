@@ -1,6 +1,6 @@
 /** Project sections of the target IA (issue #44). The single source for
- *  both the shell navigation and the route table — slices of the Phase 3.5
- *  overhaul replace the ComingSoon placeholders route by route. */
+ *  both the shell navigation and the route table — every section now has
+ *  its shipped view (the overview, #68, was the last one). */
 
 export const PROJECT_SECTIONS = [
   { key: "overview", path: "overview" },

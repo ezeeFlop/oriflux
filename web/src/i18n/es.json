@@ -27,10 +27,6 @@
   "account": {
     "label": "Cuenta"
   },
-  "coming": {
-    "title": "Próximamente en la renovación",
-    "body": "Esta pantalla llega en una próxima etapa de la Fase 3.5."
-  },
   "settings": {
     "projects": "Proyectos",
     "projectName": "Nombre del proyecto",
@@ -128,6 +124,17 @@
     "api_latency_p95": "Latencia p95",
     "api_latency_p99": "Latencia p99",
     "visitDaysNote": "Los totales multi-día son días-visita (hash diario rotativo)"
+  },
+  "overview": {
+    "liveNow": "En directo",
+    "trend": "Tendencia web + API",
+    "recentAnnotations": "Anotaciones recientes",
+    "noAlerts": "Sin alertas recientes en este proyecto.",
+    "noAnnotations": "Sin anotaciones en el período.",
+    "seeAll": "Ver todo",
+    "notInstrumented": "Este proyecto aún no ha emitido ningún evento en el período.",
+    "instrumentHint": "Añada una fuente y pegue el snippet de integración para empezar a medir — el panel se llenará desde el primer evento.",
+    "openSettings": "Abrir la configuración del proyecto"
   },
   "trafficClass": {
     "label": "Tráfico",

@@ -27,10 +27,6 @@
   "account": {
     "label": "Compte"
   },
-  "coming": {
-    "title": "Bientôt dans la refonte",
-    "body": "Cet écran arrive dans une prochaine tranche de la Phase 3.5."
-  },
   "settings": {
     "projects": "Projets",
     "projectName": "Nom du projet",
@@ -128,6 +124,17 @@
     "api_latency_p95": "Latence p95",
     "api_latency_p99": "Latence p99",
     "visitDaysNote": "Total multi-jours = visites-jours (hash quotidien rotatif)"
+  },
+  "overview": {
+    "liveNow": "En direct",
+    "trend": "Tendance web + API",
+    "recentAnnotations": "Annotations récentes",
+    "noAlerts": "Aucune alerte récente sur ce projet.",
+    "noAnnotations": "Aucune annotation sur la période.",
+    "seeAll": "Tout voir",
+    "notInstrumented": "Ce projet n'a encore émis aucun événement sur la période.",
+    "instrumentHint": "Ajoutez une source et collez le snippet d'intégration pour commencer à mesurer — le tableau de bord se remplira dès le premier événement.",
+    "openSettings": "Ouvrir les réglages du projet"
   },
   "trafficClass": {
     "label": "Trafic",

@@ -18,6 +18,9 @@ interface MetricOptions {
   /** drill tables change dimension on click: showing the previous level's
    *  rows as placeholder would mislabel them — show the skeleton instead */
   keepPreviousData?: boolean;
+  /** the overview KPI band always compares to the previous period — the
+   *  variations are its whole point, not an opt-in */
+  forceCompare?: boolean;
   refetchIntervalMs?: number;
   periodOverride?: { start: string; end: string };
   granularityOverride?: "hour" | "day" | "week" | "month";
@@ -43,7 +46,10 @@ export function useMetric(options: MetricOptions) {
       ? (options.granularityOverride ?? granularity)
       : null,
     period: options.periodOverride ?? period,
-    compare_to: compare && !options.periodOverride ? ("previous_period" as const) : null,
+    compare_to:
+      (options.forceCompare || compare) && !options.periodOverride
+        ? ("previous_period" as const)
+        : null,
   };
 
   return useQuery<QueryResponse>({
