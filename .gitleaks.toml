@@ -1,0 +1,13 @@
+# Gitleaks config (issue #69). The only recurring findings are the
+# `api_latency_p95` registry metric name (entropy trips generic-api-key)
+# and build artifacts. Real secrets never belong in this repo — anything
+# sensitive lives in gitignored deploy/.env or the Portainer environment.
+
+[extend]
+useDefault = true
+
+[allowlist]
+description = "Registry metric names and build output"
+regexTarget = "match"
+regexes = ['''api_latency_p\d+''']
+paths = ['''web/dist/''', '''node_modules/''']

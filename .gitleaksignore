@@ -1,0 +1,5 @@
+# Historical, triaged findings (issue #69) — the walking skeleton's README
+# used literal `dev-ingest-key` / `dev-read-key` placeholders; that auth path
+# was deleted by #3 (hashed ofx_* keys). Nothing to rotate.
+16e12f43ff2bf34eedb467ab25bb2a2975e963df:README.md:curl-auth-header:22
+16e12f43ff2bf34eedb467ab25bb2a2975e963df:README.md:curl-auth-header:26
