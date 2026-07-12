@@ -1,8 +1,14 @@
 # Oriflux
 
-Self-hosted, multi-tenant analytics for the Sponge Theory ecosystem — web analytics +
-product analytics + API analytics, cookieless / GDPR-first, real-time, AI on local SPT
-Models. See `docs/PRD.md` (source of truth) and `CLAUDE.md`.
+Self-hosted, multi-tenant analytics — web analytics + product analytics + API
+analytics in one tool, cookieless / GDPR-first, real-time, AI on local models
+(no analytics data ever leaves your infrastructure). Built by
+[Sponge Theory](https://sponge-theory.ai); see `docs/PRD.md` (source of truth,
+in French) and `CLAUDE.md`.
+
+**License**: the server is [AGPL-3.0](LICENSE); the Python SDK (`sdk/python/`)
+is MIT. Contributions welcome — see [CONTRIBUTING.md](CONTRIBUTING.md) and
+[SECURITY.md](SECURITY.md).
 
 ## Monorepo layout
 

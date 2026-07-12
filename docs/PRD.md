@@ -370,10 +370,10 @@ Onboarding self-serve, billing (Stripe), plans & quotas (appliqués dès le sch�
 
 ## 15. Questions ouvertes
 
-1. Licence pour la version publique : AGPL-3.0 (crédibilité open source, protège du SaaS-jacking) vs FSL/BUSL (protection commerciale) ? *Décision volontairement reportée en phase 4. Déjà acté [2026-07-10] : le SDK Python client est MIT sur PyPI public dès la V1 — seul le serveur est concerné par cette question.*
+1. ~~Licence pour la version publique : AGPL-3.0 vs FSL/BUSL ?~~ **Résolu [Décision 2026-07-12] — AGPL-3.0.** Crédibilité open source sur le marché privacy-analytics (le geste Plausible), protection SaaS-jacking suffisante en pratique, dual-licensing possible plus tard (copyright unique Sponge Theory). Le SDK Python client reste MIT sur PyPI (acté 2026-07-10). `LICENSE` AGPL-3.0 à la racine du repo.
 2. ~~Faut-il migrer le « Bot Analytics » d'AudiGEO vers Oriflux (source unique) ou garder les deux et synchroniser ?~~ **Résolu [2026-07-10] — ni migration, ni duplication : inversion de dépendance.** Oriflux devient la source de vérité de la classification de trafic pour les **propriétés Sponge Theory** (liste crawlers/agents IA unique, seedée depuis celle d'AudiGEO) ; AudiGEO garde son produit Bot Analytics orienté clients et devient **consommateur** d'Oriflux via API/MCP en phase 3+. D'ici là, coexistence délibérée et alignée. Les sites clients AudiGEO non instrumentés par Oriflux restent dans AudiGEO en permanence.
-3. Status pages publiques par produit : dans Oriflux ou produit séparé ultérieur ?
-4. Politique de rétention par défaut pour les futurs clients (13 mois est-il le bon standard ?) ;
+3. ~~Status pages publiques par produit : dans Oriflux ou produit séparé ultérieur ?~~ **Résolu [Décision 2026-07-12] — intégrées à Oriflux, construction post-lot 4b.** Elles s'appuieront sur les uptime checks (P1) et la PublicView existante ; pas de produit séparé.
+4. ~~Politique de rétention par défaut pour les futurs clients (13 mois est-il le bon standard ?)~~ **Résolu [Décision 2026-07-12] — 13 mois bruts + 5 ans d'agrégats, global tous plans.** Pas de TTL per-org ni de différenciation par plan à ce stade.
 5. Nom définitif : valider Oriflux après recherche d'antériorité INPI/EUIPO formelle.
 
 ---

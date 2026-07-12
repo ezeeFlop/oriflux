@@ -23,9 +23,9 @@ cd ../sdk/python && uv run pytest           # oriflux-sdk (separate uv project)
 
 Dev tenancy: `docker compose exec api python -m oriflux.bootstrap` seeds the Sponge Theory org + pilot projects and prints the API keys once (idempotent). Keys are `ofx_ing_*` (per source) / `ofx_read_*` (org-wide), stored as sha256 hashes in PostgreSQL.
 
-## Planned repo layout (decided)
+## Repo layout (decided)
 
-Private monorepo: `api/` (one Python package, three entrypoints: ingest, api, workers — shared Pydantic models), `web/` (React dashboard), `sdk/js/`, `sdk/python/`, `deploy/` (stack yml + deploy-portainer.sh). `oriflux.js` is served by the ingest service at a versioned path (no npm in V1); the Python SDK ships to public PyPI as `oriflux-sdk` under MIT (the server's license — AGPL vs FSL — stays deferred to phase 4).
+**Public monorepo** (public since 2026-07-12 — never commit a secret; anything sensitive goes to gitignored `deploy/.env` or the Portainer env, and a leaked secret gets *rotated*, not just removed): `api/` (one Python package, three entrypoints: ingest, api, workers — shared Pydantic models), `web/` (React dashboard), `sdk/js/`, `sdk/python/`, `landing/` (Astro landing + public docs), `deploy/` (stack yml + deploy-portainer.sh + self-host compose). `oriflux.js` is served by the ingest service at a versioned path (no npm in V1); the Python SDK ships to public PyPI as `oriflux-sdk` under MIT. The server is **AGPL-3.0** *[Décision 2026-07-12]* — `LICENSE`, `CONTRIBUTING.md`, `SECURITY.md` live at the root.
 
 ## What Oriflux is
 
@@ -64,7 +64,7 @@ Infrastructure monitoring (that's **Zeus** — Oriflux reads its `/api/metrics`,
 1. **MVP (6–8 wks)**: web + API ingestion, geo, per-product dashboard + portfolio home, 10 s-polling live view, threshold alerts (Slack/email), JS SDK + ASGI FastAPI SDK, typed query engine + registry, read-only MCP, JWT/OAuth Google auth, multi-tenant RBAC, FR/EN i18n (scaffolding day one), UA-regex-only bot classification (`traffic_class` column from the first event). Explicitly cut from phase 1: WebSocket, ES locale, behavioral bot heuristics. First instrumented: sponge-theory.ai, AudiGEO, NeoRAG.
 2. Product depth: custom events/identify, funnels/retention (identified-only), bot/AI-agent intelligence + AI-visibility dashboard, ES locale, Web Vitals, Stripe/LS connectors, Node SDK, Zeus integration.
 3. Full AI layer: Ask Oriflux (NL→typed query object), daily insights feed, narrative digests, WebSocket + live globe, AudiGEO rewired as a consumer of Oriflux traffic classification.
-4. Commercialization: self-serve onboarding, billing, public docs, server license TBD (AGPL-3.0 vs FSL — deliberately deferred; the Python SDK is already MIT on PyPI).
+4. Commercialization: self-serve onboarding, billing, public docs, server license AGPL-3.0 *[Décision 2026-07-12]* (the Python SDK is MIT on PyPI). Pricing: Free 0 € (100k evts/mo), Pro 19 €/mo (1M), Scale 79 €/mo (10M), annual = 2 months free, Enterprise = contact.
 
 ## Ecosystem boundary (decided 2026-07-10)
 
@@ -74,7 +74,7 @@ Oriflux is the source of truth for traffic classification (single crawler/AI-age
 
 - PRD and product-facing docs are written in French; UI is trilingual FR/EN/ES from V1 (AudiGEO i18n pattern — translate everything, including status enums).
 - Reuse existing Sponge Theory patterns rather than inventing: Zeus `/api/metrics` middleware, ClipHaven auth (JWT + OAuth Google) and Resend email, Rayonne security hardening, cliphaven/neokanban multi-arch build + `deploy-portainer.sh` deployment.
-- Open questions live in PRD §15 (license, AudiGEO Bot Analytics migration, status pages, default retention, trademark clearance) — don't silently decide them in code.
+- Open questions live in PRD §15 — only §15.5 (Oriflux trademark clearance INPI/EUIPO, human task) remains open; §15.1 license (AGPL-3.0), §15.2 AudiGEO inversion, §15.3 status pages (in Oriflux, post-lot) and §15.4 retention (13 mo raw / 5 y aggregates, global) are closed. Don't silently decide §15.5 in code.
 
 ## Agent skills
 
