@@ -40,7 +40,7 @@ export default function WorldLive({
     <div>
       <svg
         viewBox={`0 0 ${MAP_WIDTH} ${MAP_HEIGHT}`}
-        className="w-full rounded-lg border border-line bg-paper"
+        className="mx-auto block w-full max-w-3xl rounded-lg border border-line bg-paper"
       >
         {WORLD_SHAPES.map((shape) => (
           <path

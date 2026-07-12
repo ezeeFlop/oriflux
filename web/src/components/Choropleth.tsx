@@ -104,7 +104,7 @@ export default function Choropleth({
     <figure>
       <svg
         viewBox={`0 0 ${WIDTH} ${HEIGHT}`}
-        className="w-full rounded-lg border border-line bg-paper"
+        className="mx-auto block w-full max-w-3xl rounded-lg border border-line bg-paper"
         role="group"
         aria-label={legendLabel}
       >
