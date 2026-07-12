@@ -1,0 +1,142 @@
+# Oriflux — self-hosted deployment (issue #71).
+#
+# Quickstart (full guide: https://oriflux.sponge-theory.dev/docs/self-hosting):
+#   1. cp .env.example .env         # then fill the three required secrets
+#   2. docker compose up -d         # pulls the public GHCR images
+#   3. docker compose exec api python -m oriflux.bootstrap
+#      → creates your organization and prints the dashboard URL + API keys (once)
+#
+# Exposed ports (put your TLS reverse proxy in front — Caddy/Traefik/nginx):
+#   8080  dashboard (serves the SPA and proxies /api to the api service)
+#   8100  ingest (the endpoint your oriflux.js snippet and SDKs send events to)
+#
+# Images are multi-arch (linux/amd64 + linux/arm64), tagged `latest` and by
+# version — pin a version tag in production and upgrade deliberately.
+
+name: oriflux
+
+x-oriflux-env: &oriflux-env
+  ORIFLUX_REDIS_URL: redis://redis:6379/0
+  ORIFLUX_CLICKHOUSE_HOST: clickhouse
+  ORIFLUX_CLICKHOUSE_PORT: "8123"
+  ORIFLUX_CLICKHOUSE_USER: oriflux
+  ORIFLUX_CLICKHOUSE_PASSWORD: ${CLICKHOUSE_PASSWORD:?set CLICKHOUSE_PASSWORD in .env}
+  ORIFLUX_CLICKHOUSE_DATABASE: oriflux
+  ORIFLUX_DATABASE_URL: postgresql+asyncpg://oriflux:${POSTGRES_PASSWORD:?set POSTGRES_PASSWORD in .env}@postgres:5432/oriflux
+  ORIFLUX_JWT_SECRET: ${ORIFLUX_JWT_SECRET:?set ORIFLUX_JWT_SECRET in .env}
+  ORIFLUX_GOOGLE_CLIENT_ID: ${ORIFLUX_GOOGLE_CLIENT_ID:-}
+  ORIFLUX_GEOIP_DIR: /var/lib/oriflux/geoip
+  ORIFLUX_GEOIP_PROVIDER: ${ORIFLUX_GEOIP_PROVIDER:-dbip}
+  ORIFLUX_MAXMIND_LICENSE_KEY: ${MAXMIND_LICENSE_KEY:-}
+  ORIFLUX_FERNET_KEY: ${ORIFLUX_FERNET_KEY:-}
+  ORIFLUX_BOOTSTRAP_ORG_SLUG: ${ORIFLUX_BOOTSTRAP_ORG_SLUG:-my-org}
+  ORIFLUX_BOOTSTRAP_ORG_NAME: ${ORIFLUX_BOOTSTRAP_ORG_NAME:-My Organization}
+  ORIFLUX_BOOTSTRAP_OWNER_EMAIL: ${ORIFLUX_BOOTSTRAP_OWNER_EMAIL:-}
+  ORIFLUX_BOOTSTRAP_PROJECTS: ${ORIFLUX_BOOTSTRAP_PROJECTS:-my-product:My Product}
+  ORIFLUX_BOOTSTRAP_APP_URL: ${ORIFLUX_BOOTSTRAP_APP_URL:-http://localhost:8080}
+
+x-healthz: &healthz
+  test: ["CMD", "python", "-c", "import urllib.request; urllib.request.urlopen('http://localhost:8000/healthz')"]
+  interval: 10s
+  timeout: 5s
+  retries: 18
+  start_period: 15s
+
+services:
+  clickhouse:
+    image: clickhouse/clickhouse-server:24.8
+    environment:
+      CLICKHOUSE_DB: oriflux
+      CLICKHOUSE_USER: oriflux
+      CLICKHOUSE_PASSWORD: ${CLICKHOUSE_PASSWORD:?set CLICKHOUSE_PASSWORD in .env}
+    volumes:
+      - clickhouse-data:/var/lib/clickhouse
+    ulimits:
+      nofile: 262144
+    healthcheck:
+      test: ["CMD", "wget", "--spider", "-q", "http://localhost:8123/ping"]
+      interval: 10s
+      timeout: 5s
+      retries: 24
+
+  postgres:
+    image: postgres:16
+    environment:
+      POSTGRES_USER: oriflux
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:?set POSTGRES_PASSWORD in .env}
+      POSTGRES_DB: oriflux
+    volumes:
+      - postgres-data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U oriflux"]
+      interval: 10s
+      timeout: 5s
+      retries: 12
+
+  redis:
+    image: redis:7-alpine
+    # AOF everysec: at most one second of buffered events on a Redis crash
+    command: ["redis-server", "--appendonly", "yes", "--appendfsync", "everysec"]
+    volumes:
+      - redis-data:/data
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 10s
+      timeout: 5s
+      retries: 12
+
+  # api starts first: it owns the database migrations
+  api:
+    image: ${ORIFLUX_REGISTRY:-ghcr.io/ezeeflop}/oriflux-api:${ORIFLUX_TAG:-latest}
+    environment: *oriflux-env
+    depends_on:
+      clickhouse:
+        condition: service_healthy
+      postgres:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+    healthcheck: *healthz
+
+  ingest:
+    image: ${ORIFLUX_REGISTRY:-ghcr.io/ezeeflop}/oriflux-ingest:${ORIFLUX_TAG:-latest}
+    environment: *oriflux-env
+    ports:
+      - "${ORIFLUX_INGEST_PORT:-8100}:8000"
+    volumes:
+      - geoip-data:/var/lib/oriflux/geoip
+    depends_on:
+      api:
+        condition: service_healthy
+    healthcheck: *healthz
+
+  workers:
+    image: ${ORIFLUX_REGISTRY:-ghcr.io/ezeeflop}/oriflux-workers:${ORIFLUX_TAG:-latest}
+    environment: *oriflux-env
+    volumes:
+      - geoip-data:/var/lib/oriflux/geoip
+    depends_on:
+      api:
+        condition: service_healthy
+    healthcheck: *healthz
+
+  web:
+    image: ${ORIFLUX_REGISTRY:-ghcr.io/ezeeflop}/oriflux-web:${ORIFLUX_TAG:-latest}
+    environment:
+      API_UPSTREAM: api:8000
+    ports:
+      - "${ORIFLUX_WEB_PORT:-8080}:80"
+    depends_on:
+      api:
+        condition: service_healthy
+    healthcheck:
+      test: ["CMD", "wget", "--spider", "-q", "http://127.0.0.1/healthz"]
+      interval: 10s
+      timeout: 5s
+      retries: 12
+
+volumes:
+  clickhouse-data:
+  postgres-data:
+  redis-data:
+  geoip-data:

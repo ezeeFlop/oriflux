@@ -8,3 +8,4 @@ landing). FR d'abord (convention produit), squelettes EN dans `en/`.
 - [SDK Python — analytics API](python-sdk.md)
 - [API REST & MCP](api-mcp.md)
 - [Modèle de vie privée](privacy.md)
+- [Auto-hébergement](self-hosting.md)

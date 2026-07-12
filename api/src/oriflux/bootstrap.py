@@ -1,13 +1,21 @@
-"""Idempotent bootstrap: the Sponge Theory org with one project per pilot
-product (PRD phase 1: sponge-theory.ai, AudiGEO, NeoRAG).
+"""Idempotent bootstrap: the first organization, its projects, sources and
+keys. Defaults seed the Sponge Theory org with the three pilot products
+(PRD phase 1); self-hosters override everything through the environment
+(issue #71) — same command, their own tenancy:
 
     uv run python -m oriflux.bootstrap            # dev
     docker compose exec api python -m oriflux.bootstrap   # containers
 
-Creates (only what's missing): the org, the owner user (env
-ORIFLUX_BOOTSTRAP_OWNER_EMAIL), web+api sources per project, one ingest key
-per source and one org-wide read key. Plaintext keys are printed ONCE at
-creation — store them; they are not retrievable afterwards.
+Environment overrides:
+    ORIFLUX_BOOTSTRAP_ORG_SLUG      org slug        (default sponge-theory)
+    ORIFLUX_BOOTSTRAP_ORG_NAME      org name        (default Sponge Theory)
+    ORIFLUX_BOOTSTRAP_OWNER_EMAIL   owner login     (Google account email)
+    ORIFLUX_BOOTSTRAP_PROJECTS      "slug:Name,slug:Name" (default: the pilots)
+    ORIFLUX_BOOTSTRAP_APP_URL       dashboard URL printed at the end
+
+Creates (only what's missing): the org, the owner user, web+api sources per
+project, one ingest key per source and one org-wide read key. Plaintext keys
+are printed ONCE at creation — store them; they are not retrievable afterwards.
 """
 
 import asyncio
@@ -33,11 +41,13 @@ from oriflux.db.models import (
 )
 from oriflux.security.keys import build_api_key
 
-ORG_SLUG = "sponge-theory"
+ORG_SLUG = os.environ.get("ORIFLUX_BOOTSTRAP_ORG_SLUG", "sponge-theory")
+ORG_NAME = os.environ.get("ORIFLUX_BOOTSTRAP_ORG_NAME", "Sponge Theory")
+_DEFAULT_PROJECTS = "sponge-theory-ai:sponge-theory.ai,audigeo:AudiGEO,neorag:NeoRAG"
 PILOT_PROJECTS = [
-    ("sponge-theory-ai", "sponge-theory.ai"),
-    ("audigeo", "AudiGEO"),
-    ("neorag", "NeoRAG"),
+    (entry.split(":", 1)[0].strip(), entry.split(":", 1)[-1].strip())
+    for entry in os.environ.get("ORIFLUX_BOOTSTRAP_PROJECTS", _DEFAULT_PROJECTS).split(",")
+    if entry.strip()
 ]
 BOOTSTRAP_KEY_NAME = "bootstrap"
 
@@ -47,7 +57,7 @@ async def _get_or_create_org(session: AsyncSession) -> Organization:
         await session.execute(select(Organization).where(Organization.slug == ORG_SLUG))
     ).scalar_one_or_none()
     if org is None:
-        org = Organization(slug=ORG_SLUG, name="Sponge Theory")
+        org = Organization(slug=ORG_SLUG, name=ORG_NAME)
         session.add(org)
         await session.flush()
         print(f"created org {ORG_SLUG}")
@@ -147,6 +157,12 @@ async def bootstrap() -> None:
         await session.commit()
     await engine.dispose()
     print("bootstrap complete (idempotent — safe to re-run)")
+    app_url = os.environ.get("ORIFLUX_BOOTSTRAP_APP_URL")
+    if app_url:
+        owner = os.environ.get(
+            "ORIFLUX_BOOTSTRAP_OWNER_EMAIL", "christophe.verdier@sponge-theory.io"
+        )
+        print(f"dashboard: {app_url} — sign in with Google as {owner}")
 
 
 if __name__ == "__main__":
