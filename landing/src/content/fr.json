@@ -19,16 +19,36 @@
     "subline": "Temps réel, RGPD par construction, et une couche IA qui tourne exclusivement sur des modèles locaux : aucune donnée d'analytics ne quitte votre infrastructure.",
     "ctaPrimary": "Essayer le cloud",
     "ctaSecondary": "S'auto-héberger",
-    "videoSrc": "",
-    "videoPoster": "",
+    "videoSrc": "/video/demo-fr.mp4",
+    "videoPoster": "/video/poster.jpg",
     "mock": {
       "urlBar": "app.oriflux.dev/p/sponge-theory-ai",
       "live": "En direct",
       "kpis": [
-        { "label": "Visiteurs", "value": "12,4 k", "delta": "+8,2 %", "dir": "up" },
-        { "label": "Requêtes API", "value": "1,2 M", "delta": "+3,1 %", "dir": "up" },
-        { "label": "p95 API", "value": "84 ms", "delta": "-11 ms", "dir": "up" },
-        { "label": "Visiteurs live", "value": "23", "delta": "temps réel", "dir": "flat" }
+        {
+          "label": "Visiteurs",
+          "value": "12,4 k",
+          "delta": "+8,2 %",
+          "dir": "up"
+        },
+        {
+          "label": "Requêtes API",
+          "value": "1,2 M",
+          "delta": "+3,1 %",
+          "dir": "up"
+        },
+        {
+          "label": "p95 API",
+          "value": "84 ms",
+          "delta": "-11 ms",
+          "dir": "up"
+        },
+        {
+          "label": "Visiteurs live",
+          "value": "23",
+          "delta": "temps réel",
+          "dir": "flat"
+        }
       ],
       "chartCaption": "Visiteurs · 24 dernières heures",
       "barsCaption": "Requêtes API par endpoint"

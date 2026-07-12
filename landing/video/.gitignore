@@ -1,0 +1,4 @@
+# regenerable intermediates (captures, TTS segments, HyperFrames workspace) —
+# the committed deliverables live in ../public/video, the recipes in scripts/
+assets/
+demo/

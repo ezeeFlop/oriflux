@@ -19,16 +19,36 @@
     "subline": "Real-time, GDPR by construction, and an AI layer that runs exclusively on local models: not a single row of analytics ever leaves your infrastructure.",
     "ctaPrimary": "Try cloud",
     "ctaSecondary": "Self-host it",
-    "videoSrc": "",
-    "videoPoster": "",
+    "videoSrc": "/video/demo-en.mp4",
+    "videoPoster": "/video/poster.jpg",
     "mock": {
       "urlBar": "app.oriflux.dev/p/sponge-theory-ai",
       "live": "Live",
       "kpis": [
-        { "label": "Visitors", "value": "12.4k", "delta": "+8.2%", "dir": "up" },
-        { "label": "API requests", "value": "1.2M", "delta": "+3.1%", "dir": "up" },
-        { "label": "API p95", "value": "84 ms", "delta": "-11 ms", "dir": "up" },
-        { "label": "Live visitors", "value": "23", "delta": "real-time", "dir": "flat" }
+        {
+          "label": "Visitors",
+          "value": "12.4k",
+          "delta": "+8.2%",
+          "dir": "up"
+        },
+        {
+          "label": "API requests",
+          "value": "1.2M",
+          "delta": "+3.1%",
+          "dir": "up"
+        },
+        {
+          "label": "API p95",
+          "value": "84 ms",
+          "delta": "-11 ms",
+          "dir": "up"
+        },
+        {
+          "label": "Live visitors",
+          "value": "23",
+          "delta": "real-time",
+          "dir": "flat"
+        }
       ],
       "chartCaption": "Visitors · last 24 hours",
       "barsCaption": "API requests by endpoint"

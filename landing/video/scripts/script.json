@@ -1,0 +1,65 @@
+{
+  "_note": "Oriflux demo video — 10 scenes, ~78-82s. FR native + EN native. Voice: one consistent higgs-audio zero-shot clone across all segments and both languages. Tone: sober, confident, technical (matches landing copy).",
+  "segments": [
+    {
+      "id": "01-hook",
+      "mood": "excitement",
+      "fr": "Le web analytics dans un outil. Le produit dans un autre. L'API, nulle part. Et partout, des bannières de cookies et vos données qui partent chez un tiers.",
+      "en": "Web analytics in one tool. Product analytics in another. API analytics, nowhere. And everywhere, cookie banners and your data shipped off to someone else's cloud."
+    },
+    {
+      "id": "02-promise",
+      "mood": "confidence",
+      "fr": "Oriflux réunit les trois. Web, produit et API : un seul outil, sans cookies, sur votre propre infrastructure.",
+      "en": "Oriflux brings all three together. Web, product and API: one tool, cookieless, on your own infrastructure."
+    },
+    {
+      "id": "03-portfolio",
+      "mood": "confidence",
+      "fr": "Tous vos produits d'un coup d'oeil. Un clic, et le cockpit d'un produit s'ouvre : visiteurs, requêtes, latence, alertes.",
+      "en": "Every product at a glance. One click, and a product's cockpit opens: visitors, requests, latency, alerts."
+    },
+    {
+      "id": "04-web",
+      "mood": "confidence",
+      "fr": "Le web analytics, sans cookie et sans bannière. Visiteurs, sources, et la géographie de votre trafic. Rien à négocier avec un DPO.",
+      "en": "Web analytics with no cookie and no banner. Visitors, sources, and the geography of your traffic. Nothing to negotiate with a DPO."
+    },
+    {
+      "id": "05-aivis",
+      "mood": "confidence",
+      "fr": "Les intelligences artificielles aussi lisent votre site. GPTBot, ClaudeBot, Perplexity : voyez quels agents vous crawlent, et quelles pages ils préfèrent.",
+      "en": "AI reads your site too. GPTBot, ClaudeBot, Perplexity: see exactly which agents crawl you, and which pages they prefer."
+    },
+    {
+      "id": "06-api",
+      "mood": "emphasis",
+      "fr": "Là où aucun web analytics ne va : votre API. Volume, erreurs, latence p95 par endpoint, et le pays d'où viennent les appels.",
+      "en": "Where web analytics never goes: your API. Volume, errors, p95 latency per endpoint, and the country each call comes from."
+    },
+    {
+      "id": "07-live",
+      "mood": "excitement",
+      "fr": "En temps réel : qui est présent, où, maintenant.",
+      "en": "In real time: who's here, where, right now."
+    },
+    {
+      "id": "08-privacy",
+      "mood": "emphasis",
+      "fr": "La confidentialité par construction. Le sel est détruit chaque jour, l'IP jetée à l'ingestion, DNT et GPC honorés.",
+      "en": "Privacy by construction. The salt is destroyed daily, the IP discarded at ingestion, DNT and GPC honored."
+    },
+    {
+      "id": "09-ai-oss",
+      "mood": "confidence",
+      "fr": "L'IA tourne sur vos modèles locaux : aucune donnée ne sort. Et tout le serveur est open source, sous licence AGPL trois.",
+      "en": "The AI runs on your own local models: no data leaves. And the entire server is open source, under the AGPL three license."
+    },
+    {
+      "id": "10-cta",
+      "mood": "contemplation",
+      "fr": "Oriflux. Web, produit et API analytics, sans cookies, sur votre infrastructure. Essayez le cloud, ou déployez-le chez vous.",
+      "en": "Oriflux. Web, product and API analytics, cookieless, on your own infrastructure. Try the cloud, or deploy it yourself."
+    }
+  ]
+}
