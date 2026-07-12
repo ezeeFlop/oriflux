@@ -80,8 +80,8 @@ Oriflux is the source of truth for traffic classification (single crawler/AI-age
 
 ### Issue tracker
 
-Issues live in GitHub Issues on `ezeeFlop/oriflux` (private), operated via the `gh` CLI;
-external PRs are not a triage surface. See `docs/agents/issue-tracker.md`.
+Issues live in GitHub Issues on `ezeeFlop/oriflux` (public repo since 2026-07-12), operated
+via the `gh` CLI; external PRs are not a triage surface. See `docs/agents/issue-tracker.md`.
 
 ### Triage labels
 
