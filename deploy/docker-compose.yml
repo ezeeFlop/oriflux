@@ -16,9 +16,8 @@ x-service-env: &service-env
   # AI layer (optional in dev — empty URL keeps it cleanly disabled)
   ORIFLUX_SPT_MODELS_URL: ${ORIFLUX_SPT_MODELS_URL:-}
   ORIFLUX_SPT_MODELS_API_KEY: ${ORIFLUX_SPT_MODELS_API_KEY:-}
-  ORIFLUX_SPT_CHAT_MODEL: ${ORIFLUX_SPT_CHAT_MODEL:-spt-chat}
-  ORIFLUX_SPT_EMBED_MODEL: ${ORIFLUX_SPT_EMBED_MODEL:-spt-embed}
-  ORIFLUX_SPT_RERANK_MODEL: ${ORIFLUX_SPT_RERANK_MODEL:-spt-rerank}
+  ORIFLUX_SPT_CHAT_MODEL: ${ORIFLUX_SPT_CHAT_MODEL:-gemma-4-26b-a4b-it}
+  ORIFLUX_SPT_EMBED_MODEL: ${ORIFLUX_SPT_EMBED_MODEL:-jina-embeddings-v5-text-small}
 
 x-healthz: &healthz
   test: ["CMD", "python", "-c", "import urllib.request; urllib.request.urlopen('http://localhost:8000/healthz')"]

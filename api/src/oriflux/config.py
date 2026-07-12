@@ -53,9 +53,11 @@ class Settings(BaseSettings):
     # AI layer (issue #33, PRD §6): local SPT Models only — never a cloud LLM
     spt_models_url: str = ""  # empty → every AI feature cleanly disabled
     spt_models_api_key: str = ""
-    spt_chat_model: str = "spt-chat"
-    spt_embed_model: str = "spt-embed"
-    spt_rerank_model: str = "spt-rerank"
+    # real catalogue slugs: gemma-4 = strongest instruction follower (Ask
+    # Oriflux compiles NL → typed query, correctness first); override with
+    # qwen3.5-9b / qwen3.5-35b-a3b-gguf when latency matters more
+    spt_chat_model: str = "gemma-4-26b-a4b-it"
+    spt_embed_model: str = "jina-embeddings-v5-text-small"
     ai_default_monthly_token_budget: int = 2_000_000  # per org; org column overrides
 
     # Connectors (issue #24): Fernet key for webhook secrets at rest
