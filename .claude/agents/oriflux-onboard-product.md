@@ -30,12 +30,27 @@ exactly as before.
   - **P1 static index.html + /of proxy**: a committed `index.html` served
     first-party (like spt.ai/audigeo), backend has or should get an `/of/{path}`
     reverse-proxy to the ingest host.
-  - **P2 Vite build**: a `frontend/` with `vite`, `src/main.tsx`, a separate
-    frontend image and `VITE_*` env (like ClipHaven).
+  - **P2 Vite build**: a `frontend/` with `vite`, `src/main.tsx` (like ClipHaven,
+    Rayonne, Zeus, NeoKanban, Spongram admin, SPT Models admin).
   - **P3 backend-generated config.js**: the backend writes a `config.js` at
     startup (like spt-neo-rag).
+  - **P4 Next.js**: a Next.js app (App Router `src/app/layout.tsx`, or Pages
+    Router `pages/_app.tsx`/`_document.tsx`), uses `NEXT_PUBLIC_*` env (like
+    NeoDicta web). `NEXT_PUBLIC_*` inlines at BUILD time, same as Vite.
+  - **No FastAPI backend at all** (e.g. NeoDicta is a Swift desktop app + a
+    Next.js site): skip the backend step entirely — instrument web only.
+- Backend factory pattern: if `app = FastAPI(` is inside a function (e.g.
+  `create_app()`), insert the middleware INSIDE that function after the app is
+  built / near the existing `add_middleware` calls, matching indentation — never
+  at module level. Watch for middleware guarded by an edition/config branch
+  (Spongram's `if edition == "local"`) — put Oriflux at the factory body level so
+  it applies to the deployed service.
+- Multi-service product (several FastAPI apps like SPT Models gateway/
+  orchestrator/worker): instrument ONLY the public/client-facing API entry (the
+  gateway), never the internal services.
 - Deploy stack: `docker-compose*.yml` / `*stack*.yml`; find the backend service
-  `environment:` block (and the frontend service for P2).
+  `environment:` block (and the frontend/admin service for P2/P4). A repo may have
+  more than one real prod swarm stack (NeoKanban) — add the vars to each.
 
 ### 2. Backend middleware (uniform — env-gated opt-in)
 Insert near the other `app.add_middleware(...)` calls:
@@ -71,7 +86,29 @@ list, or a new line in `requirements.txt`).
   ```
 - **P3**: append to the generated `config.js` string an env-gated loader reading
   `ORIFLUX_WEB_KEY` / `ORIFLUX_ENDPOINT` (the spt-neo-rag `_oriflux_loader` block).
+- **P4 Next.js**: in the root layout, render `next/script` only when the key is
+  set, gated on `process.env.NEXT_PUBLIC_ORIFLUX_WEB_KEY`:
+  ```tsx
+  import Script from 'next/script'
+  // ...inside <body>, after {children}:
+  {process.env.NEXT_PUBLIC_ORIFLUX_WEB_KEY && (
+    <Script src={`${process.env.NEXT_PUBLIC_ORIFLUX_ENDPOINT || 'https://in.oriflux.sponge-theory.dev'}/v1/oriflux.js`}
+      strategy="afterInteractive"
+      data-key={process.env.NEXT_PUBLIC_ORIFLUX_WEB_KEY}
+      data-endpoint={process.env.NEXT_PUBLIC_ORIFLUX_ENDPOINT || 'https://in.oriflux.sponge-theory.dev'} />
+  )}
+  ```
 - **No clear match** → STOP and ask (hard rule).
+
+### 3b. Build-time web key (Vite P2 / Next.js P4)
+`import.meta.env.VITE_*` and `NEXT_PUBLIC_*` are inlined at **image build time**,
+not read at runtime. When the SPA is baked into an image (a single backend image
+that serves the SPA — Rayonne/Zeus/Spongram — or a dedicated frontend/admin image),
+a runtime Portainer env var will NOT reach the built JS. Add the stack var for
+parity/visibility, but the handoff MUST say the web key has to be passed as a
+**build arg** when the image is built (add `ARG`/`ENV` to that Dockerfile before
+the build step, mirroring any existing `VITE_*`/`NEXT_PUBLIC_*` arg). Only a
+separate frontend service whose image is rebuilt per deploy activates cleanly.
 
 ### 4. Stack vars
 Add to the backend service `environment:` (match the file's list vs map syntax):
