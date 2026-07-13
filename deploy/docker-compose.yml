@@ -25,6 +25,9 @@ x-service-env: &service-env
   ORIFLUX_STRIPE_PRICE_SCALE: ${ORIFLUX_STRIPE_PRICE_SCALE:-}
   ORIFLUX_STRIPE_PRICE_PRO_ANNUAL: ${ORIFLUX_STRIPE_PRICE_PRO_ANNUAL:-}
   ORIFLUX_STRIPE_PRICE_SCALE_ANNUAL: ${ORIFLUX_STRIPE_PRICE_SCALE_ANNUAL:-}
+  # email via Resend (alerts + digests); empty = disabled
+  ORIFLUX_RESEND_API_KEY: ${ORIFLUX_RESEND_API_KEY:-}
+  ORIFLUX_ALERT_EMAIL_FROM: ${ORIFLUX_ALERT_EMAIL_FROM:-oriflux@sponge-theory.io}
 
 x-healthz: &healthz
   test: ["CMD", "python", "-c", "import urllib.request; urllib.request.urlopen('http://localhost:8000/healthz')"]

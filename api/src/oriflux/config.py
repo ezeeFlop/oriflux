@@ -35,7 +35,9 @@ class Settings(BaseSettings):
     # fully functional on the free/internal plans
     stripe_secret_key: str = ""
     stripe_webhook_secret: str = ""
-    web_base_url: str = "https://oriflux.sponge-theory.dev"
+    # the DASHBOARD host (app.*) — Stripe checkout/portal return to its
+    # /settings/org route, NOT the landing on the apex domain
+    web_base_url: str = "https://app.oriflux.sponge-theory.dev"
     ingest_rate_limit_per_ip: int = 1200
 
     # Enrichment (issues #4, #14): local .mmdb databases + monthly refresh.

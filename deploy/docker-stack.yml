@@ -39,10 +39,15 @@ x-oriflux-env: &oriflux-env
   ORIFLUX_DATABASE_URL: postgresql+asyncpg://${POSTGRES_USER:-oriflux}:${POSTGRES_PASSWORD:?POSTGRES_PASSWORD is required}@oriflux_postgres:5432/${POSTGRES_DB:-oriflux}
   ORIFLUX_JWT_SECRET: ${ORIFLUX_JWT_SECRET:?ORIFLUX_JWT_SECRET is required}
   ORIFLUX_GOOGLE_CLIENT_ID: ${ORIFLUX_GOOGLE_CLIENT_ID:-1031899381936-8g3t4qvikt248nfe76lm5kmcs39ahesq.apps.googleusercontent.com}
+  # dashboard host — Stripe checkout/portal return here (app.*, not the landing)
+  ORIFLUX_WEB_BASE_URL: ${ORIFLUX_WEB_BASE_URL:-https://app.oriflux.sponge-theory.dev}
   ORIFLUX_GEOIP_DIR: /var/lib/oriflux/geoip
   ORIFLUX_GEOIP_PROVIDER: ${ORIFLUX_GEOIP_PROVIDER:-dbip}  # dbip (keyless) | maxmind (needs key)
   ORIFLUX_MAXMIND_LICENSE_KEY: ${MAXMIND_LICENSE_KEY:-}  # only used by the maxmind provider
   ORIFLUX_OPS_WEBHOOK_URL: ${OPS_WEBHOOK_URL:-}
+  # email via Resend (alerts + digests): empty key = email channel disabled
+  ORIFLUX_RESEND_API_KEY: ${ORIFLUX_RESEND_API_KEY:-}
+  ORIFLUX_ALERT_EMAIL_FROM: ${ORIFLUX_ALERT_EMAIL_FROM:-oriflux@sponge-theory.io}
   ORIFLUX_FERNET_KEY: ${ORIFLUX_FERNET_KEY:-}  # connectors (#24): python -c "from cryptography.fernet import Fernet; print(Fernet.generate_key().decode())"
   # billing (#63/#65): empty secret key = billing cleanly disabled (503 on
   # webhook/checkout). Set both in the Portainer stack env; price IDs live in
