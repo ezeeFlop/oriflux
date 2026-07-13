@@ -134,3 +134,4 @@ class TestPublicPricing:
         assert by_slug["pro"]["amount_cents_annual"] == 19000
         assert by_slug["pro"]["currency"] == "eur"
         assert by_slug["free"]["amount_cents"] is None  # no hardcoded 0
+        assert by_slug["pro"]["subscribable"] is True

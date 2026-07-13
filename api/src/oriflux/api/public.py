@@ -27,6 +27,7 @@ class PublicPlan(BaseModel):
     slug: str
     name: str
     monthly_events: int | None
+    subscribable: bool  # a Stripe price id is attached (env vars reached the db)
     amount_cents: int | None  # monthly, from Stripe (None = not priced yet)
     amount_cents_annual: int | None  # annual, from Stripe
     currency: str | None
@@ -52,6 +53,7 @@ async def public_pricing(
             slug=p.slug,
             name=p.name,
             monthly_events=p.monthly_events,
+            subscribable=p.stripe_price_id is not None,
             amount_cents=p.amount_cents,
             amount_cents_annual=p.amount_cents_annual,
             currency=p.currency,

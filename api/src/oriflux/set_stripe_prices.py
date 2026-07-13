@@ -61,8 +61,15 @@ async def sync_prices(
                     skipped.append(f"{slug} {cadence} ({env_var} unset)")
                     continue
                 # read the live amount from Stripe (never hardcoded); cache it
-                # alongside the id so the public pricing endpoint stays fast
-                info = gateway.get_price(price_id) if gateway.enabled else None
+                # alongside the id so the public pricing endpoint stays fast.
+                # a Stripe hiccup must not abort the whole sync — the id is
+                # still written, the amount just stays what it was
+                info = None
+                if gateway.enabled:
+                    try:
+                        info = gateway.get_price(price_id)
+                    except Exception:  # noqa: BLE001 — resilient per price
+                        info = None
                 amount_col = _AMOUNT_COLUMN[id_column]
                 result = await session.execute(
                     text(
