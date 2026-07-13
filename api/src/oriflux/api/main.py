@@ -11,6 +11,7 @@ import asyncio
 import csv
 import io
 import json
+import logging
 from collections.abc import AsyncIterator
 from contextlib import asynccontextmanager
 from typing import Any, Protocol
@@ -51,6 +52,7 @@ from oriflux.query.funnel import FunnelRequest, build_funnel
 from oriflux.query.models import Filter, Period, QueryRequest
 from oriflux.query.retention import RetentionRequest, build_retention
 from oriflux.security.google import GoogleVerifier, make_google_verifier
+from oriflux.set_stripe_prices import sync_prices
 
 
 class QueryExecutor(Protocol):
@@ -106,7 +108,16 @@ def create_app(
         if session_factory is None:
             await asyncio.to_thread(run_migrations, settings)
             engine = create_engine(settings)
-            app.state.session_factory = create_session_factory(engine)
+            factory = create_session_factory(engine)
+            app.state.session_factory = factory
+            # sync Stripe prices from the env at boot — "set the env, redeploy"
+            # is all it takes; never let a Stripe hiccup block startup
+            try:
+                applied, _ = await sync_prices(factory, app.state.billing)
+                if applied:
+                    logging.getLogger(__name__).info("stripe prices synced: %s", ", ".join(applied))
+            except Exception:  # noqa: BLE001 — pricing must never crash the app
+                logging.getLogger(__name__).warning("stripe price sync skipped", exc_info=True)
             yield
             await engine.dispose()
         else:

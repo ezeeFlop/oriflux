@@ -1,9 +1,11 @@
-"""Attach Stripe price IDs to the subscribable plans (#65).
+"""Attach Stripe price IDs + cached amounts to the subscribable plans (#65).
 
 Prices are data, not code (plans.stripe_price_id) — no amount is ever
-hardcoded. This command reads the price IDs from the environment and writes
-them onto the matching plan rows, so activating billing never means editing
-SQL by hand. Idempotent: re-running with the same values is a no-op.
+hardcoded. The price IDs come from the environment and are written onto the
+matching plan rows, with the live amount read back from Stripe. Idempotent.
+
+This runs automatically at api startup (so "set the env, redeploy" is all it
+takes), and is also a standalone command for an on-demand re-sync:
 
     # in the Portainer stack env (price IDs are not secrets):
     #   ORIFLUX_STRIPE_PRICE_PRO=price_...          # monthly
@@ -21,8 +23,9 @@ import os
 import sys
 
 from sqlalchemy import text
+from sqlalchemy.ext.asyncio import AsyncSession, async_sessionmaker
 
-from oriflux.billing import StripeGateway
+from oriflux.billing import BillingGateway, StripeGateway
 from oriflux.config import get_settings
 from oriflux.db import create_engine, create_session_factory
 
@@ -39,12 +42,14 @@ _AMOUNT_COLUMN = {
 }
 
 
-async def apply_prices() -> None:
-    settings = get_settings()
-    gateway = StripeGateway(settings.stripe_secret_key, settings.stripe_webhook_secret)
-    engine = create_engine(settings)
-    factory = create_session_factory(engine)
-    applied, skipped = [], []
+async def sync_prices(
+    factory: async_sessionmaker[AsyncSession], gateway: BillingGateway
+) -> tuple[list[str], list[str]]:
+    """Write env price IDs + live Stripe amounts onto the plan rows.
+    Returns (applied, skipped) human-readable lines. Never raises on an
+    individual price it cannot resolve."""
+    applied: list[str] = []
+    skipped: list[str] = []
     async with factory() as session:
         for slug, (monthly_env, annual_env) in _PLAN_PRICE_ENV.items():
             for id_column, env_var, cadence in (
@@ -77,6 +82,15 @@ async def apply_prices() -> None:
                 else:
                     skipped.append(f"{slug} {cadence} (no such plan row)")
         await session.commit()
+    return applied, skipped
+
+
+async def apply_prices() -> None:
+    settings = get_settings()
+    gateway = StripeGateway(settings.stripe_secret_key, settings.stripe_webhook_secret)
+    engine = create_engine(settings)
+    factory = create_session_factory(engine)
+    applied, skipped = await sync_prices(factory, gateway)
     await engine.dispose()
 
     for line in applied:
