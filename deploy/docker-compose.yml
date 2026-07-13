@@ -21,6 +21,10 @@ x-service-env: &service-env
   # billing (optional in dev — empty key keeps it disabled)
   ORIFLUX_STRIPE_SECRET_KEY: ${ORIFLUX_STRIPE_SECRET_KEY:-}
   ORIFLUX_STRIPE_WEBHOOK_SECRET: ${ORIFLUX_STRIPE_WEBHOOK_SECRET:-}
+  ORIFLUX_STRIPE_PRICE_PRO: ${ORIFLUX_STRIPE_PRICE_PRO:-}
+  ORIFLUX_STRIPE_PRICE_SCALE: ${ORIFLUX_STRIPE_PRICE_SCALE:-}
+  ORIFLUX_STRIPE_PRICE_PRO_ANNUAL: ${ORIFLUX_STRIPE_PRICE_PRO_ANNUAL:-}
+  ORIFLUX_STRIPE_PRICE_SCALE_ANNUAL: ${ORIFLUX_STRIPE_PRICE_SCALE_ANNUAL:-}
 
 x-healthz: &healthz
   test: ["CMD", "python", "-c", "import urllib.request; urllib.request.urlopen('http://localhost:8000/healthz')"]

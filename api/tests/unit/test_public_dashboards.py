@@ -7,7 +7,9 @@ rejection is server-side, not UI hiding.
 
 import httpx
 import pytest
+from sqlalchemy.ext.asyncio import AsyncSession, async_sessionmaker
 
+from oriflux.db.models import Plan
 from oriflux.public.allowlist import PUBLIC_METRICS, is_public_query
 from oriflux.query.models import QueryRequest
 from tests.unit.conftest import FakeExecutor, login
@@ -104,3 +106,31 @@ class TestShareTokens:
             f"/api/v1/projects/{project_id}/share", headers=viewer
         )
         assert forbidden.status_code == 403
+
+
+class TestPublicPricing:
+    async def test_pricing_is_unauthenticated_and_reflects_stripe_amounts(
+        self,
+        api_client: httpx.AsyncClient,
+        db_sessionmaker: async_sessionmaker[AsyncSession],
+    ) -> None:
+        async with db_sessionmaker() as session:
+            session.add(Plan(slug="free", name="Free", monthly_events=100_000))
+            session.add(Plan(
+                slug="pro", name="Pro", monthly_events=1_000_000,
+                stripe_price_id="price_pro", stripe_price_id_annual="price_pro_yr",
+                amount_cents=1900, amount_cents_annual=19000, currency="eur",
+            ))
+            session.add(Plan(slug="internal", name="Internal", monthly_events=None))
+            await session.commit()
+
+        # no Authorization header at all
+        response = await api_client.get("/api/v1/pricing")
+        assert response.status_code == 200
+        assert response.headers["access-control-allow-origin"] == "*"
+        by_slug = {p["slug"]: p for p in response.json()}
+        assert "internal" not in by_slug  # dogfooding plan never public
+        assert by_slug["pro"]["amount_cents"] == 1900
+        assert by_slug["pro"]["amount_cents_annual"] == 19000
+        assert by_slug["pro"]["currency"] == "eur"
+        assert by_slug["free"]["amount_cents"] is None  # no hardcoded 0

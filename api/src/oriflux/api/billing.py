@@ -8,11 +8,11 @@ and everything else in the product keeps working on free/internal plans.
 
 import logging
 import uuid
-from typing import Any
+from typing import Any, Literal
 
 from fastapi import APIRouter, Depends, HTTPException, Request
 from pydantic import BaseModel
-from sqlalchemy import select
+from sqlalchemy import or_, select
 from sqlalchemy.exc import IntegrityError
 from sqlalchemy.ext.asyncio import AsyncSession
 
@@ -29,7 +29,11 @@ class BillingPlanOut(BaseModel):
     slug: str
     name: str
     monthly_events: int | None
-    subscribable: bool  # has a Stripe price
+    subscribable: bool  # has a monthly Stripe price
+    annual_subscribable: bool  # has an annual Stripe price (2 months free)
+    amount_cents: int | None  # monthly amount cached from Stripe
+    amount_cents_annual: int | None
+    currency: str | None
 
 
 class BillingOut(BaseModel):
@@ -41,6 +45,7 @@ class BillingOut(BaseModel):
 
 class CheckoutIn(BaseModel):
     plan_slug: str
+    interval: Literal["month", "year"] = "month"
 
 
 class HostedUrlOut(BaseModel):
@@ -76,6 +81,10 @@ async def billing_state(
                 name=p.name,
                 monthly_events=p.monthly_events,
                 subscribable=p.stripe_price_id is not None,
+                annual_subscribable=p.stripe_price_id_annual is not None,
+                amount_cents=p.amount_cents,
+                amount_cents_annual=p.amount_cents_annual,
+                currency=p.currency,
             )
             for p in plans
         ],
@@ -98,7 +107,12 @@ async def create_checkout(
     if org is None:
         raise HTTPException(status_code=404, detail="org not found")
     plan = await session.get(Plan, payload.plan_slug)
-    if plan is None or plan.stripe_price_id is None:
+    if plan is None:
+        raise HTTPException(status_code=422, detail="plan is not subscribable")
+    price_id = (
+        plan.stripe_price_id_annual if payload.interval == "year" else plan.stripe_price_id
+    )
+    if price_id is None:
         raise HTTPException(status_code=422, detail="plan is not subscribable")
     base = request.app.state.settings.web_base_url
     url = gateway.create_checkout(
@@ -106,7 +120,7 @@ async def create_checkout(
             org_id=str(org_id),
             customer_id=org.stripe_customer_id,
             customer_email=user.email,
-            price_id=plan.stripe_price_id,
+            price_id=price_id,
             plan_slug=plan.slug,
             success_url=f"{base}/settings/org?billing=success",
             cancel_url=f"{base}/settings/org?billing=cancelled",
@@ -157,10 +171,19 @@ async def _org_for_event(
 
 
 async def _plan_for_price(session: AsyncSession, price_id: str | None) -> Plan | None:
+    """A subscription price can be the monthly OR the annual cadence of a
+    plan — both map to the same plan slug."""
     if price_id is None:
         return None
     return (
-        await session.execute(select(Plan).where(Plan.stripe_price_id == price_id))
+        await session.execute(
+            select(Plan).where(
+                or_(
+                    Plan.stripe_price_id == price_id,
+                    Plan.stripe_price_id_annual == price_id,
+                )
+            )
+        )
     ).scalar_one_or_none()
 
 

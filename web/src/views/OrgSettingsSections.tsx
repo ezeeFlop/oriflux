@@ -10,6 +10,7 @@ import {
   addMember,
   createCheckout,
   createPortal,
+  formatMoney,
   getBilling,
   getUsage,
   getDigestPref,
@@ -19,6 +20,7 @@ import {
   revokeShare,
   setDigestPref,
   unsubscribeDigest,
+  type BillingInterval,
   type DigestPref,
   type MintedShare,
   type Role,
@@ -74,12 +76,13 @@ export function UsageSection({ orgId }: { orgId: string }) {
 
 export function BillingSection({ orgId }: { orgId: string }) {
   const { t } = useTranslation();
+  const [interval, setInterval] = useState<BillingInterval>("month");
   const billing = useQuery({
     queryKey: ["billing", orgId],
     queryFn: () => getBilling(orgId),
   });
   const checkout = useMutation({
-    mutationFn: (planSlug: string) => createCheckout(orgId, planSlug),
+    mutationFn: (planSlug: string) => createCheckout(orgId, planSlug, interval),
     onSuccess: ({ url }) => redirectTo(url),
   });
   const portal = useMutation({
@@ -91,23 +94,60 @@ export function BillingSection({ orgId }: { orgId: string }) {
   if (!data?.enabled) return null; // keyless instance: billing stays invisible
 
   const upgrades = data.plans.filter((p) => p.subscribable && p.slug !== data.plan_slug);
+  // the annual toggle only shows if at least one upgrade offers an annual price
+  const annualOffered = upgrades.some((p) => p.annual_subscribable);
 
   return (
     <Panel title={t("settings.billing")}>
-      <ul className="divide-y divide-line/60">
-        {upgrades.map((plan) => (
-          <li key={plan.slug} className="flex items-center gap-3 py-2 text-sm">
-            <span className={CHIP}>{plan.name}</span>
-            <span className="min-w-0 flex-1 text-ink-soft">
-              {plan.monthly_events !== null
-                ? t("settings.planQuota", { quota: plan.monthly_events.toLocaleString() })
-                : t("settings.usageUnlimited")}
-            </span>
-            <button onClick={() => checkout.mutate(plan.slug)} className={PRIMARY_BUTTON}>
-              {t("settings.subscribe", { plan: plan.name })}
+      {annualOffered && (
+        <div className="mb-3 flex items-center gap-1" role="group" aria-label={t("settings.billingInterval")}>
+          {(["month", "year"] as const).map((option) => (
+            <button
+              key={option}
+              onClick={() => setInterval(option)}
+              aria-pressed={interval === option}
+              className={`rounded-md px-2.5 py-1 text-xs font-medium ${
+                interval === option ? "bg-flame text-white" : "text-ink-soft hover:bg-flame-soft"
+              }`}
+            >
+              {t(`settings.interval.${option}`)}
             </button>
-          </li>
-        ))}
+          ))}
+          {interval === "year" && (
+            <span className="ml-1 text-xs font-semibold text-flame">{t("settings.annualSave")}</span>
+          )}
+        </div>
+      )}
+      <ul className="divide-y divide-line/60">
+        {upgrades.map((plan) => {
+          // annual chosen but this plan has monthly only → bill it monthly
+          const effective = interval === "year" && plan.annual_subscribable ? "year" : "month";
+          // amount is whatever Stripe says — never hardcoded here
+          const cents = effective === "year" ? plan.amount_cents_annual : plan.amount_cents;
+          const price = formatMoney(cents, plan.currency);
+          return (
+            <li key={plan.slug} className="flex items-center gap-3 py-2 text-sm">
+              <span className={CHIP}>{plan.name}</span>
+              {price && (
+                <span className="tnum whitespace-nowrap font-semibold">
+                  {price}
+                  <span className="text-xs font-normal text-ink-soft">
+                    {" "}
+                    {t(`settings.per.${effective}`)}
+                  </span>
+                </span>
+              )}
+              <span className="min-w-0 flex-1 text-ink-soft">
+                {plan.monthly_events !== null
+                  ? t("settings.planQuota", { quota: plan.monthly_events.toLocaleString() })
+                  : t("settings.usageUnlimited")}
+              </span>
+              <button onClick={() => checkout.mutate(plan.slug)} className={PRIMARY_BUTTON}>
+                {t("settings.subscribe", { plan: plan.name })}
+              </button>
+            </li>
+          );
+        })}
         {upgrades.length === 0 && (
           <li className="py-3 text-sm text-ink-soft">{t("settings.noUpgrades")}</li>
         )}

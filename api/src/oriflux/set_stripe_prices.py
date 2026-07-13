@@ -6,8 +6,10 @@ them onto the matching plan rows, so activating billing never means editing
 SQL by hand. Idempotent: re-running with the same values is a no-op.
 
     # in the Portainer stack env (price IDs are not secrets):
-    #   ORIFLUX_STRIPE_PRICE_PRO=price_...
+    #   ORIFLUX_STRIPE_PRICE_PRO=price_...          # monthly
     #   ORIFLUX_STRIPE_PRICE_SCALE=price_...
+    #   ORIFLUX_STRIPE_PRICE_PRO_ANNUAL=price_...   # optional (2 months free)
+    #   ORIFLUX_STRIPE_PRICE_SCALE_ANNUAL=price_...
     docker compose exec api python -m oriflux.set_stripe_prices
 
 Price IDs come from the Stripe dashboard (Products → your price → API ID).
@@ -20,35 +22,60 @@ import sys
 
 from sqlalchemy import text
 
+from oriflux.billing import StripeGateway
 from oriflux.config import get_settings
 from oriflux.db import create_engine, create_session_factory
 
-# plan slug → env var carrying its Stripe price ID (free has no price)
+# plan slug → (monthly env var, annual env var). Free has no price; annual
+# is optional (2 months free) and independent of the monthly cadence.
 _PLAN_PRICE_ENV = {
-    "pro": "ORIFLUX_STRIPE_PRICE_PRO",
-    "scale": "ORIFLUX_STRIPE_PRICE_SCALE",
+    "pro": ("ORIFLUX_STRIPE_PRICE_PRO", "ORIFLUX_STRIPE_PRICE_PRO_ANNUAL"),
+    "scale": ("ORIFLUX_STRIPE_PRICE_SCALE", "ORIFLUX_STRIPE_PRICE_SCALE_ANNUAL"),
+}
+# which amount column caches which cadence
+_AMOUNT_COLUMN = {
+    "stripe_price_id": "amount_cents",
+    "stripe_price_id_annual": "amount_cents_annual",
 }
 
 
 async def apply_prices() -> None:
     settings = get_settings()
+    gateway = StripeGateway(settings.stripe_secret_key, settings.stripe_webhook_secret)
     engine = create_engine(settings)
     factory = create_session_factory(engine)
     applied, skipped = [], []
     async with factory() as session:
-        for slug, env_var in _PLAN_PRICE_ENV.items():
-            price_id = os.environ.get(env_var, "").strip()
-            if not price_id:
-                skipped.append(f"{slug} ({env_var} unset)")
-                continue
-            result = await session.execute(
-                text("UPDATE plans SET stripe_price_id = :pid WHERE slug = :slug"),
-                {"pid": price_id, "slug": slug},
-            )
-            if result.rowcount:  # type: ignore[attr-defined]  # CursorResult exposes it
-                applied.append(f"{slug} → {price_id}")
-            else:
-                skipped.append(f"{slug} (no such plan row)")
+        for slug, (monthly_env, annual_env) in _PLAN_PRICE_ENV.items():
+            for id_column, env_var, cadence in (
+                ("stripe_price_id", monthly_env, "monthly"),
+                ("stripe_price_id_annual", annual_env, "annual"),
+            ):
+                price_id = os.environ.get(env_var, "").strip()
+                if not price_id:
+                    skipped.append(f"{slug} {cadence} ({env_var} unset)")
+                    continue
+                # read the live amount from Stripe (never hardcoded); cache it
+                # alongside the id so the public pricing endpoint stays fast
+                info = gateway.get_price(price_id) if gateway.enabled else None
+                amount_col = _AMOUNT_COLUMN[id_column]
+                result = await session.execute(
+                    text(
+                        f"UPDATE plans SET {id_column} = :pid, {amount_col} = :amt, "
+                        "currency = COALESCE(:cur, currency) WHERE slug = :slug"
+                    ),
+                    {
+                        "pid": price_id,
+                        "amt": info.amount_cents if info else None,
+                        "cur": info.currency if info else None,
+                        "slug": slug,
+                    },
+                )
+                if result.rowcount:  # type: ignore[attr-defined]  # CursorResult exposes it
+                    money = f" ({info.amount_cents / 100:.2f} {info.currency})" if info else ""
+                    applied.append(f"{slug} {cadence} → {price_id}{money}")
+                else:
+                    skipped.append(f"{slug} {cadence} (no such plan row)")
         await session.commit()
     await engine.dispose()
 

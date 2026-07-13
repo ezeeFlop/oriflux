@@ -96,7 +96,17 @@
     "subscribe": "Upgrade to {{plan}}",
     "manageSubscription": "Manage subscription (invoices, cancel)",
     "noUpgrades": "No higher plan available.",
-    "planQuota": "{{quota}} events / month"
+    "planQuota": "{{quota}} events / month",
+    "billingInterval": "Billing period",
+    "annualSave": "2 months free",
+    "interval": {
+      "month": "Monthly",
+      "year": "Annual"
+    },
+    "per": {
+      "month": "/ mo",
+      "year": "/ yr"
+    }
   },
   "footer": {
     "geoAttribution": "IP Geolocation by"

@@ -66,8 +66,11 @@ async def billing_client(
 
 async def seed_pro_plan(factory: async_sessionmaker[AsyncSession]) -> None:
     async with factory() as session:
-        session.add(Plan(slug="pro", name="Pro", monthly_events=1_000_000,
-                         stripe_price_id="price_pro_1"))
+        session.add(Plan(
+            slug="pro", name="Pro", monthly_events=1_000_000,
+            stripe_price_id="price_pro_1", stripe_price_id_annual="price_pro_yr",
+            amount_cents=1900, amount_cents_annual=19000, currency="eur",
+        ))
         session.add(Plan(slug="free", name="Free", monthly_events=100_000))
         await session.commit()
 
@@ -100,6 +103,38 @@ class TestBillingEndpoints:
         assert response.json()["url"] == "https://checkout.stripe.test/pro"
         assert gateway.checkouts[0].price_id == "price_pro_1"
         assert gateway.checkouts[0].org_id == org_id
+
+    async def test_checkout_year_interval_uses_the_annual_price(
+        self,
+        billing_client: httpx.AsyncClient,
+        db_sessionmaker: async_sessionmaker[AsyncSession],
+        gateway: FakeStripeGateway,
+    ) -> None:
+        await seed_pro_plan(db_sessionmaker)
+        owner = await login(billing_client, "alice")
+        org_id, _, _ = await create_org_chain(billing_client, owner)
+        response = await billing_client.post(
+            f"/api/v1/orgs/{org_id}/billing/checkout",
+            json={"plan_slug": "pro", "interval": "year"},
+            headers=owner,
+        )
+        assert response.status_code == 200, response.text
+        assert gateway.checkouts[0].price_id == "price_pro_yr"
+
+    async def test_billing_state_exposes_annual_flag_and_amounts(
+        self,
+        billing_client: httpx.AsyncClient,
+        db_sessionmaker: async_sessionmaker[AsyncSession],
+    ) -> None:
+        await seed_pro_plan(db_sessionmaker)
+        owner = await login(billing_client, "alice")
+        org_id, _, _ = await create_org_chain(billing_client, owner)
+        state = await billing_client.get(f"/api/v1/orgs/{org_id}/billing", headers=owner)
+        pro = next(p for p in state.json()["plans"] if p["slug"] == "pro")
+        assert pro["annual_subscribable"] is True
+        assert pro["amount_cents"] == 1900
+        assert pro["amount_cents_annual"] == 19000
+        assert pro["currency"] == "eur"
 
     async def test_checkout_rejects_a_plan_without_price(
         self,
@@ -212,6 +247,41 @@ class TestWebhook:
                 )
             ).scalar_one()
             assert org.plan_slug == "free"
+
+    async def test_subscription_updated_on_annual_price_maps_to_the_plan(
+        self,
+        billing_client: httpx.AsyncClient,
+        db_sessionmaker: async_sessionmaker[AsyncSession],
+    ) -> None:
+        await seed_pro_plan(db_sessionmaker)
+        owner = await login(billing_client, "alice")
+        org_id, _, _ = await create_org_chain(billing_client, owner)
+        async with db_sessionmaker() as session:
+            org = await session.get(Organization, uuid.UUID(org_id))
+            assert org is not None
+            org.stripe_customer_id = "cus_yr"
+            await session.commit()
+
+        # subscription carries the ANNUAL price id — must still resolve to "pro"
+        payload, headers = signed({
+            "id": "evt_yr",
+            "type": "customer.subscription.updated",
+            "data": {"object": {
+                "customer": "cus_yr",
+                "items": {"data": [{"price": {"id": "price_pro_yr"}}]},
+            }},
+        })
+        response = await billing_client.post(
+            "/api/v1/billing/webhook", content=payload, headers=headers
+        )
+        assert response.status_code == 200
+        async with db_sessionmaker() as session:
+            org = (
+                await session.execute(
+                    select(Organization).where(Organization.stripe_customer_id == "cus_yr")
+                )
+            ).scalar_one()
+            assert org.plan_slug == "pro"
 
     async def test_bad_signature_is_400(
         self, billing_client: httpx.AsyncClient

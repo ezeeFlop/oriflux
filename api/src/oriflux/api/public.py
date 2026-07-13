@@ -14,13 +14,52 @@ from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from oriflux.api.deps import get_current_user, get_session, require_role
-from oriflux.db.models import Project, Role, ShareToken, User
+from oriflux.db.models import Plan, Project, Role, ShareToken, User
 from oriflux.public.allowlist import is_public_query
 from oriflux.query.engine import build_query
 from oriflux.query.models import Filter, QueryRequest
 from oriflux.security.keys import hash_api_key
 
 router = APIRouter(tags=["public"])
+
+
+class PublicPlan(BaseModel):
+    slug: str
+    name: str
+    monthly_events: int | None
+    amount_cents: int | None  # monthly, from Stripe (None = not priced yet)
+    amount_cents_annual: int | None  # annual, from Stripe
+    currency: str | None
+
+
+@router.get("/api/v1/pricing")
+async def public_pricing(
+    response: Response,
+    session: AsyncSession = Depends(get_session),
+) -> list[PublicPlan]:
+    """Public, unauthenticated pricing — the single source the landing and
+    the dashboard render from, so no amount is ever hardcoded. Amounts are
+    cached from Stripe by set_stripe_prices. CORS-open: it is fully public,
+    read-only, non-sensitive, and the static landing lives on another origin.
+    """
+    response.headers["Access-Control-Allow-Origin"] = "*"
+    response.headers["Cache-Control"] = "public, max-age=300"
+    plans = (
+        (await session.execute(select(Plan).order_by(Plan.monthly_events))).scalars().all()
+    )
+    return [
+        PublicPlan(
+            slug=p.slug,
+            name=p.name,
+            monthly_events=p.monthly_events,
+            amount_cents=p.amount_cents,
+            amount_cents_annual=p.amount_cents_annual,
+            currency=p.currency,
+        )
+        for p in plans
+        # free is shown (amount 0/None); internal/dogfooding never is
+        if p.slug != "internal"
+    ]
 
 
 class ShareOut(BaseModel):

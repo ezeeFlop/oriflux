@@ -1,5 +1,5 @@
 ---
-import { APP_URL, CONTACT_EMAIL } from "../lib/config";
+import { APP_URL, API_URL, CONTACT_EMAIL } from "../lib/config";
 interface Props {
   t: any;
   lang: "fr" | "en";
@@ -18,16 +18,29 @@ function ctaHref(kind: string) {
       <p class="section-label">{pr.label}</p>
       <h2 class="section-title">{pr.title}</h2>
       <p class="section-lede">{pr.lede}</p>
-      <span class="chip annual">{pr.annualNote}</span>
+      <div
+        class="interval-toggle"
+        data-pricing-endpoint={`${API_URL}/api/v1/pricing`}
+        data-lang={lang}
+        data-per-month={pr.per.month}
+        data-per-year={pr.per.year}
+        hidden
+      >
+        <button type="button" class="on" data-interval="month">{pr.toggle.month}</button>
+        <button type="button" data-interval="year">{pr.toggle.year}</button>
+        <span class="chip annual">{pr.annualNote}</span>
+      </div>
     </div>
 
     <div class="tiers">
       {pr.cards.map((card: any) => (
-        <article class={`tier card ${card.featured ? "featured" : ""}`}>
+        <article class={`tier card ${card.featured ? "featured" : ""}`} data-slug={card.slug}>
           <div class="tier-name">{card.name}</div>
           <div class="tier-price">
-            <span class="price num">{card.price}</span>
-            <span class="period">{card.period}</span>
+            {/* content values are the SEO / no-JS fallback; the live Stripe
+                amount from /api/v1/pricing overwrites them on load */}
+            <span class="price num" data-price>{card.price}</span>
+            <span class="period" data-period>{card.period}</span>
           </div>
           <div class="tier-quota num">{card.quota}</div>
           <ul class="tier-features">
@@ -50,6 +63,71 @@ function ctaHref(kind: string) {
   </div>
 </section>
 
+<script>
+  // Live pricing: read the real Stripe amounts from the public endpoint and
+  // fill each card, so nothing is hardcoded. The static content stays as a
+  // graceful fallback (no-JS / API down). A monthly/annual toggle re-renders.
+  const toggle = document.querySelector<HTMLElement>(".interval-toggle");
+  if (toggle) {
+    const endpoint = toggle.dataset.pricingEndpoint!;
+    const lang = toggle.dataset.lang || "en";
+    const per = { month: toggle.dataset.perMonth || "", year: toggle.dataset.perYear || "" };
+    const cards = Array.from(document.querySelectorAll<HTMLElement>(".tier[data-slug]"));
+    type Plan = {
+      slug: string;
+      amount_cents: number | null;
+      amount_cents_annual: number | null;
+      currency: string | null;
+    };
+
+    const money = (cents: number, currency: string) =>
+      new Intl.NumberFormat(lang, {
+        style: "currency",
+        currency: (currency || "eur").toUpperCase(),
+        maximumFractionDigits: cents % 100 === 0 ? 0 : 2,
+      }).format(cents / 100);
+
+    fetch(endpoint)
+      .then((r) => (r.ok ? r.json() : Promise.reject(r.status)))
+      .then((plans: Plan[]) => {
+        const bySlug = new Map(plans.map((p) => [p.slug, p]));
+        const hasAnnual = plans.some((p) => p.amount_cents_annual != null);
+        if (hasAnnual) toggle.hidden = false;
+
+        const render = (interval: "month" | "year") => {
+          for (const card of cards) {
+            const plan = bySlug.get(card.dataset.slug || "");
+            const cents = plan
+              ? interval === "year"
+                ? plan.amount_cents_annual
+                : plan.amount_cents
+              : null;
+            if (plan && cents != null) {
+              const priceEl = card.querySelector<HTMLElement>("[data-price]");
+              const periodEl = card.querySelector<HTMLElement>("[data-period]");
+              if (priceEl) priceEl.textContent = money(cents, plan.currency || "eur");
+              if (periodEl) periodEl.textContent = per[interval];
+            }
+          }
+        };
+
+        render("month");
+        toggle.querySelectorAll<HTMLButtonElement>("button[data-interval]").forEach((btn) => {
+          btn.addEventListener("click", () => {
+            toggle
+              .querySelectorAll("button[data-interval]")
+              .forEach((b) => b.classList.remove("on"));
+            btn.classList.add("on");
+            render(btn.dataset.interval as "month" | "year");
+          });
+        });
+      })
+      .catch(() => {
+        /* keep the static fallback prices */
+      });
+  }
+</script>
+
 <style>
   .pricing-head {
     text-align: center;
@@ -62,8 +140,30 @@ function ctaHref(kind: string) {
     margin-left: auto;
     margin-right: auto;
   }
-  .chip.annual {
-    margin-top: 20px;
+  .interval-toggle {
+    margin-top: 22px;
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+  }
+  .interval-toggle button {
+    border: 1px solid var(--line);
+    background: var(--bg);
+    color: var(--ink-soft);
+    border-radius: 8px;
+    padding: 6px 14px;
+    font-size: 0.85rem;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.15s;
+  }
+  .interval-toggle button.on {
+    background: var(--flame);
+    border-color: var(--flame);
+    color: #fff;
+  }
+  .interval-toggle .chip.annual {
+    margin-left: 6px;
   }
   .tiers {
     display: grid;

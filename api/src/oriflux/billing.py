@@ -34,6 +34,16 @@ class CheckoutRequest:
     cancel_url: str
 
 
+@dataclass
+class PriceInfo:
+    """A Stripe price's public facts — the amount is never authored here, it
+    is read back from Stripe so the displayed price is always the real one."""
+
+    amount_cents: int
+    currency: str
+    interval: str  # "month" | "year"
+
+
 class BillingGateway(Protocol):
     @property
     def enabled(self) -> bool: ...
@@ -44,6 +54,11 @@ class BillingGateway(Protocol):
 
     def create_portal(self, customer_id: str, return_url: str) -> str:
         """Returns the hosted customer-portal URL."""
+        ...
+
+    def get_price(self, price_id: str) -> PriceInfo | None:
+        """Read a price's amount/currency/interval from Stripe (None if the
+        price is unknown or billing is disabled)."""
         ...
 
     def parse_webhook(self, payload: bytes, signature_header: str) -> dict[str, Any]:
@@ -92,6 +107,21 @@ class StripeGateway:
             customer=customer_id, return_url=return_url
         )
         return str(session.url)
+
+    def get_price(self, price_id: str) -> PriceInfo | None:
+        if not self.enabled:
+            return None
+        stripe = self._client()
+        price = stripe.Price.retrieve(price_id)
+        amount = price.get("unit_amount")
+        recurring = price.get("recurring") or {}
+        if amount is None:
+            return None
+        return PriceInfo(
+            amount_cents=int(amount),
+            currency=str(price.get("currency", "eur")),
+            interval=str(recurring.get("interval", "month")),
+        )
 
     def parse_webhook(self, payload: bytes, signature_header: str) -> dict[str, Any]:
         if not verify_stripe_signature(payload, signature_header, self._webhook_secret):

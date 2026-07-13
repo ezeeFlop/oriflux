@@ -193,6 +193,22 @@ export interface BillingPlan {
   name: string;
   monthly_events: number | null;
   subscribable: boolean;
+  annual_subscribable: boolean;
+  amount_cents: number | null;
+  amount_cents_annual: number | null;
+  currency: string | null;
+}
+
+export type BillingInterval = "month" | "year";
+
+/** Amount from Stripe (cached), never hardcoded — `null` = not priced. */
+export function formatMoney(cents: number | null, currency: string | null): string | null {
+  if (cents === null) return null;
+  return new Intl.NumberFormat(undefined, {
+    style: "currency",
+    currency: (currency ?? "eur").toUpperCase(),
+    maximumFractionDigits: cents % 100 === 0 ? 0 : 2,
+  }).format(cents / 100);
 }
 
 export interface Billing {
@@ -206,10 +222,14 @@ export function getBilling(orgId: string): Promise<Billing> {
   return apiFetch<Billing>(`/api/v1/orgs/${orgId}/billing`);
 }
 
-export function createCheckout(orgId: string, planSlug: string): Promise<{ url: string }> {
+export function createCheckout(
+  orgId: string,
+  planSlug: string,
+  interval: BillingInterval = "month",
+): Promise<{ url: string }> {
   return apiFetch<{ url: string }>(`/api/v1/orgs/${orgId}/billing/checkout`, {
     method: "POST",
-    body: JSON.stringify({ plan_slug: planSlug }),
+    body: JSON.stringify({ plan_slug: planSlug, interval }),
   });
 }
 

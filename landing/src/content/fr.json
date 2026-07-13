@@ -186,7 +186,8 @@
           "Rétention 13 mois"
         ],
         "cta": "Créer un compte",
-        "kind": "signup"
+        "kind": "signup",
+        "slug": "free"
       },
       {
         "name": "Pro",
@@ -201,7 +202,8 @@
         ],
         "cta": "Démarrer avec Pro",
         "kind": "signup",
-        "featured": true
+        "featured": true,
+        "slug": "pro"
       },
       {
         "name": "Scale",
@@ -215,7 +217,8 @@
           "Rôles et quotas par équipe"
         ],
         "cta": "Démarrer avec Scale",
-        "kind": "signup"
+        "kind": "signup",
+        "slug": "scale"
       },
       {
         "name": "Enterprise",
@@ -229,11 +232,20 @@
           "Accompagnement au déploiement"
         ],
         "cta": "Nous contacter",
-        "kind": "contact"
+        "kind": "contact",
+        "slug": "enterprise"
       }
     ],
     "selfHostLead": "Ou hébergez-le vous-même —",
-    "selfHostLink": "gratuit, AGPL-3.0"
+    "selfHostLink": "gratuit, AGPL-3.0",
+    "toggle": {
+      "month": "Mensuel",
+      "year": "Annuel"
+    },
+    "per": {
+      "month": "/ mois",
+      "year": "/ an"
+    }
   },
   "footer": {
     "tagline": "Web, produit et API analytics. Sans cookies, sur votre infrastructure.",

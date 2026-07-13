@@ -186,7 +186,8 @@
           "13-month retention"
         ],
         "cta": "Create an account",
-        "kind": "signup"
+        "kind": "signup",
+        "slug": "free"
       },
       {
         "name": "Pro",
@@ -201,7 +202,8 @@
         ],
         "cta": "Start with Pro",
         "kind": "signup",
-        "featured": true
+        "featured": true,
+        "slug": "pro"
       },
       {
         "name": "Scale",
@@ -215,7 +217,8 @@
           "Team roles and quotas"
         ],
         "cta": "Start with Scale",
-        "kind": "signup"
+        "kind": "signup",
+        "slug": "scale"
       },
       {
         "name": "Enterprise",
@@ -229,11 +232,20 @@
           "Deployment assistance"
         ],
         "cta": "Contact us",
-        "kind": "contact"
+        "kind": "contact",
+        "slug": "enterprise"
       }
     ],
     "selfHostLead": "Or host it yourself —",
-    "selfHostLink": "free, AGPL-3.0"
+    "selfHostLink": "free, AGPL-3.0",
+    "toggle": {
+      "month": "Monthly",
+      "year": "Annual"
+    },
+    "per": {
+      "month": "/ mo",
+      "year": "/ yr"
+    }
   },
   "footer": {
     "tagline": "Web, product and API analytics. Cookieless, on your own infrastructure.",

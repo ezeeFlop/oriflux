@@ -96,7 +96,17 @@
     "subscribe": "Passer en {{plan}}",
     "manageSubscription": "Gérer l'abonnement (factures, annulation)",
     "noUpgrades": "Aucun plan supérieur disponible.",
-    "planQuota": "{{quota}} événements / mois"
+    "planQuota": "{{quota}} événements / mois",
+    "billingInterval": "Périodicité",
+    "annualSave": "2 mois offerts",
+    "interval": {
+      "month": "Mensuel",
+      "year": "Annuel"
+    },
+    "per": {
+      "month": "/ mois",
+      "year": "/ an"
+    }
   },
   "footer": {
     "geoAttribution": "Géolocalisation IP par"

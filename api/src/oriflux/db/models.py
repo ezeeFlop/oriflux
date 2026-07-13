@@ -62,6 +62,13 @@ class Plan(Base):
     name: Mapped[str] = mapped_column(String(64))
     monthly_events: Mapped[int | None] = mapped_column(BigInteger)
     stripe_price_id: Mapped[str | None] = mapped_column(String(64))
+    # annual cadence of the same plan (2 months free); NULL = monthly only
+    stripe_price_id_annual: Mapped[str | None] = mapped_column(String(64))
+    # amounts cached from Stripe (set_stripe_prices) — never hardcoded, so the
+    # dashboard and the landing render whatever the Stripe prices currently say
+    amount_cents: Mapped[int | None] = mapped_column(Integer)
+    amount_cents_annual: Mapped[int | None] = mapped_column(Integer)
+    currency: Mapped[str | None] = mapped_column(String(3))
 
 
 class Organization(Base):

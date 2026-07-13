@@ -49,6 +49,12 @@ x-oriflux-env: &oriflux-env
   # the plans table — set them with `python -m oriflux.set_stripe_prices`.
   ORIFLUX_STRIPE_SECRET_KEY: ${ORIFLUX_STRIPE_SECRET_KEY:-}
   ORIFLUX_STRIPE_WEBHOOK_SECRET: ${ORIFLUX_STRIPE_WEBHOOK_SECRET:-}
+  # price IDs (not secrets) — applied to the plans table by set_stripe_prices;
+  # annual is optional (2 months free)
+  ORIFLUX_STRIPE_PRICE_PRO: ${ORIFLUX_STRIPE_PRICE_PRO:-}
+  ORIFLUX_STRIPE_PRICE_SCALE: ${ORIFLUX_STRIPE_PRICE_SCALE:-}
+  ORIFLUX_STRIPE_PRICE_PRO_ANNUAL: ${ORIFLUX_STRIPE_PRICE_PRO_ANNUAL:-}
+  ORIFLUX_STRIPE_PRICE_SCALE_ANNUAL: ${ORIFLUX_STRIPE_PRICE_SCALE_ANNUAL:-}
   ORIFLUX_SPT_MODELS_URL: ${ORIFLUX_SPT_MODELS_URL:-}  # AI layer (#33): SPT Models gateway; empty = AI disabled
   ORIFLUX_SPT_MODELS_API_KEY: ${ORIFLUX_SPT_MODELS_API_KEY:-}
   # model slugs from the SPT Models catalogue (chat: strongest instruction
