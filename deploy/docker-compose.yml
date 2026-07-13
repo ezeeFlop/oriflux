@@ -18,6 +18,9 @@ x-service-env: &service-env
   ORIFLUX_SPT_MODELS_API_KEY: ${ORIFLUX_SPT_MODELS_API_KEY:-}
   ORIFLUX_SPT_CHAT_MODEL: ${ORIFLUX_SPT_CHAT_MODEL:-gemma-4-26b-a4b-it}
   ORIFLUX_SPT_EMBED_MODEL: ${ORIFLUX_SPT_EMBED_MODEL:-jina-embeddings-v5-text-small}
+  # billing (optional in dev — empty key keeps it disabled)
+  ORIFLUX_STRIPE_SECRET_KEY: ${ORIFLUX_STRIPE_SECRET_KEY:-}
+  ORIFLUX_STRIPE_WEBHOOK_SECRET: ${ORIFLUX_STRIPE_WEBHOOK_SECRET:-}
 
 x-healthz: &healthz
   test: ["CMD", "python", "-c", "import urllib.request; urllib.request.urlopen('http://localhost:8000/healthz')"]

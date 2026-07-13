@@ -44,6 +44,11 @@ x-oriflux-env: &oriflux-env
   ORIFLUX_MAXMIND_LICENSE_KEY: ${MAXMIND_LICENSE_KEY:-}  # only used by the maxmind provider
   ORIFLUX_OPS_WEBHOOK_URL: ${OPS_WEBHOOK_URL:-}
   ORIFLUX_FERNET_KEY: ${ORIFLUX_FERNET_KEY:-}  # connectors (#24): python -c "from cryptography.fernet import Fernet; print(Fernet.generate_key().decode())"
+  # billing (#63/#65): empty secret key = billing cleanly disabled (503 on
+  # webhook/checkout). Set both in the Portainer stack env; price IDs live in
+  # the plans table — set them with `python -m oriflux.set_stripe_prices`.
+  ORIFLUX_STRIPE_SECRET_KEY: ${ORIFLUX_STRIPE_SECRET_KEY:-}
+  ORIFLUX_STRIPE_WEBHOOK_SECRET: ${ORIFLUX_STRIPE_WEBHOOK_SECRET:-}
   ORIFLUX_SPT_MODELS_URL: ${ORIFLUX_SPT_MODELS_URL:-}  # AI layer (#33): SPT Models gateway; empty = AI disabled
   ORIFLUX_SPT_MODELS_API_KEY: ${ORIFLUX_SPT_MODELS_API_KEY:-}
   # model slugs from the SPT Models catalogue (chat: strongest instruction
