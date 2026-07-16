@@ -1,0 +1,83 @@
+{
+  "manifest_version": "0.3",
+  "name": "oriflux",
+  "version": "0.1.0",
+  "display_name": "Oriflux",
+  "description": "Read-only web + product + API analytics from your Oriflux instance, inside Claude Desktop.",
+  "long_description": "Oriflux by Sponge Theory is a self-hosted, cookieless, multi-tenant analytics platform unifying web analytics + product analytics + API analytics. This extension connects Claude Desktop to your own Oriflux instance's read-only MCP endpoint (streamable HTTP at /mcp), authenticated with a read-scoped API key.\n\nEvery tool is the same REST endpoint the Oriflux dashboard uses, compiled through Oriflux's typed metric registry, so answers never drift from the UI.\n\n**Read-only tools:**\n- list_projects — the products/properties visible to your key's org\n- get_overview — visitors, pageviews, sessions, bounce rate, session duration, API requests, error rates, p95\n- query_metrics — the typed query object (metric, dimensions, filters, granularity, period, compare_to); returns rows and the executed SQL\n- get_geo_breakdown — geographic distribution (country / region / city)\n- get_api_health — request volume, 4xx/5xx rates, p50/p95/p99 latency, top endpoints\n\nNo secret is baked into this bundle: your instance URL and read key are entered in Claude Desktop's extension configuration and sent only to your own instance over HTTPS.",
+  "author": {
+    "name": "Sponge Theory",
+    "url": "https://sponge-theory.io"
+  },
+  "homepage": "https://oriflux.sponge-theory.dev",
+  "documentation": "https://oriflux.sponge-theory.dev",
+  "license": "AGPL-3.0",
+  "keywords": [
+    "analytics",
+    "web-analytics",
+    "product-analytics",
+    "api-analytics",
+    "cookieless",
+    "oriflux",
+    "sponge-theory"
+  ],
+  "server": {
+    "type": "node",
+    "entry_point": "index.mjs",
+    "mcp_config": {
+      "command": "node",
+      "args": [
+        "${__dirname}/index.mjs"
+      ],
+      "env": {
+        "OFX_BASE_URL": "${user_config.base_url}",
+        "OFX_API_KEY": "${user_config.api_key}"
+      }
+    }
+  },
+  "user_config": {
+    "base_url": {
+      "type": "string",
+      "title": "Oriflux API base URL",
+      "description": "Base URL of your Oriflux API instance (cloud or self-host), without /mcp — e.g. https://api.oriflux.sponge-theory.dev. Leave the default unless you self-host or the hosted instance is not yet live.",
+      "required": true,
+      "default": "https://api.oriflux.sponge-theory.dev"
+    },
+    "api_key": {
+      "type": "string",
+      "title": "Oriflux read key (ofx_read_…)",
+      "description": "A read-scoped Oriflux API key (ofx_read_…), issued per organization in the Oriflux dashboard. Read keys can only query analytics — they cannot write. Shown once at creation.",
+      "required": true,
+      "sensitive": true
+    }
+  },
+  "tools": [
+    {
+      "name": "list_projects",
+      "description": "List the projects (products) visible to the read key's organization"
+    },
+    {
+      "name": "get_overview",
+      "description": "Headline traffic + API numbers for a project over a period (visitors, pageviews, sessions, bounce rate, session duration, API requests, error rates, p95)"
+    },
+    {
+      "name": "query_metrics",
+      "description": "Run a typed metric query (metric, dimensions, filters, granularity, period, compare_to); returns rows and the executed SQL"
+    },
+    {
+      "name": "get_geo_breakdown",
+      "description": "Geographic distribution for a project (country / region / city) for a metric over a period"
+    },
+    {
+      "name": "get_api_health",
+      "description": "API request volume, 4xx/5xx rates, p50/p95/p99 latency and top endpoints for a project over a period"
+    }
+  ],
+  "compatibility": {
+    "claude_desktop": ">=0.10.0",
+    "platforms": ["darwin", "win32", "linux"],
+    "runtimes": {
+      "node": ">=18.0.0"
+    }
+  }
+}
