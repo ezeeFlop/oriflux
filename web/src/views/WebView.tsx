@@ -51,13 +51,13 @@ function StatRow({ projectId }: { projectId: string }) {
 
   const card = (
     query: ReturnType<typeof useMetric>,
-    label: string,
+    term: string,
     format: (value: number | null) => string,
     inverse = false,
     note?: string,
   ) => (
     <StatCard
-      label={label}
+      term={term}
       value={format(scalar(query.data))}
       compareValue={
         query.data?.compare_results
@@ -71,11 +71,11 @@ function StatRow({ projectId }: { projectId: string }) {
 
   return (
     <div className="grid grid-cols-2 gap-3 sm:grid-cols-3 lg:grid-cols-5">
-      {card(visitors, t("metric.visitors"), formatNumber, false, t("metric.visitDaysNote"))}
-      {card(pageviews, t("metric.pageviews"), formatNumber)}
-      {card(sessions, t("metric.sessions"), formatNumber)}
-      {card(bounce, t("metric.bounce_rate"), formatPercent, true)}
-      {card(duration, t("metric.session_duration"), formatDuration)}
+      {card(visitors, "visitors", formatNumber, false, t("metric.visitDaysNote"))}
+      {card(pageviews, "pageviews", formatNumber)}
+      {card(sessions, "sessions", formatNumber)}
+      {card(bounce, "bounce_rate", formatPercent, true)}
+      {card(duration, "session_duration", formatDuration)}
     </div>
   );
 }

@@ -271,12 +271,12 @@ export default function ApiView() {
   });
   const stat = (
     query: ReturnType<typeof useMetric>,
-    label: string,
+    term: string,
     format: (value: number | null) => string,
     inverse = true,
   ) => (
     <StatCard
-      label={label}
+      term={term}
       value={format(scalar(query.data))}
       compareValue={
         query.data?.compare_results
@@ -298,10 +298,10 @@ export default function ApiView() {
       {apiEmpty && <IntegrateEmptyState projectId={projectId} type="api" />}
 
       <div className="grid grid-cols-2 gap-3 lg:grid-cols-4">
-        {stat(requests, t("metric.api_requests"), formatNumber, false)}
-        {stat(err4, t("metric.api_error_rate_4xx"), formatPercent)}
-        {stat(err5, t("metric.api_error_rate_5xx"), formatPercent)}
-        {stat(p95, t("metric.api_latency_p95"), formatMs)}
+        {stat(requests, "api_requests", formatNumber, false)}
+        {stat(err4, "api_error_rate_4xx", formatPercent)}
+        {stat(err5, "api_error_rate_5xx", formatPercent)}
+        {stat(p95, "api_latency_p95", formatMs)}
       </div>
 
       <EndpointTable projectId={projectId} />

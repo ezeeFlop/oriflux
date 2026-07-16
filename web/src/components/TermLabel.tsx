@@ -1,9 +1,10 @@
 /** Contextual glossary (PRD #75 / #76). Renders a metric/dimension label with a
- *  discreet "i" that opens a plain-language definition (short + optional pitfall
- *  note + optional "learn more" link). Trilingual via i18n; the definitions are
- *  guaranteed complete for every registry term by the Python completeness gate.
+ *  discreet "i" that discloses a plain-language definition (short + optional
+ *  pitfall note + optional "learn more" link). Trilingual via i18n; the
+ *  definitions are guaranteed complete for every registry term by the Python
+ *  completeness gate.
  *
- *  Interaction is click (keyboard + mobile accessible); the popover closes on
+ *  Interaction is click (keyboard + mobile accessible); the disclosure closes on
  *  outside-click or Escape. When a term has no shipped definition it degrades to
  *  a bare label. */
 
@@ -12,6 +13,30 @@ import { useTranslation } from "react-i18next";
 
 import { docsUrl } from "../lib/docs";
 import { hasGlossary, termKind, type TermKind } from "../lib/glossary";
+
+/** The shipped definition body for a term — shared by the `<TermLabel>` popover
+ *  and the central Glossary page so the two never drift. */
+export function GlossaryDefinition({ name }: { name: string }) {
+  const { t } = useTranslation();
+  const note = t(`glossary.${name}.note`, { defaultValue: "" });
+  const docsSlug = t(`glossary.${name}.docsSlug`, { defaultValue: "" });
+  return (
+    <>
+      <p className="text-sm text-ink-soft">{t(`glossary.${name}.short`)}</p>
+      {note && <p className="mt-1 text-xs italic text-ink-soft">{note}</p>}
+      {docsSlug && (
+        <a
+          href={docsUrl(docsSlug)}
+          target="_blank"
+          rel="noreferrer"
+          className="mt-1 inline-block text-xs font-medium text-flame underline-offset-2 hover:underline"
+        >
+          {t("glossaryUi.learnMore")}
+        </a>
+      )}
+    </>
+  );
+}
 
 export function TermLabel({ name, kind }: { name: string; kind?: TermKind }) {
   const { t } = useTranslation();
@@ -41,10 +66,6 @@ export function TermLabel({ name, kind }: { name: string; kind?: TermKind }) {
   // No shipped definition → plain label (no dangling affordance).
   if (!hasGlossary(name)) return <>{label}</>;
 
-  const short = t(`glossary.${name}.short`);
-  const note = t(`glossary.${name}.note`, { defaultValue: "" });
-  const docsSlug = t(`glossary.${name}.docsSlug`, { defaultValue: "" });
-
   return (
     <span ref={ref} className="relative inline-flex items-center gap-1 font-normal">
       {label}
@@ -61,22 +82,10 @@ export function TermLabel({ name, kind }: { name: string; kind?: TermKind }) {
       {open && (
         <span
           id={popId}
-          role="tooltip"
-          className="absolute left-0 top-6 z-50 w-64 rounded-md border border-line bg-surface p-3 text-left text-xs font-normal normal-case tracking-normal text-ink shadow-lg"
+          className="absolute left-0 top-6 z-50 block w-64 rounded-md border border-line bg-surface p-3 text-left normal-case tracking-normal shadow-lg"
         >
-          <span className="block font-semibold">{label}</span>
-          <span className="mt-1 block text-ink-soft">{short}</span>
-          {note && <span className="mt-2 block italic text-ink-soft">{note}</span>}
-          {docsSlug && (
-            <a
-              href={docsUrl(docsSlug)}
-              target="_blank"
-              rel="noreferrer"
-              className="mt-2 inline-block font-medium text-flame underline-offset-2 hover:underline"
-            >
-              {t("glossaryUi.learnMore")}
-            </a>
-          )}
+          <span className="mb-1 block text-sm font-semibold text-ink">{label}</span>
+          <GlossaryDefinition name={name} />
         </span>
       )}
     </span>

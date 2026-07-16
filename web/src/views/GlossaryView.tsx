@@ -5,31 +5,20 @@
 
 import { useTranslation } from "react-i18next";
 
-import { docsUrl } from "../lib/docs";
+import { GlossaryDefinition } from "../components/TermLabel";
 import { dimensionTerms, metricTerms, type TermKind } from "../lib/glossary";
 
 function TermRow({ name, kind }: { name: string; kind: TermKind }) {
   const { t } = useTranslation();
-  const note = t(`glossary.${name}.note`, { defaultValue: "" });
-  const docsSlug = t(`glossary.${name}.docsSlug`, { defaultValue: "" });
   return (
     <div className="border-b border-line py-3 last:border-0">
       <div className="flex items-baseline justify-between gap-3">
         <h3 className="text-sm font-semibold text-ink">{t(`${kind}.${name}`)}</h3>
         <code className="shrink-0 text-[11px] text-ink-soft/70">{name}</code>
       </div>
-      <p className="mt-1 text-sm text-ink-soft">{t(`glossary.${name}.short`)}</p>
-      {note && <p className="mt-1 text-xs italic text-ink-soft">{note}</p>}
-      {docsSlug && (
-        <a
-          href={docsUrl(docsSlug)}
-          target="_blank"
-          rel="noreferrer"
-          className="mt-1 inline-block text-xs font-medium text-flame underline-offset-2 hover:underline"
-        >
-          {t("glossaryUi.learnMore")}
-        </a>
-      )}
+      <div className="mt-1">
+        <GlossaryDefinition name={name} />
+      </div>
     </div>
   );
 }
