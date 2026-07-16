@@ -1,0 +1,29 @@
+{
+  "name": "oriflux",
+  "version": "0.1.0",
+  "description": "Oriflux by Sponge Theory — read-only web + product + API analytics in Claude Code (traffic, sessions, geography, API health), queried through Oriflux's typed metric registry, via your Oriflux instance.",
+  "author": {
+    "name": "Sponge Theory",
+    "email": "support@sponge-theory.io",
+    "url": "https://sponge-theory.io"
+  },
+  "homepage": "https://oriflux.sponge-theory.dev",
+  "license": "AGPL-3.0",
+  "keywords": ["analytics", "web-analytics", "product-analytics", "api-analytics", "cookieless", "mcp", "oriflux", "sponge-theory"],
+  "userConfig": {
+    "base_url": {
+      "type": "string",
+      "title": "Oriflux API base URL",
+      "description": "Base URL of your Oriflux API instance (cloud or self-host), without /mcp — e.g. https://api.oriflux.sponge-theory.dev. Leave the default unless you self-host or the hosted instance is not yet live.",
+      "default": "https://api.oriflux.sponge-theory.dev",
+      "required": true
+    },
+    "api_key": {
+      "type": "string",
+      "title": "Oriflux read key (ofx_read_…)",
+      "description": "A read-scoped Oriflux API key (ofx_read_…), issued per organization in the Oriflux dashboard. Read keys can only query analytics — they cannot write. Shown once at creation.",
+      "sensitive": true,
+      "required": true
+    }
+  }
+}
