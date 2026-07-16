@@ -114,7 +114,7 @@ if [ "${DO_PUSH}" = "true" ]; then
         -f "${WEB_DIR}/Dockerfile" \
         -t "${WEB_IMAGE}:${TAG}" \
         -t "${WEB_IMAGE}:${APP_VERSION}" \
-        "${WEB_DIR}"
+        "${REPO_ROOT}"
     echo -e "${GREEN}✓ pushed ${WEB_IMAGE}:${TAG}${NC}"
 
     echo -e "${CYAN}Building + pushing ${LANDING_IMAGE} for ${TARGET_PLATFORM}...${NC}"

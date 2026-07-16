@@ -1,0 +1,11 @@
+# Repo-root build context (web + landing images build from here).
+# COPY steps pull only what they need; keep the context light + fast.
+**/node_modules
+**/dist
+**/.next
+.git
+**/.venv
+**/__pycache__
+**/.worktrees
+**/*.output
+web/coverage
