@@ -1,0 +1,12 @@
+{
+  "name": "oriflux-mcpb",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "description": "Claude Desktop (MCPB) bridge to a remote Oriflux read-only MCP server.",
+  "license": "AGPL-3.0",
+  "main": "index.mjs",
+  "dependencies": {
+    "mcp-remote": "^0.1.38"
+  }
+}

@@ -63,6 +63,19 @@
       "app": "App",
       "api": "API"
     },
+    "mcp": {
+      "title": "Connect to Claude",
+      "intro": "Wire Oriflux into Claude Code, Claude Desktop and your agents, read-only. Issue a read key above first.",
+      "endpointLabel": "MCP endpoint",
+      "copyEndpoint": "Copy the endpoint",
+      "pluginLabel": "Claude Code — one-click install",
+      "pluginHint": "Paste these two commands into Claude Code, then enter your read key at install time.",
+      "copyCommands": "Copy the commands",
+      "manualLabel": "Other clients & Claude Desktop",
+      "manualHint": "For any MCP client: this mcpServers block, with your own key in place. Claude Desktop: install the .mcpb bundle, or add a custom connector pointing at this endpoint.",
+      "copyConfig": "Copy the configuration",
+      "docsLink": "API & MCP guide"
+    },
     "members": "Members",
     "memberEmail": "Member email",
     "memberRole": "Role",

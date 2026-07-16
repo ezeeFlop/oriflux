@@ -28,3 +28,41 @@ El servidor MCP (de solo lectura) se expone en `/mcp` con las mismas claves de
 lectura: consultas tipadas, embudos, retención, insights, alertas,
 anotaciones. Consulta `docs/mcp.md` en el repositorio para el detalle
 herramienta por herramienta.
+
+### Conectar en un clic
+
+El panel reúne todo en *Ajustes de organización → Conectar con Claude*: el
+punto de acceso, la clave y los comandos listos para pegar.
+
+- **Claude Code** — añade la marketplace pública e instala el plugin:
+
+  ```
+  /plugin marketplace add ezeeFlop/claude-plugins
+  /plugin install oriflux@sponge-theory
+  ```
+
+  Al instalar, introduce la URL base (por defecto
+  `https://api.oriflux.sponge-theory.dev`) y tu clave de lectura
+  `ofx_read_…`. ¿Ya instalado? `/plugin marketplace update sponge-theory`
+  primero.
+
+- **Claude Desktop** — haz doble clic en el paquete `.mcpb` (`mcp/mcpb/` del
+  repositorio), o añade un conector personalizado que apunte a `<base>/mcp`
+  con la cabecera `Authorization: Bearer`.
+
+- **Cualquier otro cliente MCP** — la configuración `mcpServers` en bruto:
+
+  ```json
+  {
+    "mcpServers": {
+      "oriflux": {
+        "type": "http",
+        "url": "https://api.oriflux.sponge-theory.dev/mcp",
+        "headers": { "Authorization": "Bearer ofx_read_…" }
+      }
+    }
+  }
+  ```
+
+No se incrusta ningún secreto: la URL y la clave siguen siendo tuyas, se
+introducen al configurar y se envían solo a tu propia instancia.

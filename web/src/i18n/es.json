@@ -63,6 +63,19 @@
       "app": "App",
       "api": "API"
     },
+    "mcp": {
+      "title": "Conectar con Claude",
+      "intro": "Conecta Oriflux con Claude Code, Claude Desktop y tus agentes, en solo lectura. Emite antes una clave de lectura arriba.",
+      "endpointLabel": "Punto de acceso MCP",
+      "copyEndpoint": "Copiar el punto de acceso",
+      "pluginLabel": "Claude Code — instalación en un clic",
+      "pluginHint": "Pega estos dos comandos en Claude Code y luego introduce tu clave de lectura al instalar.",
+      "copyCommands": "Copiar los comandos",
+      "manualLabel": "Otros clientes y Claude Desktop",
+      "manualHint": "Para cualquier cliente MCP: este bloque mcpServers, con tu propia clave. Claude Desktop: instala el paquete .mcpb o añade un conector personalizado que apunte a este punto de acceso.",
+      "copyConfig": "Copiar la configuración",
+      "docsLink": "Guía de API y MCP"
+    },
     "members": "Miembros",
     "memberEmail": "Email del miembro",
     "memberRole": "Rol",
