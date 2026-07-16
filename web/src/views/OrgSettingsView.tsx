@@ -15,7 +15,15 @@ import {
   type Source,
   type SourceType,
 } from "../lib/api";
-import { integrationSnippet } from "../lib/snippets";
+import { Link } from "react-router-dom";
+
+import { docsUrl } from "../lib/docs";
+import {
+  MCP_ENDPOINT,
+  integrationSnippet,
+  mcpPluginCommands,
+  mcpServersConfig,
+} from "../lib/snippets";
 import { useDashboard } from "../lib/state";
 import { BillingSection, DigestSection, MembersSection, SharesSection, UsageSection } from "./OrgSettingsSections";
 
@@ -325,6 +333,59 @@ function KeysSection({
   );
 }
 
+/** Connect Oriflux's read-only MCP server to Claude Code / Desktop / any agent.
+ *  Everything shown is public config — the read key stays the user's, issued
+ *  above and pasted in at install time; nothing here embeds a secret. */
+function ConnectClaudeSection() {
+  const { t } = useTranslation();
+  return (
+    <Panel title={t("settings.mcp.title")}>
+      <p className="text-sm text-ink-soft">{t("settings.mcp.intro")}</p>
+
+      <h3 className="mt-4 text-xs font-semibold uppercase tracking-wide text-ink-soft">
+        {t("settings.mcp.endpointLabel")}
+      </h3>
+      <div className="mt-1 flex items-center gap-2">
+        <code className="min-w-0 flex-1 break-all rounded-md border border-line bg-paper px-2 py-1.5 text-xs">
+          {MCP_ENDPOINT}
+        </code>
+        <CopyButton text={MCP_ENDPOINT} label={t("settings.mcp.copyEndpoint")} />
+      </div>
+
+      <h3 className="mt-4 text-xs font-semibold uppercase tracking-wide text-ink-soft">
+        {t("settings.mcp.pluginLabel")}
+      </h3>
+      <p className="mt-1 text-sm text-ink-soft">{t("settings.mcp.pluginHint")}</p>
+      <div className="mt-1 flex items-start gap-2">
+        <pre className="min-w-0 flex-1 overflow-x-auto rounded-md border border-line bg-paper px-2 py-1.5 text-xs">
+          {mcpPluginCommands}
+        </pre>
+        <CopyButton text={mcpPluginCommands} label={t("settings.mcp.copyCommands")} />
+      </div>
+
+      <h3 className="mt-4 text-xs font-semibold uppercase tracking-wide text-ink-soft">
+        {t("settings.mcp.manualLabel")}
+      </h3>
+      <p className="mt-1 text-sm text-ink-soft">{t("settings.mcp.manualHint")}</p>
+      <div className="mt-1 flex items-start gap-2">
+        <pre className="min-w-0 flex-1 overflow-x-auto rounded-md border border-line bg-paper px-2 py-1.5 text-xs">
+          {mcpServersConfig()}
+        </pre>
+        <CopyButton text={mcpServersConfig()} label={t("settings.mcp.copyConfig")} />
+      </div>
+
+      <p className="mt-3">
+        <Link
+          to={docsUrl("api-mcp")}
+          className="text-xs font-medium text-flame underline-offset-2 hover:underline"
+        >
+          {t("settings.mcp.docsLink")}
+        </Link>
+      </p>
+    </Panel>
+  );
+}
+
 export default function OrgSettingsView() {
   const { t } = useTranslation();
   const { orgId } = useDashboard();
@@ -347,6 +408,7 @@ export default function OrgSettingsView() {
         onIssued={(key, source) => setIssued({ issued: key, source })}
       />
       <KeysSection orgId={orgId} onIssued={(key) => setIssued({ issued: key, source: null })} />
+      <ConnectClaudeSection />
       <MembersSection orgId={orgId} />
       <DigestSection orgId={orgId} />
       <SharesSection />

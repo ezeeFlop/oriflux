@@ -140,3 +140,25 @@ describe("org settings — the zero-terminal path", () => {
     expect(screen.queryByRole("button", { name: "Révoquer" })).not.toBeInTheDocument();
   });
 });
+
+describe("org settings — connect to Claude (MCP)", () => {
+  it("shows the MCP endpoint and the one-click plugin install commands", async () => {
+    renderApp("/settings/org");
+    const heading = await screen.findByRole("heading", { name: "Connexion à Claude" });
+    const panel = within(heading.closest("section")!);
+    expect(panel.getByText("https://api.oriflux.sponge-theory.dev/mcp")).toBeInTheDocument();
+    expect(panel.getByText(/\/plugin marketplace add ezeeFlop\/claude-plugins/)).toBeInTheDocument();
+    expect(panel.getByText(/\/plugin install oriflux@sponge-theory/)).toBeInTheDocument();
+  });
+
+  it("offers a paste-ready mcpServers config with a read-key placeholder and a docs link", async () => {
+    renderApp("/settings/org");
+    const heading = await screen.findByRole("heading", { name: "Connexion à Claude" });
+    const panel = within(heading.closest("section")!);
+    expect(
+      panel.getByText(/"url": "https:\/\/api\.oriflux\.sponge-theory\.dev\/mcp"/),
+    ).toBeInTheDocument();
+    expect(panel.getByText(/Bearer ofx_read_/)).toBeInTheDocument();
+    expect(panel.getByRole("link", { name: "Guide API & MCP" })).toBeInTheDocument();
+  });
+});
