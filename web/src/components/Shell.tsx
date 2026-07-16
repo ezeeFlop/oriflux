@@ -172,6 +172,15 @@ function AccountMenu() {
             <button
               onClick={() => {
                 setOpen(false);
+                navigate({ pathname: "/glossary", search });
+              }}
+              className="w-full rounded-md px-2 py-1.5 text-left text-sm text-ink-soft hover:bg-flame-soft hover:text-ink"
+            >
+              {t("nav.glossary")}
+            </button>
+            <button
+              onClick={() => {
+                setOpen(false);
                 navigate({ pathname: "/settings/org", search });
               }}
               className="w-full rounded-md px-2 py-1.5 text-left text-sm text-ink-soft hover:bg-flame-soft hover:text-ink"

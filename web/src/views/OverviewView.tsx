@@ -28,13 +28,13 @@ const SHORTCUTS = [
 
 function kpiCard(
   query: ReturnType<typeof useMetric>,
-  label: string,
+  term: string,
   format: (value: number | null) => string,
   inverse = false,
 ) {
   return (
     <StatCard
-      label={label}
+      term={term}
       value={format(scalar(query.data))}
       compareValue={
         query.data?.compare_results
@@ -138,12 +138,12 @@ export default function OverviewView() {
       {notInstrumented && <InstrumentationNotice projectId={projectId} />}
 
       <div className="grid grid-cols-2 gap-3 sm:grid-cols-3 lg:grid-cols-7">
-        {kpiCard(visitors, t("metric.visitors"), formatNumber)}
-        {kpiCard(pageviews, t("metric.pageviews"), formatNumber)}
-        {kpiCard(sessions, t("metric.sessions"), formatNumber)}
-        {kpiCard(apiRequests, t("metric.api_requests"), formatNumber)}
-        {kpiCard(apiErrors, t("metric.api_error_rate_5xx"), formatPercent, true)}
-        {kpiCard(apiP95, t("metric.api_latency_p95"), formatMs, true)}
+        {kpiCard(visitors, "visitors", formatNumber)}
+        {kpiCard(pageviews, "pageviews", formatNumber)}
+        {kpiCard(sessions, "sessions", formatNumber)}
+        {kpiCard(apiRequests, "api_requests", formatNumber)}
+        {kpiCard(apiErrors, "api_error_rate_5xx", formatPercent, true)}
+        {kpiCard(apiP95, "api_latency_p95", formatMs, true)}
         <StatCard
           label={t("overview.liveNow")}
           value={formatNumber(liveNow.data?.results?.[0]?.value ?? null)}

@@ -6,6 +6,7 @@ import { useTranslation } from "react-i18next";
 import { deltaPercent, formatNumber } from "../lib/format";
 import { docsUrl } from "../lib/docs";
 import type { QueryRow } from "../lib/api";
+import { TermLabel } from "./TermLabel";
 
 /** Shared form styling for the settings/alerts/annotations screens. */
 export const PRIMARY_BUTTON =
@@ -80,12 +81,16 @@ export function Panel({
 
 export function StatCard({
   label,
+  term,
   value,
   compareValue,
   note,
   inverse = false,
 }: {
-  label: string;
+  label?: string;
+  /** Registry metric name — when set, the label carries a glossary "i" popover
+   *  (and resolves its own text), so `label` becomes optional. */
+  term?: string;
   value: string;
   compareValue?: { current: number | null; previous: number | null };
   note?: string;
@@ -100,7 +105,9 @@ export function StatCard({
   const good = delta !== null && (inverse ? delta < 0 : delta > 0);
   return (
     <div className="rise rounded-xl border border-line bg-surface px-4 py-3" title={note}>
-      <div className="text-xs font-medium text-ink-soft">{label}</div>
+      <div className="text-xs font-medium text-ink-soft">
+        {term ? <TermLabel name={term} kind="metric" /> : label}
+      </div>
       <div className="tnum mt-1 font-display text-2xl font-bold tracking-tight">{value}</div>
       {delta !== null && (
         <div className={`tnum mt-0.5 text-xs font-semibold ${good ? "text-up" : "text-down"}`}>

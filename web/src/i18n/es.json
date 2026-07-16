@@ -22,7 +22,8 @@
     "projectSettings": "Ajustes del proyecto",
     "orgSettings": "Ajustes de la organización",
     "projects": "Proyectos",
-    "logout": "Cerrar sesión"
+    "logout": "Cerrar sesión",
+    "glossary": "Glosario"
   },
   "account": {
     "label": "Cuenta"
@@ -133,7 +134,14 @@
     "api_latency_p50": "Latencia p50",
     "api_latency_p95": "Latencia p95",
     "api_latency_p99": "Latencia p99",
-    "visitDaysNote": "Los totales multi-día son días-visita (hash diario rotativo)"
+    "visitDaysNote": "Los totales multi-día son días-visita (hash diario rotativo)",
+    "custom_events": "Eventos personalizados",
+    "custom_event_visitors": "Visitantes (eventos)",
+    "revenue": "Ingresos",
+    "web_vital_lcp_p75": "LCP (p75)",
+    "web_vital_cls_p75": "CLS (p75)",
+    "web_vital_inp_p75": "INP (p75)",
+    "web_vital_ttfb_p75": "TTFB (p75)"
   },
   "overview": {
     "liveNow": "En directo",
@@ -399,5 +407,178 @@
     "generate": "Generar la clave y el snippet",
     "keyOnce": "La clave no volverá a mostrarse — copie el snippet ahora.",
     "issueFailed": "Emisión imposible (se requiere rol de administrador)."
+  },
+  "glossary": {
+    "pageviews": {
+      "short": "Total de páginas vistas. Cada carga de página cuenta, incluso si el mismo visitante ve varias.",
+      "docsSlug": "oriflux-js"
+    },
+    "visitors": {
+      "short": "Personas distintas, no páginas. Sin cookies: un visitante se identifica mediante una huella digital que cambia diariamente.",
+      "note": "Desduplicado exactamente dentro de un solo día; a lo largo de varios días, el mismo visitante puede ser contado nuevamente (la huella digital rota a medianoche). Ese es el coste de ser sin cookies.",
+      "docsSlug": "oriflux-js"
+    },
+    "sessions": {
+      "short": "Número de visitas. Una visita agrupa la actividad de un visitante y finaliza tras 30 minutos de inactividad.",
+      "docsSlug": "oriflux-js"
+    },
+    "bounce_rate": {
+      "short": "Proporción de visitas que vieron solo una página antes de salir. Una tasa alta puede indicar una página de aterrizaje poco adecuada.",
+      "docsSlug": "oriflux-js"
+    },
+    "session_duration": {
+      "short": "Duración media de la visita, desde el primer hasta el último evento registrado.",
+      "note": "Las visitas de una sola página tienen una duración de 0 (no hay un segundo evento para medir) —arrastran la media hacia abajo.",
+      "docsSlug": "oriflux-js"
+    },
+    "custom_events": {
+      "short": "Número de eventos personalizados disparados (clics, registros, compras... lo que tú instrumentes).",
+      "docsSlug": "oriflux-js"
+    },
+    "custom_event_visitors": {
+      "short": "Personas distintas que dispararon al menos un evento personalizado.",
+      "docsSlug": "oriflux-js"
+    },
+    "revenue": {
+      "short": "Suma de los montos asociados a los eventos (por ejemplo, valor de compra). Requiere enviar un valor con el evento.",
+      "docsSlug": "oriflux-js"
+    },
+    "web_vital_lcp_p75": {
+      "short": "LCP (Largest Contentful Paint) al percentil 75: cuánto tarda el elemento más grande en renderizarse. Menos de 2,5 s es bueno.",
+      "note": "P75: el 75 % de tus visitantes obtiene un valor al menos tan bueno. Es el umbral que usa Google para juzgar la experiencia.",
+      "docsSlug": "oriflux-js"
+    },
+    "web_vital_cls_p75": {
+      "short": "CLS (Cumulative Layout Shift) al percentil 75: estabilidad visual mientras carga la página. Menos de 0,1 es bueno.",
+      "docsSlug": "oriflux-js"
+    },
+    "web_vital_inp_p75": {
+      "short": "INP (Interaction to Next Paint) al percentil 75: respuesta a las interacciones. Menos de 200 ms es bueno.",
+      "docsSlug": "oriflux-js"
+    },
+    "web_vital_ttfb_p75": {
+      "short": "TTFB (Time To First Byte) al percentil 75: tiempo hasta el primer byte del servidor. Mide la latencia de red/servidor.",
+      "docsSlug": "oriflux-js"
+    },
+    "api_requests": {
+      "short": "Número de solicitudes recibidas por tu API durante el periodo.",
+      "docsSlug": "python-sdk"
+    },
+    "api_error_rate_4xx": {
+      "short": "Proporción de solicitudes fallidas con un código 4xx (lado del cliente: solicitud incorrecta, no autorizada o no encontrada).",
+      "docsSlug": "python-sdk"
+    },
+    "api_error_rate_5xx": {
+      "short": "Proporción de solicitudes fallidas con un código 5xx (lado del servidor: tu backend colapsó o no respondió). Vigila esto de cerca.",
+      "docsSlug": "python-sdk"
+    },
+    "api_latency_p50": {
+      "short": "Tiempo de respuesta mediano (p50): la mitad de las solicitudes son más rápidas y la otra mitad más lentas.",
+      "docsSlug": "python-sdk"
+    },
+    "api_latency_p95": {
+      "short": "Tiempo de respuesta al percentil 95: el 95 % de las solicitudes son más rápidas. Refleja la experiencia de las solicitudes lentas, no los extremos.",
+      "docsSlug": "python-sdk"
+    },
+    "api_latency_p99": {
+      "short": "Tiempo de respuesta al percentil 99: solo el 1 % de las solicitudes son más lentas. Revela la cola larga (bloqueos, tiempos de espera).",
+      "docsSlug": "python-sdk"
+    },
+    "country": {
+      "short": "País del visitante, inferido de la IP en el momento de la recolección. La IP se resuelve entonces y nunca se almacena.",
+      "docsSlug": "privacy"
+    },
+    "region": {
+      "short": "Región/estado del visitante, inferida de la IP en el momento de la recolección (nunca se almacena)."
+    },
+    "city": {
+      "short": "Ciudad del visitante, inferida de la IP en el momento de la recolección (nunca se almacena)."
+    },
+    "asn": {
+      "short": "Red u operador del visitante (Número de Sistema Autónomo): identifica al proveedor de servicios o el host, útil para detectar tráfico de centros de datos."
+    },
+    "page": {
+      "short": "La ruta de la página (URL sin el dominio), por ejemplo /pricing. Los parámetros de consulta se normalizan."
+    },
+    "referrer": {
+      "short": "El sitio desde el que vino el visitante (la página que lo envió a ti)."
+    },
+    "utm_source": {
+      "short": "El parámetro utm_source de la URL: la fuente de la campaña (por ejemplo, boletín, google)."
+    },
+    "utm_medium": {
+      "short": "El parámetro utm_medium: el canal de la campaña (por ejemplo, email, cpc, social)."
+    },
+    "utm_campaign": {
+      "short": "El parámetro utm_campaign: el nombre de la campaña de marketing."
+    },
+    "device": {
+      "short": "Tipo de dispositivo: escritorio, móvil o tablet, inferido del navegador."
+    },
+    "os": {
+      "short": "Sistema operativo del visitante (Windows, macOS, iOS, Android...)."
+    },
+    "browser": {
+      "short": "Navegador del visitante (Chrome, Safari, Firefox...)."
+    },
+    "locale": {
+      "short": "Idioma preferido del navegador del visitante (por ejemplo, en-US)."
+    },
+    "traffic_class": {
+      "short": "Naturaleza del tráfico: humano, rastreador o agente de IA. Separa las visitas reales del tráfico automatizado.",
+      "note": "Clasificado mediante el user-agent (una lista de rastreadores/agentes de IA mantenida por Oriflux). Un bot disfrazado de navegador puede pasar como humano.",
+      "docsSlug": "getting-started"
+    },
+    "event_name": {
+      "short": "Nombre del evento personalizado (por ejemplo, registro, compra)."
+    },
+    "class_reason": {
+      "short": "Por qué Oriflux clasificó este tráfico de esa manera (por ejemplo, el patrón del user-agent que marcó un bot). Hace que la clasificación sea explicable."
+    },
+    "endpoint": {
+      "short": "La ruta de la API llamada, con los parámetros normalizados (por ejemplo, /users/{id}), para agrupar solicitudes similares.",
+      "docsSlug": "python-sdk"
+    },
+    "method": {
+      "short": "Método HTTP de la solicitud (GET, POST, PUT, DELETE...)."
+    },
+    "status_class": {
+      "short": "Familia de códigos HTTP: 2xx (éxito), 3xx (redirección), 4xx (error del cliente), 5xx (error del servidor)."
+    },
+    "consumer": {
+      "short": "Quién llama a tu API, identificado por la clave de API utilizada. Te permite ver el uso por cliente/aplicación.",
+      "docsSlug": "python-sdk"
+    }
+  },
+  "dimension": {
+    "project_id": "Proyecto",
+    "country": "País",
+    "region": "Región",
+    "city": "Ciudad",
+    "asn": "Red (ASN)",
+    "page": "Página",
+    "referrer": "Referente",
+    "utm_source": "Fuente UTM",
+    "utm_medium": "Medio UTM",
+    "utm_campaign": "Campaña UTM",
+    "device": "Dispositivo",
+    "os": "SO",
+    "browser": "Navegador",
+    "locale": "Idioma",
+    "traffic_class": "Tipo de tráfico",
+    "event_name": "Evento",
+    "class_reason": "Motivo de clasificación",
+    "endpoint": "Endpoint",
+    "method": "Método",
+    "status_class": "Clase de estado",
+    "consumer": "Consumidor"
+  },
+  "glossaryUi": {
+    "whatIs": "¿Qué es «{{term}}»?",
+    "learnMore": "Saber más →",
+    "title": "Glosario",
+    "subtitle": "Qué significa cada cifra, en lenguaje claro.",
+    "metrics": "Métricas",
+    "dimensions": "Dimensiones"
   }
 }

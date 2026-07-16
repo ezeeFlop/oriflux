@@ -6,6 +6,7 @@ import { DashboardProvider } from "./lib/state";
 import ApiView from "./views/ApiView";
 import AlertsView from "./views/AlertsView";
 import AnnotationsView from "./views/AnnotationsView";
+import GlossaryView from "./views/GlossaryView";
 import GoalsView from "./views/GoalsView";
 import HomeView from "./views/HomeView";
 import LiveView from "./views/LiveView";
@@ -66,6 +67,7 @@ export function AppRoutes() {
         }
       >
         <Route path="/" element={<HomeView />} />
+        <Route path="/glossary" element={<GlossaryView />} />
         <Route path="/settings/org" element={<OrgSettingsView />} />
         <Route path="/p/:projectId" element={<ProjectIndexRedirect />} />
         {PROJECT_SECTIONS.map(({ key, path }) => (

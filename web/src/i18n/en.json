@@ -22,7 +22,8 @@
     "projectSettings": "Project settings",
     "orgSettings": "Organization settings",
     "projects": "Projects",
-    "logout": "Sign out"
+    "logout": "Sign out",
+    "glossary": "Glossary"
   },
   "account": {
     "label": "Account"
@@ -133,7 +134,14 @@
     "api_latency_p50": "p50 latency",
     "api_latency_p95": "p95 latency",
     "api_latency_p99": "p99 latency",
-    "visitDaysNote": "Multi-day totals are visit-days (daily rotating hash)"
+    "visitDaysNote": "Multi-day totals are visit-days (daily rotating hash)",
+    "custom_events": "Custom events",
+    "custom_event_visitors": "Event visitors",
+    "revenue": "Revenue",
+    "web_vital_lcp_p75": "LCP (p75)",
+    "web_vital_cls_p75": "CLS (p75)",
+    "web_vital_inp_p75": "INP (p75)",
+    "web_vital_ttfb_p75": "TTFB (p75)"
   },
   "overview": {
     "liveNow": "Live now",
@@ -399,5 +407,178 @@
     "generate": "Generate the key and snippet",
     "keyOnce": "The key will never be shown again — copy the snippet now.",
     "issueFailed": "Could not issue a key (admin role required)."
+  },
+  "glossary": {
+    "pageviews": {
+      "short": "Total pages viewed. Every page load counts, even if the same visitor views several.",
+      "docsSlug": "oriflux-js"
+    },
+    "visitors": {
+      "short": "Distinct people, not pages. Cookieless: a visitor is recognised via a fingerprint that changes every day.",
+      "note": "Deduplicated exactly within a single day; across days the same visitor may be recounted (the fingerprint rotates at midnight). That's the cost of being cookieless.",
+      "docsSlug": "oriflux-js"
+    },
+    "sessions": {
+      "short": "Number of visits. A visit groups a visitor's activity and ends after 30 minutes of inactivity.",
+      "docsSlug": "oriflux-js"
+    },
+    "bounce_rate": {
+      "short": "Share of visits that saw only one page before leaving. A high rate can signal a poorly matched landing page.",
+      "docsSlug": "oriflux-js"
+    },
+    "session_duration": {
+      "short": "Average visit length, from the first to the last recorded event.",
+      "note": "Single-page visits have a duration of 0 (no second event to measure against) — they drag the average down.",
+      "docsSlug": "oriflux-js"
+    },
+    "custom_events": {
+      "short": "Number of custom events fired (clicks, sign-ups, purchases… whatever you instrument yourself).",
+      "docsSlug": "oriflux-js"
+    },
+    "custom_event_visitors": {
+      "short": "Distinct people who fired at least one custom event.",
+      "docsSlug": "oriflux-js"
+    },
+    "revenue": {
+      "short": "Sum of the amounts attached to events (e.g. purchase value). Requires sending a value with the event.",
+      "docsSlug": "oriflux-js"
+    },
+    "web_vital_lcp_p75": {
+      "short": "LCP (Largest Contentful Paint) at the 75th percentile: how long the biggest element takes to render. Under 2.5s is good.",
+      "note": "P75: 75% of your visitors get a value at least this good. It's the threshold Google uses to judge experience.",
+      "docsSlug": "oriflux-js"
+    },
+    "web_vital_cls_p75": {
+      "short": "CLS (Cumulative Layout Shift) at the 75th percentile: visual stability while the page loads. Under 0.1 is good.",
+      "docsSlug": "oriflux-js"
+    },
+    "web_vital_inp_p75": {
+      "short": "INP (Interaction to Next Paint) at the 75th percentile: responsiveness to interactions. Under 200ms is good.",
+      "docsSlug": "oriflux-js"
+    },
+    "web_vital_ttfb_p75": {
+      "short": "TTFB (Time To First Byte) at the 75th percentile: time to the first byte from the server. Measures server/network latency.",
+      "docsSlug": "oriflux-js"
+    },
+    "api_requests": {
+      "short": "Number of requests your API received over the period.",
+      "docsSlug": "python-sdk"
+    },
+    "api_error_rate_4xx": {
+      "short": "Share of requests failing with a 4xx (client-side: bad, unauthorised or not-found request).",
+      "docsSlug": "python-sdk"
+    },
+    "api_error_rate_5xx": {
+      "short": "Share of requests failing with a 5xx (server-side: your backend crashed or didn't respond). Watch this closely.",
+      "docsSlug": "python-sdk"
+    },
+    "api_latency_p50": {
+      "short": "Median response time (p50): half of requests are faster, half slower.",
+      "docsSlug": "python-sdk"
+    },
+    "api_latency_p95": {
+      "short": "95th-percentile response time: 95% of requests are faster. Reflects the slow-request experience, not the extremes.",
+      "docsSlug": "python-sdk"
+    },
+    "api_latency_p99": {
+      "short": "99th-percentile response time: only 1% of requests are slower. Reveals the long tail (locks, timeouts).",
+      "docsSlug": "python-sdk"
+    },
+    "country": {
+      "short": "Visitor's country, inferred from the IP at collection time. The IP is resolved then never stored.",
+      "docsSlug": "privacy"
+    },
+    "region": {
+      "short": "Visitor's region/state, inferred from the IP at collection (never stored)."
+    },
+    "city": {
+      "short": "Visitor's city, inferred from the IP at collection (never stored)."
+    },
+    "asn": {
+      "short": "Visitor's network/operator (Autonomous System Number): identifies the ISP or host, handy for spotting data-centre traffic."
+    },
+    "page": {
+      "short": "The page path (URL without the domain), e.g. /pricing. Query parameters are normalised."
+    },
+    "referrer": {
+      "short": "The site the visitor came from (the page that sent them to you)."
+    },
+    "utm_source": {
+      "short": "The URL's utm_source parameter: the campaign source (e.g. newsletter, google)."
+    },
+    "utm_medium": {
+      "short": "The utm_medium parameter: the campaign channel (e.g. email, cpc, social)."
+    },
+    "utm_campaign": {
+      "short": "The utm_campaign parameter: the marketing campaign name."
+    },
+    "device": {
+      "short": "Device type: desktop, mobile or tablet, inferred from the browser."
+    },
+    "os": {
+      "short": "Visitor's operating system (Windows, macOS, iOS, Android…)."
+    },
+    "browser": {
+      "short": "Visitor's browser (Chrome, Safari, Firefox…)."
+    },
+    "locale": {
+      "short": "Visitor's preferred browser language (e.g. en-US)."
+    },
+    "traffic_class": {
+      "short": "The nature of the traffic: human, crawler, or AI agent. Separates real visits from automated traffic.",
+      "note": "Classified from the user-agent (a crawler/AI-agent list maintained by Oriflux). A bot disguised as a browser can pass as human.",
+      "docsSlug": "getting-started"
+    },
+    "event_name": {
+      "short": "The custom event's name (e.g. signup, purchase)."
+    },
+    "class_reason": {
+      "short": "Why Oriflux classified this traffic as it did (e.g. the user-agent pattern that flagged a bot). Makes classification explainable."
+    },
+    "endpoint": {
+      "short": "The API route called, with parameters normalised (e.g. /users/{id}), to group similar requests together.",
+      "docsSlug": "python-sdk"
+    },
+    "method": {
+      "short": "The request's HTTP method (GET, POST, PUT, DELETE…)."
+    },
+    "status_class": {
+      "short": "HTTP status family: 2xx (success), 3xx (redirect), 4xx (client error), 5xx (server error)."
+    },
+    "consumer": {
+      "short": "Who calls your API, identified by the API key used. Lets you see usage per client/application.",
+      "docsSlug": "python-sdk"
+    }
+  },
+  "dimension": {
+    "project_id": "Project",
+    "country": "Country",
+    "region": "Region",
+    "city": "City",
+    "asn": "Network (ASN)",
+    "page": "Page",
+    "referrer": "Referrer",
+    "utm_source": "UTM source",
+    "utm_medium": "UTM medium",
+    "utm_campaign": "UTM campaign",
+    "device": "Device",
+    "os": "OS",
+    "browser": "Browser",
+    "locale": "Language",
+    "traffic_class": "Traffic type",
+    "event_name": "Event",
+    "class_reason": "Classification reason",
+    "endpoint": "Endpoint",
+    "method": "Method",
+    "status_class": "Status class",
+    "consumer": "Consumer"
+  },
+  "glossaryUi": {
+    "whatIs": "What is \"{{term}}\"?",
+    "learnMore": "Learn more →",
+    "title": "Glossary",
+    "subtitle": "What every number means, in plain language.",
+    "metrics": "Metrics",
+    "dimensions": "Dimensions"
   }
 }

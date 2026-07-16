@@ -22,7 +22,8 @@
     "projectSettings": "Réglages projet",
     "orgSettings": "Réglages de l'organisation",
     "projects": "Projets",
-    "logout": "Se déconnecter"
+    "logout": "Se déconnecter",
+    "glossary": "Glossaire"
   },
   "account": {
     "label": "Compte"
@@ -133,7 +134,14 @@
     "api_latency_p50": "Latence p50",
     "api_latency_p95": "Latence p95",
     "api_latency_p99": "Latence p99",
-    "visitDaysNote": "Total multi-jours = visites-jours (hash quotidien rotatif)"
+    "visitDaysNote": "Total multi-jours = visites-jours (hash quotidien rotatif)",
+    "custom_events": "Événements perso.",
+    "custom_event_visitors": "Visiteurs (événements)",
+    "revenue": "Revenu",
+    "web_vital_lcp_p75": "LCP (p75)",
+    "web_vital_cls_p75": "CLS (p75)",
+    "web_vital_inp_p75": "INP (p75)",
+    "web_vital_ttfb_p75": "TTFB (p75)"
   },
   "overview": {
     "liveNow": "En direct",
@@ -399,5 +407,178 @@
     "generate": "Générer la clé et le snippet",
     "keyOnce": "La clé ne sera plus jamais affichée — copiez le snippet maintenant.",
     "issueFailed": "Émission impossible (rôle admin requis)."
+  },
+  "glossary": {
+    "pageviews": {
+      "short": "Nombre total de pages vues. Chaque chargement de page compte, même si le même visiteur en voit plusieurs.",
+      "docsSlug": "oriflux-js"
+    },
+    "visitors": {
+      "short": "Nombre de personnes distinctes, pas de pages. Sans cookie : on reconnaît un visiteur via une empreinte qui change chaque jour.",
+      "note": "Déduplication exacte au sein d'une même journée ; au-delà d'un jour, le même visiteur peut être recompté (l'empreinte tourne à minuit). C'est le prix du sans-cookie.",
+      "docsSlug": "oriflux-js"
+    },
+    "sessions": {
+      "short": "Nombre de visites. Une visite regroupe l'activité d'un visiteur et se termine après 30 minutes d'inactivité.",
+      "docsSlug": "oriflux-js"
+    },
+    "bounce_rate": {
+      "short": "Part des visites qui n'ont vu qu'une seule page avant de repartir. Un taux élevé peut signaler une page d'entrée peu pertinente.",
+      "docsSlug": "oriflux-js"
+    },
+    "session_duration": {
+      "short": "Durée moyenne d'une visite, du premier au dernier événement enregistré.",
+      "note": "Les visites d'une seule page ont une durée de 0 (pas de second événement pour mesurer l'écart) — elles tirent la moyenne vers le bas.",
+      "docsSlug": "oriflux-js"
+    },
+    "custom_events": {
+      "short": "Nombre d'événements personnalisés déclenchés (clics, inscriptions, achats… ce que vous instrumentez vous-même).",
+      "docsSlug": "oriflux-js"
+    },
+    "custom_event_visitors": {
+      "short": "Nombre de personnes distinctes ayant déclenché au moins un événement personnalisé.",
+      "docsSlug": "oriflux-js"
+    },
+    "revenue": {
+      "short": "Somme des montants attachés aux événements (ex. valeur d'un achat). Nécessite d'envoyer une valeur avec l'événement.",
+      "docsSlug": "oriflux-js"
+    },
+    "web_vital_lcp_p75": {
+      "short": "LCP (Largest Contentful Paint) au 75e centile : temps d'affichage du plus gros élément. Sous 2,5 s = bon.",
+      "note": "P75 : 75 % de vos visiteurs ont une valeur meilleure ou égale. C'est le seuil que Google utilise pour juger l'expérience.",
+      "docsSlug": "oriflux-js"
+    },
+    "web_vital_cls_p75": {
+      "short": "CLS (Cumulative Layout Shift) au 75e centile : stabilité visuelle de la page pendant le chargement. Sous 0,1 = bon.",
+      "docsSlug": "oriflux-js"
+    },
+    "web_vital_inp_p75": {
+      "short": "INP (Interaction to Next Paint) au 75e centile : réactivité aux interactions. Sous 200 ms = bon.",
+      "docsSlug": "oriflux-js"
+    },
+    "web_vital_ttfb_p75": {
+      "short": "TTFB (Time To First Byte) au 75e centile : temps avant le premier octet reçu du serveur. Mesure la latence serveur/réseau.",
+      "docsSlug": "oriflux-js"
+    },
+    "api_requests": {
+      "short": "Nombre de requêtes reçues par votre API sur la période.",
+      "docsSlug": "python-sdk"
+    },
+    "api_error_rate_4xx": {
+      "short": "Part des requêtes en erreur 4xx (côté client : requête invalide, non autorisée, introuvable…).",
+      "docsSlug": "python-sdk"
+    },
+    "api_error_rate_5xx": {
+      "short": "Part des requêtes en erreur 5xx (côté serveur : votre backend a planté ou n'a pas répondu). À surveiller de près.",
+      "docsSlug": "python-sdk"
+    },
+    "api_latency_p50": {
+      "short": "Temps de réponse médian (p50) : la moitié des requêtes répondent plus vite, l'autre moitié plus lentement.",
+      "docsSlug": "python-sdk"
+    },
+    "api_latency_p95": {
+      "short": "Temps de réponse au 95e centile : 95 % des requêtes sont plus rapides. Reflète l'expérience des requêtes lentes, pas les cas extrêmes.",
+      "docsSlug": "python-sdk"
+    },
+    "api_latency_p99": {
+      "short": "Temps de réponse au 99e centile : seul 1 % des requêtes est plus lent. Révèle la longue traîne (verrous, timeouts).",
+      "docsSlug": "python-sdk"
+    },
+    "country": {
+      "short": "Pays du visiteur, déduit de l'adresse IP au moment de la collecte. L'IP est résolue puis jamais stockée.",
+      "docsSlug": "privacy"
+    },
+    "region": {
+      "short": "Région/état du visiteur, déduit de l'IP à la collecte (jamais stockée)."
+    },
+    "city": {
+      "short": "Ville du visiteur, déduite de l'IP à la collecte (jamais stockée)."
+    },
+    "asn": {
+      "short": "Réseau/opérateur du visiteur (Autonomous System Number) : identifie le fournisseur d'accès ou l'hébergeur, utile pour repérer le trafic data-center."
+    },
+    "page": {
+      "short": "Chemin de la page (URL sans le domaine), ex. /tarifs. Les paramètres de requête sont normalisés."
+    },
+    "referrer": {
+      "short": "Site d'où provient le visiteur (la page qui l'a amené chez vous)."
+    },
+    "utm_source": {
+      "short": "Paramètre utm_source de l'URL : la source de la campagne (ex. newsletter, google)."
+    },
+    "utm_medium": {
+      "short": "Paramètre utm_medium : le canal de la campagne (ex. email, cpc, social)."
+    },
+    "utm_campaign": {
+      "short": "Paramètre utm_campaign : le nom de la campagne marketing."
+    },
+    "device": {
+      "short": "Type d'appareil : ordinateur, mobile ou tablette, déduit du navigateur."
+    },
+    "os": {
+      "short": "Système d'exploitation du visiteur (Windows, macOS, iOS, Android…)."
+    },
+    "browser": {
+      "short": "Navigateur du visiteur (Chrome, Safari, Firefox…)."
+    },
+    "locale": {
+      "short": "Langue préférée du navigateur du visiteur (ex. fr-FR)."
+    },
+    "traffic_class": {
+      "short": "Nature du trafic : humain, robot d'indexation, ou agent IA. Permet de séparer les vraies visites du trafic automatisé.",
+      "note": "Classement basé sur le user-agent (liste de crawlers/agents IA maintenue par Oriflux). Un bot qui se déguise en navigateur peut passer pour humain.",
+      "docsSlug": "getting-started"
+    },
+    "event_name": {
+      "short": "Nom de l'événement personnalisé (ex. signup, purchase)."
+    },
+    "class_reason": {
+      "short": "Pourquoi Oriflux a classé ce trafic ainsi (ex. le motif user-agent qui a identifié un bot). Rend la classification explicable."
+    },
+    "endpoint": {
+      "short": "Route de l'API appelée, avec ses paramètres normalisés (ex. /users/{id}), pour regrouper les requêtes similaires.",
+      "docsSlug": "python-sdk"
+    },
+    "method": {
+      "short": "Méthode HTTP de la requête API (GET, POST, PUT, DELETE…)."
+    },
+    "status_class": {
+      "short": "Famille de code de statut HTTP : 2xx (succès), 3xx (redirection), 4xx (erreur client), 5xx (erreur serveur)."
+    },
+    "consumer": {
+      "short": "Qui appelle votre API, identifié par la clé d'API utilisée. Permet de voir la consommation par client/application.",
+      "docsSlug": "python-sdk"
+    }
+  },
+  "dimension": {
+    "project_id": "Projet",
+    "country": "Pays",
+    "region": "Région",
+    "city": "Ville",
+    "asn": "Réseau (ASN)",
+    "page": "Page",
+    "referrer": "Référent",
+    "utm_source": "Source UTM",
+    "utm_medium": "Canal UTM",
+    "utm_campaign": "Campagne UTM",
+    "device": "Appareil",
+    "os": "OS",
+    "browser": "Navigateur",
+    "locale": "Langue",
+    "traffic_class": "Type de trafic",
+    "event_name": "Événement",
+    "class_reason": "Motif de classification",
+    "endpoint": "Endpoint",
+    "method": "Méthode",
+    "status_class": "Classe de statut",
+    "consumer": "Consommateur"
+  },
+  "glossaryUi": {
+    "whatIs": "Qu'est-ce que « {{term}} » ?",
+    "learnMore": "En savoir plus →",
+    "title": "Glossaire",
+    "subtitle": "Ce que chaque chiffre veut dire, en clair.",
+    "metrics": "Métriques",
+    "dimensions": "Dimensions"
   }
 }
