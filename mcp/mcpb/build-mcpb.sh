@@ -12,7 +12,7 @@ cd "$(dirname "$0")"
 
 VERSION="$(node -p "require('./manifest.json').version")"
 BUNDLE_DIR="bundle"
-OUT_DIR="dist"
+OUT="oriflux-${VERSION}.mcpb"
 
 echo "Building Oriflux MCPB v${VERSION}…"
 
@@ -24,10 +24,11 @@ rm -rf "$BUNDLE_DIR" && mkdir -p "$BUNDLE_DIR"
 cp manifest.json index.mjs package.json "$BUNDLE_DIR/"
 cp -R node_modules "$BUNDLE_DIR/node_modules"
 
-# 3. validate the manifest, then pack (mcpb CLI from @anthropic-ai/mcpb)
+# 3. validate the manifest, then pack (mcpb CLI from @anthropic-ai/mcpb).
+#    The packed artifact is committed at the mcpb dir root (checked in, like the
+#    other Sponge Theory .mcpb bundles); the repo root .gitignore ignores dist/.
 npx --yes @anthropic-ai/mcpb@latest validate "$BUNDLE_DIR/manifest.json"
-mkdir -p "$OUT_DIR"
-npx --yes @anthropic-ai/mcpb@latest pack "$BUNDLE_DIR" "$OUT_DIR/oriflux-${VERSION}.mcpb"
+npx --yes @anthropic-ai/mcpb@latest pack "$BUNDLE_DIR" "$OUT"
 
 rm -rf "$BUNDLE_DIR"
-echo "Success: $OUT_DIR/oriflux-${VERSION}.mcpb"
+echo "Success: $OUT"

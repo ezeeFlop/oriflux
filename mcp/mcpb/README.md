@@ -28,13 +28,14 @@ bridge as the `OFX_BASE_URL` / `OFX_API_KEY` env vars.
 ## Build
 
 ```bash
-./build-mcpb.sh          # installs mcp-remote, validates the manifest, packs dist/oriflux-<version>.mcpb
+./build-mcpb.sh          # installs mcp-remote, validates the manifest, packs oriflux-<version>.mcpb
 ```
 
 Requires Node ≥ 18. The pack + validate use `@anthropic-ai/mcpb` (fetched via
-`npx`). Install the result by dragging `dist/oriflux-<version>.mcpb` into Claude
-Desktop → Settings → Extensions, then enter your Oriflux base URL and
-`ofx_read_…` key.
+`npx`). The packed `oriflux-<version>.mcpb` is checked into this directory
+(like the other Sponge Theory bundles); rebuild it after any version bump.
+Install by dragging it into Claude Desktop → Settings → Extensions, then enter
+your Oriflux base URL and `ofx_read_…` key.
 
 ## Versioning
 
