@@ -10,6 +10,7 @@
 
 import { useEffect, useId, useRef, useState } from "react";
 import { useTranslation } from "react-i18next";
+import { Link } from "react-router-dom";
 
 import { docsUrl } from "../lib/docs";
 import { hasGlossary, termKind, type TermKind } from "../lib/glossary";
@@ -25,14 +26,12 @@ export function GlossaryDefinition({ name }: { name: string }) {
       <p className="text-sm text-ink-soft">{t(`glossary.${name}.short`)}</p>
       {note && <p className="mt-1 text-xs italic text-ink-soft">{note}</p>}
       {docsSlug && (
-        <a
-          href={docsUrl(docsSlug)}
-          target="_blank"
-          rel="noreferrer"
+        <Link
+          to={docsUrl(docsSlug)}
           className="mt-1 inline-block text-xs font-medium text-flame underline-offset-2 hover:underline"
         >
           {t("glossaryUi.learnMore")}
-        </a>
+        </Link>
       )}
     </>
   );

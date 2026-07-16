@@ -9,6 +9,7 @@
 
 import { useEffect, useState } from "react";
 import { useTranslation } from "react-i18next";
+import { Link } from "react-router-dom";
 
 import i18n from "../i18n";
 import { docsUrl } from "../lib/docs";
@@ -78,14 +79,13 @@ export function ScreenHelpButton({ id }: { id: string }) {
                 </section>
               ))}
               {docsSlug && (
-                <a
-                  href={docsUrl(docsSlug)}
-                  target="_blank"
-                  rel="noreferrer"
+                <Link
+                  to={docsUrl(docsSlug)}
+                  onClick={() => setOpen(false)}
                   className="inline-block font-medium text-flame underline-offset-2 hover:underline"
                 >
                   {t("screenHelpUi.learnMore")}
-                </a>
+                </Link>
               )}
             </div>
           </div>

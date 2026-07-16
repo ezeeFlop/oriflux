@@ -23,7 +23,8 @@
     "orgSettings": "Ajustes de la organización",
     "projects": "Proyectos",
     "logout": "Cerrar sesión",
-    "glossary": "Glosario"
+    "glossary": "Glosario",
+    "docs": "Docs"
   },
   "account": {
     "label": "Cuenta"
@@ -656,5 +657,9 @@
     "open": "Ayuda de pantalla",
     "close": "Cerrar",
     "learnMore": "Más información →"
+  },
+  "docsUi": {
+    "title": "Documentación",
+    "subtitle": "Las guías de Oriflux, dentro de la aplicación."
   }
 }

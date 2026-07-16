@@ -3,6 +3,7 @@
 
 import { useState, type ReactNode } from "react";
 import { useTranslation } from "react-i18next";
+import { Link } from "react-router-dom";
 import { deltaPercent, formatNumber } from "../lib/format";
 import { docsUrl } from "../lib/docs";
 import type { QueryRow } from "../lib/api";
@@ -30,14 +31,12 @@ export function ScreenSubtitle({ id }: { id: string }) {
 export function DocsLink({ slug }: { slug: string }) {
   const { t } = useTranslation();
   return (
-    <a
-      href={docsUrl(slug)}
-      target="_blank"
-      rel="noreferrer"
+    <Link
+      to={docsUrl(slug)}
       className="text-xs font-medium text-flame underline-offset-2 hover:underline"
     >
       {t("emptyState.docsLink")}
-    </a>
+    </Link>
   );
 }
 

@@ -1,5 +1,6 @@
 import { render, screen } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
+import { MemoryRouter } from "react-router-dom";
 import { describe, expect, it } from "vitest";
 
 import { ScreenHelpButton } from "../components/ScreenHelp";
@@ -10,7 +11,7 @@ import "../i18n"; // initialise global i18n (defaults to FR in tests)
 
 describe("ScreenHelpButton (#77)", () => {
   it("opens a drawer with the three help blocks for a screen", async () => {
-    render(<ScreenHelpButton id="web" />);
+    render(<MemoryRouter><ScreenHelpButton id="web" /></MemoryRouter>);
     expect(screen.queryByRole("dialog")).not.toBeInTheDocument();
 
     await userEvent.click(screen.getByRole("button", { name: /Aide de l'écran/ }));
@@ -24,7 +25,7 @@ describe("ScreenHelpButton (#77)", () => {
   });
 
   it("renders nothing for a screen with no help entry", () => {
-    const { container } = render(<ScreenHelpButton id="does-not-exist" />);
+    const { container } = render(<MemoryRouter><ScreenHelpButton id="does-not-exist" /></MemoryRouter>);
     expect(container).toBeEmptyDOMElement();
   });
 });

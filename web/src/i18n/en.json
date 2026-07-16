@@ -23,7 +23,8 @@
     "orgSettings": "Organization settings",
     "projects": "Projects",
     "logout": "Sign out",
-    "glossary": "Glossary"
+    "glossary": "Glossary",
+    "docs": "Docs"
   },
   "account": {
     "label": "Account"
@@ -656,5 +657,9 @@
     "open": "Screen help",
     "close": "Close",
     "learnMore": "Learn more →"
+  },
+  "docsUi": {
+    "title": "Documentation",
+    "subtitle": "The Oriflux guides, right in the app."
   }
 }

@@ -1,5 +1,6 @@
 import { render, screen } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
+import { MemoryRouter } from "react-router-dom";
 import { describe, expect, it } from "vitest";
 
 import { TermLabel } from "../components/TermLabel";
@@ -7,12 +8,14 @@ import { dimensionTerms, metricTerms } from "../lib/glossary";
 import "../i18n"; // initialise the global i18n instance (defaults to FR in tests)
 import { renderApp } from "./render";
 
+const renderRouted = (ui: React.ReactElement) => render(<MemoryRouter>{ui}</MemoryRouter>);
+
 /** Glossary slice (PRD #75 / #76): contextual `<TermLabel>` popovers + the
  *  central Glossary page. Definitions ship trilingual; tests run in FR. */
 
 describe("TermLabel", () => {
   it("shows the label and reveals the definition only after clicking the 'i'", async () => {
-    render(<TermLabel name="visitors" kind="metric" />);
+    renderRouted(<TermLabel name="visitors" kind="metric" />);
     // label always visible
     expect(screen.getByText("Visiteurs")).toBeInTheDocument();
     // definition hidden until opened
@@ -25,7 +28,7 @@ describe("TermLabel", () => {
   });
 
   it("degrades to a bare label for a term with no glossary entry", () => {
-    render(<TermLabel name="project_id" kind="dimension" />);
+    renderRouted(<TermLabel name="project_id" kind="dimension" />);
     expect(screen.getByText("Projet")).toBeInTheDocument();
     expect(screen.queryByRole("button", { name: /Qu'est-ce que/ })).not.toBeInTheDocument();
   });
