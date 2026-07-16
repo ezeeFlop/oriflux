@@ -580,5 +580,81 @@
     "subtitle": "What every number means, in plain language.",
     "metrics": "Metrics",
     "dimensions": "Dimensions"
+  },
+  "screenHelp": {
+    "overview": {
+      "purpose": "A product at a glance: its key web and API numbers for the period, its trend and its latest signals.",
+      "howToRead": "Tiles compare the period to the previous one (▲/▼). The chart shows the trajectory; signals list recent alerts and annotations.",
+      "nextAction": "Spot a change, then dig in via the Web, API or Live screens.",
+      "docsSlug": "getting-started"
+    },
+    "web": {
+      "purpose": "Your site's audience: visitors, pageviews, sessions, sources, pages and geography.",
+      "howToRead": "Tiles summarise the period; tables rank by page, source, country… Click a row to filter the whole screen.",
+      "nextAction": "If everything is zero, paste the oriflux.js snippet on your site (see Product settings).",
+      "docsSlug": "oriflux-js"
+    },
+    "api": {
+      "purpose": "Your API's health: request volume, error rate and latency, by endpoint and consumer.",
+      "howToRead": "Watch 5xx errors and p95 latency. Tables break it down by endpoint, method and status.",
+      "nextAction": "No data? Install the ASGI SDK in your backend (see docs).",
+      "docsSlug": "python-sdk"
+    },
+    "live": {
+      "purpose": "What's happening right now: active visitors and events from the last few minutes.",
+      "howToRead": "The view refreshes every 10s; the counter shows visitors active now.",
+      "nextAction": "Open your site in a tab to watch yourself appear here.",
+      "docsSlug": "oriflux-js"
+    },
+    "goals": {
+      "purpose": "Your conversions: goals (a page reached or an event) and their completion rate.",
+      "howToRead": "Each goal shows its completions and rate over the period.",
+      "nextAction": "Create a goal from a key page or a custom event.",
+      "docsSlug": "oriflux-js"
+    },
+    "alerts": {
+      "purpose": "Your monitoring: rules that notify you when a metric crosses a threshold.",
+      "howToRead": "Each rule shows its metric, condition and recent triggers.",
+      "nextAction": "Create a rule (e.g. 5xx errors > 1%) with Slack or email notification.",
+      "docsSlug": "getting-started"
+    },
+    "annotations": {
+      "purpose": "The markers on your timeline: deploys, campaigns, incidents.",
+      "howToRead": "Annotations appear on the charts so you can tie a change to a known event.",
+      "nextAction": "Add an annotation on a deploy or campaign date.",
+      "docsSlug": "getting-started"
+    },
+    "home": {
+      "purpose": "Your portfolio: every product at a glance, with its signals.",
+      "howToRead": "Each card summarises a product; insights surface notable changes.",
+      "nextAction": "Open a product to see its detailed Overview.",
+      "docsSlug": "getting-started"
+    },
+    "product": {
+      "purpose": "A product's home: access to its web, API and live screens and its settings.",
+      "howToRead": "Use the navigation to move between domains; the time context is preserved.",
+      "nextAction": "Pick Web, API or Live depending on what you want to analyse.",
+      "docsSlug": "getting-started"
+    },
+    "orgSettings": {
+      "purpose": "Organisation settings: members and roles, keys, billing and quotas.",
+      "howToRead": "Each section handles one aspect: invite members, manage keys, track usage.",
+      "nextAction": "Invite a teammate, or check your usage against the plan quota."
+    },
+    "projectSettings": {
+      "purpose": "Product settings: sources, ingest keys, snippet, connectors and public view.",
+      "howToRead": "Each source (web/api) has its key; the ready-to-paste snippet is here.",
+      "nextAction": "Copy the oriflux.js snippet or the SDK key to instrument this product.",
+      "docsSlug": "oriflux-js"
+    }
+  },
+  "screenHelpUi": {
+    "title": "About this screen",
+    "purpose": "What this screen is for",
+    "howToRead": "How to read it",
+    "nextAction": "Next useful action",
+    "open": "Screen help",
+    "close": "Close",
+    "learnMore": "Learn more →"
   }
 }

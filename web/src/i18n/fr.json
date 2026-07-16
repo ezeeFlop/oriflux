@@ -580,5 +580,81 @@
     "subtitle": "Ce que chaque chiffre veut dire, en clair.",
     "metrics": "Métriques",
     "dimensions": "Dimensions"
+  },
+  "screenHelp": {
+    "overview": {
+      "purpose": "La synthèse d'un produit : ses chiffres clés web et API sur la période, sa tendance et ses derniers signaux.",
+      "howToRead": "Les tuiles comparent la période à la précédente (▲/▼). La courbe montre la trajectoire ; les signaux listent alertes et annotations récentes.",
+      "nextAction": "Repérez une variation, puis creusez via les écrans Web, API ou Live.",
+      "docsSlug": "getting-started"
+    },
+    "web": {
+      "purpose": "L'audience de votre site : visiteurs, pages vues, sessions, sources, pages et géographie.",
+      "howToRead": "Les tuiles résument la période ; les tableaux classent par page, source, pays… Cliquez une ligne pour filtrer tout l'écran.",
+      "nextAction": "Si tout est à zéro, collez le snippet oriflux.js sur votre site (voir Réglages du produit).",
+      "docsSlug": "oriflux-js"
+    },
+    "api": {
+      "purpose": "La santé de votre API : volume de requêtes, taux d'erreur et latence, par endpoint et par consommateur.",
+      "howToRead": "Surveillez les erreurs 5xx et la latence p95. Les tableaux détaillent par endpoint, méthode et statut.",
+      "nextAction": "Aucune donnée ? Installez le SDK ASGI dans votre backend (voir docs).",
+      "docsSlug": "python-sdk"
+    },
+    "live": {
+      "purpose": "Ce qui se passe en ce moment : visiteurs actifs et événements des dernières minutes.",
+      "howToRead": "La vue se rafraîchit toutes les 10 s ; le compteur indique les visiteurs actifs maintenant.",
+      "nextAction": "Ouvrez votre site dans un onglet pour vous voir apparaître ici.",
+      "docsSlug": "oriflux-js"
+    },
+    "goals": {
+      "purpose": "Vos conversions : des objectifs (une page atteinte ou un événement) et leur taux de complétion.",
+      "howToRead": "Chaque objectif montre son nombre de complétions et son taux sur la période.",
+      "nextAction": "Créez un objectif à partir d'une page clé ou d'un événement personnalisé.",
+      "docsSlug": "oriflux-js"
+    },
+    "alerts": {
+      "purpose": "Votre surveillance : des règles qui vous préviennent quand une métrique franchit un seuil.",
+      "howToRead": "Chaque règle affiche sa métrique, sa condition et ses déclenchements récents.",
+      "nextAction": "Créez une règle (ex. erreurs 5xx > 1 %) avec notification Slack ou email.",
+      "docsSlug": "getting-started"
+    },
+    "annotations": {
+      "purpose": "Les repères posés sur la timeline : déploiements, campagnes, incidents.",
+      "howToRead": "Les annotations apparaissent sur les graphes pour relier une variation à un événement connu.",
+      "nextAction": "Ajoutez une annotation à la date d'un déploiement ou d'une campagne.",
+      "docsSlug": "getting-started"
+    },
+    "home": {
+      "purpose": "Votre portfolio : tous vos produits d'un coup d'œil, avec leurs signaux.",
+      "howToRead": "Chaque carte résume un produit ; les insights remontent les variations notables.",
+      "nextAction": "Ouvrez un produit pour voir son Overview détaillé.",
+      "docsSlug": "getting-started"
+    },
+    "product": {
+      "purpose": "La fiche d'un produit : accès à ses écrans web, API, live et à ses réglages.",
+      "howToRead": "Utilisez la navigation pour passer d'un domaine à l'autre ; le contexte temporel est conservé.",
+      "nextAction": "Choisissez Web, API ou Live selon ce que vous voulez analyser.",
+      "docsSlug": "getting-started"
+    },
+    "orgSettings": {
+      "purpose": "Les réglages de l'organisation : membres et rôles, clés, facturation et quotas.",
+      "howToRead": "Chaque section gère un aspect : invitez des membres, gérez les clés, suivez votre usage.",
+      "nextAction": "Invitez un collègue, ou vérifiez votre consommation face au quota du plan."
+    },
+    "projectSettings": {
+      "purpose": "Les réglages du produit : sources, clés d'ingestion, snippet, connecteurs et vue publique.",
+      "howToRead": "Chaque source (web/api) a sa clé ; le snippet prêt à coller est ici.",
+      "nextAction": "Copiez le snippet oriflux.js ou la clé du SDK pour instrumenter ce produit.",
+      "docsSlug": "oriflux-js"
+    }
+  },
+  "screenHelpUi": {
+    "title": "Aide de l'écran",
+    "purpose": "À quoi sert cet écran",
+    "howToRead": "Comment le lire",
+    "nextAction": "Prochaine action utile",
+    "open": "Aide de l'écran",
+    "close": "Fermer",
+    "learnMore": "En savoir plus →"
   }
 }

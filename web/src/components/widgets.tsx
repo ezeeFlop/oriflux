@@ -6,6 +6,7 @@ import { useTranslation } from "react-i18next";
 import { deltaPercent, formatNumber } from "../lib/format";
 import { docsUrl } from "../lib/docs";
 import type { QueryRow } from "../lib/api";
+import { ScreenHelpButton } from "./ScreenHelp";
 import { TermLabel } from "./TermLabel";
 
 /** Shared form styling for the settings/alerts/annotations screens. */
@@ -17,7 +18,12 @@ export const FIELD = "rounded-md border border-line bg-surface px-2 py-1.5 text-
  *  dismissable tours: the subtitle IS the pedagogy. */
 export function ScreenSubtitle({ id }: { id: string }) {
   const { t } = useTranslation();
-  return <p className="-mt-3 text-sm text-ink-soft">{t(`subtitle.${id}`)}</p>;
+  return (
+    <div className="-mt-3 flex items-center gap-2">
+      <p className="text-sm text-ink-soft">{t(`subtitle.${id}`)}</p>
+      <ScreenHelpButton id={id} />
+    </div>
+  );
 }
 
 /** Every empty state points to its public docs guide (issue #70). */
