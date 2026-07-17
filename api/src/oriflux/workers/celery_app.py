@@ -25,7 +25,7 @@ from oriflux.alerts import ops_alert
 from oriflux.config import Settings, get_settings
 from oriflux.db import create_engine, create_session_factory
 from oriflux.logs import setup_logging
-from oriflux.storage.clickhouse import ClickHouseExecutor, wait_for_clickhouse
+from oriflux.storage.clickhouse import ClickHouseExecutor, clickhouse_session
 from oriflux.workers.anomaly_job import run_detection
 from oriflux.workers.digest_job import run_digests
 from oriflux.workers.export_job import run_exports
@@ -40,34 +40,33 @@ def _refresh_geoip_job() -> bool:
 
 def _detect_anomalies_job() -> int:
     settings = get_settings()
-    clickhouse = wait_for_clickhouse(settings)
+    with clickhouse_session(settings) as clickhouse:
 
-    async def _run() -> int:
-        engine = create_engine(settings)
-        try:
-            from oriflux.ai.gateway import AiGateway
+        async def _run() -> int:
+            engine = create_engine(settings)
+            try:
+                from oriflux.ai.gateway import AiGateway
 
-            factory = create_session_factory(engine)
-            return await run_detection(
-                factory,
-                ClickHouseExecutor(clickhouse),
-                now=datetime.now(tz=UTC),
-                gateway=AiGateway(settings, factory),
-            )
-        finally:
-            await engine.dispose()
+                factory = create_session_factory(engine)
+                return await run_detection(
+                    factory,
+                    ClickHouseExecutor(clickhouse),
+                    now=datetime.now(tz=UTC),
+                    gateway=AiGateway(settings, factory),
+                )
+            finally:
+                await engine.dispose()
 
-    detections = asyncio.run(_run())
-    if detections:
-        ops_alert(settings, f"anomaly detection: {detections} new deviation(s) recorded")
-    return detections
+        detections = asyncio.run(_run())
+        if detections:
+            ops_alert(settings, f"anomaly detection: {detections} new deviation(s) recorded")
+        return detections
 
 
 def _send_digests_job() -> int:
     settings = get_settings()
     if not settings.resend_api_key:
         return 0  # email channel disabled (documented in config)
-    clickhouse = wait_for_clickhouse(settings)
 
     def send(to: str, subject: str, body: str) -> None:
         import requests
@@ -85,27 +84,29 @@ def _send_digests_job() -> int:
         )
         response.raise_for_status()
 
-    async def _run() -> int:
-        engine = create_engine(settings)
+    with clickhouse_session(settings) as clickhouse:
+
+        async def _run() -> int:
+            engine = create_engine(settings)
+            try:
+                from oriflux.ai.gateway import AiGateway
+
+                factory = create_session_factory(engine)
+                return await run_digests(
+                    factory,
+                    ClickHouseExecutor(clickhouse),
+                    send,
+                    now=datetime.now(tz=UTC),
+                    gateway=AiGateway(settings, factory),
+                )
+            finally:
+                await engine.dispose()
+
         try:
-            from oriflux.ai.gateway import AiGateway
-
-            factory = create_session_factory(engine)
-            return await run_digests(
-                factory,
-                ClickHouseExecutor(clickhouse),
-                send,
-                now=datetime.now(tz=UTC),
-                gateway=AiGateway(settings, factory),
-            )
-        finally:
-            await engine.dispose()
-
-    try:
-        return asyncio.run(_run())
-    except Exception as exc:  # noqa: BLE001 — alert, never crash the worker
-        ops_alert(settings, f"digest send FAILED: {exc}")
-        return 0
+            return asyncio.run(_run())
+        except Exception as exc:  # noqa: BLE001 — alert, never crash the worker
+            ops_alert(settings, f"digest send FAILED: {exc}")
+            return 0
 
 
 def _run_exports_job() -> int:
@@ -132,86 +133,86 @@ def _run_exports_job() -> int:
             content_type="text/csv",
         )
 
-    clickhouse = wait_for_clickhouse(settings)
+    with clickhouse_session(settings) as clickhouse:
 
-    async def _run() -> int:
-        engine = create_engine(settings)
+        async def _run() -> int:
+            engine = create_engine(settings)
+            try:
+                return await run_exports(
+                    create_session_factory(engine),
+                    ClickHouseExecutor(clickhouse),
+                    write_object,
+                    now=datetime.now(tz=UTC),
+                )
+            finally:
+                await engine.dispose()
+
         try:
-            return await run_exports(
-                create_session_factory(engine),
-                ClickHouseExecutor(clickhouse),
-                write_object,
-                now=datetime.now(tz=UTC),
-            )
-        finally:
-            await engine.dispose()
-
-    try:
-        return asyncio.run(_run())
-    except Exception as exc:  # noqa: BLE001 — alert, never crash the worker
-        ops_alert(settings, f"scheduled export FAILED: {exc}")
-        return 0
+            return asyncio.run(_run())
+        except Exception as exc:  # noqa: BLE001 — alert, never crash the worker
+            ops_alert(settings, f"scheduled export FAILED: {exc}")
+            return 0
 
 
 def _run_insights_job() -> int:
     settings = get_settings()
-    clickhouse = wait_for_clickhouse(settings)
+    with clickhouse_session(settings) as clickhouse:
 
-    async def _run() -> int:
-        engine = create_engine(settings)
+        async def _run() -> int:
+            engine = create_engine(settings)
+            try:
+                from oriflux.ai.gateway import AiGateway
+
+                factory = create_session_factory(engine)
+                return await run_insights(
+                    factory,
+                    ClickHouseExecutor(clickhouse),
+                    AiGateway(settings, factory),
+                    now=datetime.now(tz=UTC),
+                )
+            finally:
+                await engine.dispose()
+
         try:
-            from oriflux.ai.gateway import AiGateway
-
-            factory = create_session_factory(engine)
-            return await run_insights(
-                factory,
-                ClickHouseExecutor(clickhouse),
-                AiGateway(settings, factory),
-                now=datetime.now(tz=UTC),
-            )
-        finally:
-            await engine.dispose()
-
-    try:
-        return asyncio.run(_run())
-    except Exception as exc:  # noqa: BLE001 — alert, never crash the worker
-        ops_alert(settings, f"insight job FAILED: {exc}")
-        return 0
+            return asyncio.run(_run())
+        except Exception as exc:  # noqa: BLE001 — alert, never crash the worker
+            ops_alert(settings, f"insight job FAILED: {exc}")
+            return 0
 
 
 def _evaluate_alerts_job() -> None:
     settings = get_settings()
-    clickhouse = wait_for_clickhouse(settings)
+    with clickhouse_session(settings) as clickhouse:
 
-    async def _run() -> None:
-        engine = create_engine(settings)
-        try:
-            from datetime import timedelta
+        async def _run() -> None:
+            engine = create_engine(settings)
+            try:
+                from datetime import timedelta
 
-            from oriflux.ai.explain import explain_movement
-            from oriflux.ai.gateway import AiGateway
+                from oriflux.ai.explain import explain_movement
+                from oriflux.ai.gateway import AiGateway
 
-            factory = create_session_factory(engine)
-            executor = ClickHouseExecutor(clickhouse)
-            gateway = AiGateway(settings, factory)
+                factory = create_session_factory(engine)
+                executor = ClickHouseExecutor(clickhouse)
+                gateway = AiGateway(settings, factory)
 
-            async def explainer(rule: Any, value: float, now: Any) -> str:
-                if rule.project_id is None:
-                    return ""
-                return await explain_movement(
-                    gateway, executor, org_id=str(rule.org_id),
-                    project_id=str(rule.project_id), metric=rule.metric,
-                    window=(now - timedelta(minutes=rule.window_minutes), now),
-                    headline=f"{rule.metric} = {value} breached {rule.name}",
-                )
+                async def explainer(rule: Any, value: float, now: Any) -> str:
+                    if rule.project_id is None:
+                        return ""
+                    return await explain_movement(
+                        gateway, executor, org_id=str(rule.org_id),
+                        project_id=str(rule.project_id), metric=rule.metric,
+                        window=(now - timedelta(minutes=rule.window_minutes), now),
+                        headline=f"{rule.metric} = {value} breached {rule.name}",
+                    )
 
-            evaluator = Evaluator(factory, executor, AlertNotifier(settings),
-                                  explainer=explainer)
-            await evaluator.run_once(now=datetime.now(tz=UTC))
-        finally:
-            await engine.dispose()
+                evaluator = Evaluator(factory, executor, AlertNotifier(settings),
+                                      explainer=explainer)
+                await evaluator.run_once(now=datetime.now(tz=UTC))
+            finally:
+                await engine.dispose()
 
-    asyncio.run(_run())
+        asyncio.run(_run())
 
 
 def create_celery(settings: Settings) -> Celery:

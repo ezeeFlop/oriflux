@@ -9,6 +9,8 @@ collapse: at-least-once delivery upstream, exactly-once counts downstream
 
 import json
 import time
+from collections.abc import Iterator
+from contextlib import contextmanager, suppress
 from typing import Any, Self
 
 import clickhouse_connect
@@ -114,14 +116,38 @@ def ensure_schema(client: Client) -> None:
 def wait_for_clickhouse(settings: Settings, *, attempts: int = 30, delay_s: float = 2.0) -> Client:
     last_error: Exception | None = None
     for _ in range(attempts):
+        client = None
         try:
             client = get_client(settings)
             client.command("SELECT 1")
             return client
         except Exception as exc:  # noqa: BLE001 — any startup error means "not ready yet"
             last_error = exc
+            # Close the failed attempt's client: a bare retry loop leaks a
+            # socket per attempt, which is exactly what compounds the FD
+            # exhaustion once the process is already near its open-file limit.
+            if client is not None:
+                with suppress(Exception):  # best-effort cleanup of the failed attempt
+                    client.close()
             time.sleep(delay_s)
     raise RuntimeError(f"ClickHouse unreachable after {attempts} attempts") from last_error
+
+
+@contextmanager
+def clickhouse_session(settings: Settings, **kwargs: Any) -> Iterator[Client]:
+    """A ready ClickHouse client, guaranteed closed on exit.
+
+    The scheduled worker jobs run on a beat (evaluate_alerts every 60 s); a
+    per-run client that is never closed leaks a urllib3 socket each tick and
+    exhausts the container's open-file limit within a day (the prod Errno 24
+    "Too many open files"). Jobs must use this, never a bare
+    `wait_for_clickhouse`.
+    """
+    client = wait_for_clickhouse(settings, **kwargs)
+    try:
+        yield client
+    finally:
+        client.close()
 
 
 class ClickHouseSink:
