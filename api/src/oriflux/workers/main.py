@@ -35,19 +35,25 @@ def create_app() -> FastAPI:
 
     @asynccontextmanager
     async def lifespan(app: FastAPI) -> AsyncIterator[None]:
-        clickhouse = await asyncio.to_thread(wait_for_clickhouse, settings)
-        await asyncio.to_thread(ensure_schema, clickhouse)
+        # A separate ClickHouse client PER batcher: clickhouse_connect clients
+        # are not thread-safe (one session each), and the two batchers run as
+        # concurrent tasks that each offload their insert to a thread. Sharing
+        # one client makes ClickHouse reject the overlapping inserts with
+        # "concurrent queries within the same session", dropping the batch.
+        events_clickhouse = await asyncio.to_thread(wait_for_clickhouse, settings)
+        await asyncio.to_thread(ensure_schema, events_clickhouse)
+        api_clickhouse = await asyncio.to_thread(wait_for_clickhouse, settings)
         redis = Redis.from_url(settings.redis_url)
         events_batcher = Batcher(
             redis,
-            ClickHouseSink(clickhouse),
+            ClickHouseSink(events_clickhouse),
             consumer=socket.gethostname(),
             batch_size=settings.batch_size,
             block_ms=settings.batch_block_ms,
         )
         api_batcher = Batcher(
             redis,
-            ApiMinutelySink(clickhouse),
+            ApiMinutelySink(api_clickhouse),
             consumer=socket.gethostname(),
             batch_size=settings.batch_size,
             block_ms=settings.batch_block_ms,
@@ -63,6 +69,8 @@ def create_app() -> FastAPI:
         for task in tasks:
             task.cancel()
         await redis.aclose()
+        events_clickhouse.close()
+        api_clickhouse.close()
 
     app = FastAPI(title="oriflux_workers", lifespan=lifespan)
 
