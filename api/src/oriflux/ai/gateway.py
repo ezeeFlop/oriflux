@@ -37,6 +37,8 @@ class AiGateway:
     ) -> None:
         self._settings = settings
         self._session_factory = session_factory
+        # Own (and therefore later close) the client only if we created it.
+        self._owns_client = client is None
         self._client = client or (
             httpx.AsyncClient(base_url=settings.spt_models_url, timeout=60)
             if settings.spt_models_url
@@ -46,6 +48,17 @@ class AiGateway:
     @property
     def enabled(self) -> bool:
         return bool(self._settings.spt_models_url) and self._client is not None
+
+    async def aclose(self) -> None:
+        """Close the httpx client IF this gateway created it.
+
+        A short-lived gateway (the per-run scheduled worker jobs) MUST call
+        this: an unclosed AsyncClient leaks its keep-alive connection sockets,
+        which is what exhausted the worker's file descriptors in prod. A
+        gateway handed an external client leaves it to the caller.
+        """
+        if self._owns_client and self._client is not None:
+            await self._client.aclose()
 
     async def _check_budget(self, org_id: str) -> None:
         month_start = datetime.now(tz=UTC).replace(
