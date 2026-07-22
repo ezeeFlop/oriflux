@@ -133,21 +133,37 @@ def wait_for_clickhouse(settings: Settings, *, attempts: int = 30, delay_s: floa
     raise RuntimeError(f"ClickHouse unreachable after {attempts} attempts") from last_error
 
 
-@contextmanager
-def clickhouse_session(settings: Settings, **kwargs: Any) -> Iterator[Client]:
-    """A ready ClickHouse client, guaranteed closed on exit.
+_JOB_CLIENT: Client | None = None
 
-    The scheduled worker jobs run on a beat (evaluate_alerts every 60 s); a
-    per-run client that is never closed leaks a urllib3 socket each tick and
-    exhausts the container's open-file limit within a day (the prod Errno 24
-    "Too many open files"). Jobs must use this, never a bare
-    `wait_for_clickhouse`.
+
+def shared_job_clickhouse(settings: Settings) -> Client:
+    """One process-wide ClickHouse client for the scheduled worker jobs,
+    created once and reused across runs.
+
+    Creating (and dropping) a client per job run — evaluate_alerts every 60 s —
+    leaked CLOSE_WAIT sockets to ClickHouse: our endpoint is HTTP, so
+    clickhouse_connect shares the default pool manager and Client.close() is a
+    no-op, so the keep-alive connection the server eventually drops is never
+    closed on our side and lingers as a dead FD until the worker hits its
+    open-file limit (Errno 24). One long-lived client — exactly what the
+    batcher already uses and why the batcher stays flat — reuses the
+    connection and self-heals, keeping the worker's FD count flat.
     """
-    client = wait_for_clickhouse(settings, **kwargs)
-    try:
-        yield client
-    finally:
-        client.close()
+    global _JOB_CLIENT
+    if _JOB_CLIENT is None:
+        _JOB_CLIENT = wait_for_clickhouse(settings)
+    return _JOB_CLIENT
+
+
+@contextmanager
+def clickhouse_session(settings: Settings) -> Iterator[Client]:
+    """Yield the shared, long-lived job ClickHouse client.
+
+    Kept as a context manager so the jobs' call sites are unchanged; it
+    deliberately does NOT close the client on exit — recreating/closing a
+    client per run is precisely what leaked sockets. See shared_job_clickhouse.
+    """
+    yield shared_job_clickhouse(settings)
 
 
 class ClickHouseSink:
