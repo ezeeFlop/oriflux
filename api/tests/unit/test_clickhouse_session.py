@@ -29,24 +29,27 @@ class FakeClient:
 
 
 class TestClickhouseSession:
-    def test_closes_client_on_normal_exit(self, monkeypatch: pytest.MonkeyPatch) -> None:
-        client = FakeClient()
-        monkeypatch.setattr(ch, "get_client", lambda settings: client)
+    def test_reuses_one_shared_client_and_never_closes_it(
+        self, monkeypatch: pytest.MonkeyPatch
+    ) -> None:
+        monkeypatch.setattr(ch, "_JOB_CLIENT", None)  # reset the process singleton
+        created: list[FakeClient] = []
 
-        with ch.clickhouse_session(Settings()) as opened:
-            assert opened is client
-            assert client.closed == 0
+        def fake_get_client(settings: Settings) -> FakeClient:
+            client = FakeClient()
+            created.append(client)
+            return client
 
-        assert client.closed == 1
+        monkeypatch.setattr(ch, "get_client", fake_get_client)
 
-    def test_closes_client_on_exception(self, monkeypatch: pytest.MonkeyPatch) -> None:
-        client = FakeClient()
-        monkeypatch.setattr(ch, "get_client", lambda settings: client)
+        with ch.clickhouse_session(Settings()) as first:
+            pass
+        with ch.clickhouse_session(Settings()) as second:
+            pass
 
-        with pytest.raises(ValueError), ch.clickhouse_session(Settings()):
-            raise ValueError("boom")
-
-        assert client.closed == 1
+        assert first is second  # same client reused across runs
+        assert len(created) == 1  # created once, not per run
+        assert first.closed == 0  # never closed per run — that is what leaked
 
     def test_wait_for_clickhouse_closes_failed_attempt_clients(
         self, monkeypatch: pytest.MonkeyPatch
