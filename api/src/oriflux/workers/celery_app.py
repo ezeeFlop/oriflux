@@ -43,18 +43,22 @@ def _detect_anomalies_job() -> int:
     with clickhouse_session(settings) as clickhouse:
 
         async def _run() -> int:
-            engine = create_engine(settings)
-            try:
-                from oriflux.ai.gateway import AiGateway
+            from oriflux.ai.gateway import AiGateway
 
+            engine = create_engine(settings)
+            gateway: AiGateway | None = None
+            try:
                 factory = create_session_factory(engine)
+                gateway = AiGateway(settings, factory)
                 return await run_detection(
                     factory,
                     ClickHouseExecutor(clickhouse),
                     now=datetime.now(tz=UTC),
-                    gateway=AiGateway(settings, factory),
+                    gateway=gateway,
                 )
             finally:
+                if gateway is not None:
+                    await gateway.aclose()
                 await engine.dispose()
 
         detections = asyncio.run(_run())
@@ -87,19 +91,23 @@ def _send_digests_job() -> int:
     with clickhouse_session(settings) as clickhouse:
 
         async def _run() -> int:
-            engine = create_engine(settings)
-            try:
-                from oriflux.ai.gateway import AiGateway
+            from oriflux.ai.gateway import AiGateway
 
+            engine = create_engine(settings)
+            gateway: AiGateway | None = None
+            try:
                 factory = create_session_factory(engine)
+                gateway = AiGateway(settings, factory)
                 return await run_digests(
                     factory,
                     ClickHouseExecutor(clickhouse),
                     send,
                     now=datetime.now(tz=UTC),
-                    gateway=AiGateway(settings, factory),
+                    gateway=gateway,
                 )
             finally:
+                if gateway is not None:
+                    await gateway.aclose()
                 await engine.dispose()
 
         try:
@@ -159,18 +167,22 @@ def _run_insights_job() -> int:
     with clickhouse_session(settings) as clickhouse:
 
         async def _run() -> int:
-            engine = create_engine(settings)
-            try:
-                from oriflux.ai.gateway import AiGateway
+            from oriflux.ai.gateway import AiGateway
 
+            engine = create_engine(settings)
+            gateway: AiGateway | None = None
+            try:
                 factory = create_session_factory(engine)
+                gateway = AiGateway(settings, factory)
                 return await run_insights(
                     factory,
                     ClickHouseExecutor(clickhouse),
-                    AiGateway(settings, factory),
+                    gateway,
                     now=datetime.now(tz=UTC),
                 )
             finally:
+                if gateway is not None:
+                    await gateway.aclose()
                 await engine.dispose()
 
         try:
@@ -185,12 +197,14 @@ def _evaluate_alerts_job() -> None:
     with clickhouse_session(settings) as clickhouse:
 
         async def _run() -> None:
+            from oriflux.ai.gateway import AiGateway
+
             engine = create_engine(settings)
+            gateway: AiGateway | None = None
             try:
                 from datetime import timedelta
 
                 from oriflux.ai.explain import explain_movement
-                from oriflux.ai.gateway import AiGateway
 
                 factory = create_session_factory(engine)
                 executor = ClickHouseExecutor(clickhouse)
@@ -210,6 +224,8 @@ def _evaluate_alerts_job() -> None:
                                       explainer=explainer)
                 await evaluator.run_once(now=datetime.now(tz=UTC))
             finally:
+                if gateway is not None:
+                    await gateway.aclose()
                 await engine.dispose()
 
         asyncio.run(_run())
