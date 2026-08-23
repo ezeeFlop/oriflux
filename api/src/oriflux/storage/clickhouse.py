@@ -98,6 +98,11 @@ def get_client(settings: Settings) -> Client:
         username=settings.clickhouse_user,
         password=settings.clickhouse_password,
         database=settings.clickhouse_database,
+        # Never hang forever on a half-open socket (ClickHouse restart under
+        # the batcher, 2026-08-21): a stuck insert froze the api batcher for
+        # two days without a single exception.
+        connect_timeout=10,
+        send_receive_timeout=settings.clickhouse_timeout_s,
     )
 
 

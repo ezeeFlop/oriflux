@@ -13,7 +13,7 @@ import socket
 from collections.abc import AsyncIterator
 from contextlib import asynccontextmanager
 
-from fastapi import FastAPI
+from fastapi import FastAPI, HTTPException
 from redis.asyncio import Redis
 
 from oriflux.config import get_settings
@@ -61,6 +61,7 @@ def create_app() -> FastAPI:
             group=API_CONSUMER_GROUP,
             model=ApiMinuteRow,
         )
+        app.state.batchers = [events_batcher, api_batcher]
         tasks = [
             asyncio.create_task(events_batcher.run_forever()),
             asyncio.create_task(api_batcher.run_forever()),
@@ -74,8 +75,18 @@ def create_app() -> FastAPI:
 
     app = FastAPI(title="oriflux_workers", lifespan=lifespan)
 
+    app.state.batchers = []
+
     @app.get("/healthz")
     async def healthz() -> dict[str, str]:
+        # Liveness, not just "the HTTP loop is up": a batcher hung in a
+        # ClickHouse insert stops ticking; failing here makes Swarm restart
+        # the task instead of letting the stream grow until Redis OOMs.
+        frozen = [
+            b for b in app.state.batchers if not b.is_alive(max_idle_s=settings.batch_stall_s)
+        ]
+        if frozen:
+            raise HTTPException(status_code=503, detail=f"{len(frozen)} batcher(s) frozen")
         return {"status": "ok"}
 
     return app

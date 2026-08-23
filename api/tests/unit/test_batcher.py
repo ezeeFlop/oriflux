@@ -95,3 +95,74 @@ class TestAckAfterInsert:
     ) -> None:
         batcher = Batcher(redis, RecordingSink(), consumer="c1")
         assert await batcher.run_once() == 0
+
+
+class TestOrphanedPendingEntries:
+    """Prod incident 2026-08-23: consumer names are hostnames, so every
+    container restart is a NEW consumer. Entries left pending on a previous
+    consumer (delivered, never acked — a hung insert, a kill) were never
+    re-delivered: the restart only drained its OWN pending list (id "0").
+    They must be claimed from dead consumers, and dead consumers pruned.
+    """
+
+    async def test_pending_entries_of_a_dead_consumer_are_claimed_and_inserted(
+        self, redis: FakeAsyncRedis
+    ) -> None:
+        event = make_event()
+        await publish_event(redis, event)
+        dead = Batcher(redis, FailingSink(), consumer="old-host")
+        with pytest.raises(ConnectionError):
+            await dead.run_once()
+        assert await pending_count(redis) == 1
+
+        sink = RecordingSink()
+        fresh = Batcher(redis, sink, consumer="new-host", claim_idle_ms=0)
+        processed = await fresh.run_once()
+
+        assert processed == 1
+        assert [e.event_id for e in sink.batches[0]] == [event.event_id]
+        assert await pending_count(redis) == 0
+
+    async def test_recently_active_consumers_keep_their_pending_entries(
+        self, redis: FakeAsyncRedis
+    ) -> None:
+        await publish_event(redis, make_event())
+        busy = Batcher(redis, FailingSink(), consumer="busy-host")
+        with pytest.raises(ConnectionError):
+            await busy.run_once()
+
+        other = Batcher(redis, RecordingSink(), consumer="other", claim_idle_ms=60_000)
+        assert await other.run_once() == 0
+        assert await pending_count(redis) == 1
+
+    async def test_idle_consumers_without_pending_entries_are_pruned(
+        self, redis: FakeAsyncRedis
+    ) -> None:
+        await publish_event(redis, make_event())
+        await Batcher(redis, RecordingSink(), consumer="old-host").run_once()
+
+        fresh = Batcher(redis, RecordingSink(), consumer="new-host", claim_idle_ms=0)
+        await fresh.run_once()
+
+        names = {c["name"] for c in await redis.xinfo_consumers(EVENTS_STREAM, "batcher")}
+        assert b"old-host" not in names
+        assert b"new-host" in names
+
+
+class TestLiveness:
+    """A batcher hung inside a ClickHouse insert logs nothing and consumes
+    nothing (prod 2026-08-21 → 23: 2 days frozen, Redis OOM). Its last tick
+    must be observable so /healthz can fail and Swarm restarts the task.
+    """
+
+    async def test_run_once_records_a_tick(self, redis: FakeAsyncRedis) -> None:
+        batcher = Batcher(redis, RecordingSink(), consumer="c1")
+        assert batcher.last_tick is None
+        await batcher.run_once()
+        assert batcher.last_tick is not None
+        assert batcher.is_alive(max_idle_s=60)
+
+    async def test_stale_tick_is_not_alive(self, redis: FakeAsyncRedis) -> None:
+        batcher = Batcher(redis, RecordingSink(), consumer="c1")
+        await batcher.run_once()
+        assert not batcher.is_alive(max_idle_s=-1)

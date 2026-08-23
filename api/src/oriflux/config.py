@@ -13,6 +13,7 @@ class Settings(BaseSettings):
     clickhouse_user: str = "oriflux"
     clickhouse_password: str = "oriflux-dev"
     clickhouse_database: str = "oriflux"
+    clickhouse_timeout_s: int = 60  # send/receive timeout per query (no infinite hangs)
 
     database_url: str = "postgresql+asyncpg://oriflux:oriflux-dev@localhost:5432/oriflux"
 
@@ -78,6 +79,9 @@ class Settings(BaseSettings):
 
     batch_size: int = 500
     batch_block_ms: int = 1000
+    # /healthz on the workers fails once a batcher has not completed a loop
+    # iteration for this long (a hung insert; the loop ticks every block_ms).
+    batch_stall_s: float = 120.0
 
 
 def get_settings() -> Settings:
