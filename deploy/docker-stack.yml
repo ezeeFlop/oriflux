@@ -365,7 +365,12 @@ services:
   # ── Redis Streams buffer — AOF everysec (PRD §8.3) ──────────────────────
   redis:
     image: redis:7-alpine
-    command: ["redis-server", "--appendonly", "yes", "--appendfsync", "everysec"]
+    # maxmemory sits UNDER the cgroup limit on purpose: when the streams fill
+    # up (a stalled batcher — incident 2026-08-23), Redis refuses new XADDs
+    # (ingest returns 5xx, SDKs are fire-and-forget) instead of being
+    # OOM-killed in a loop, so the batcher can still read, ack and drain.
+    command: ["redis-server", "--appendonly", "yes", "--appendfsync", "everysec",
+              "--maxmemory", "800mb", "--maxmemory-policy", "noeviction"]
     volumes:
       - /data/oriflux/prod/redis:/data
     healthcheck:
@@ -381,7 +386,7 @@ services:
         constraints:
           - node.labels.NODE == 2
       resources:
-        limits: { memory: 512M }
+        limits: { memory: 1G }
         reservations: { memory: 64M }
       restart_policy:
         condition: on-failure
