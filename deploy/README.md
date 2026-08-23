@@ -46,9 +46,16 @@ webhook (cliphaven/neokanban pattern).
    docker exec $(docker ps -q -f name=oriflux_api) python -m oriflux.bootstrap
    ```
 
-4. **Webhook** — the stack's webhook is baked into `deploy-portainer.sh` as the
-   default (`PORTAINER_WEBHOOK` env overrides it). Deploys are just
-   `./deploy-portainer.sh`.
+4. **Webhook** — `PORTAINER_WEBHOOK` lives in the gitignored `deploy/.env`
+   (never in git: public repo); `deploy-portainer.sh` sources it. Deploys are
+   just `./deploy-portainer.sh`.
+
+   The webhook only **re-pulls the images** and restarts the services. It does
+   **not** re-read `docker-stack.yml`: any change to resources, commands,
+   healthchecks or env in the yml needs *Pull and redeploy* of the stack in
+   the Portainer UI (or the equivalent `docker service update` on a manager).
+   Learned the hard way on 2026-08-23 (Redis limit bump in #84 was merged and
+   "deployed" but not applied).
 
 5. **Ingress — NPM (Nginx Proxy Manager)** is the head of line for this stack.
    NPM sits on the external `webfacing` overlay network, so it reaches the
