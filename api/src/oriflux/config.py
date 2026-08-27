@@ -57,9 +57,15 @@ class Settings(BaseSettings):
     spt_models_url: str = ""  # empty → every AI feature cleanly disabled
     spt_models_api_key: str = ""
     # real catalogue slugs: gemma-4 = strongest instruction follower (Ask
-    # Oriflux compiles NL → typed query, correctness first); override with
-    # qwen3.5-9b / qwen3.5-35b-a3b-gguf when latency matters more
+    # Oriflux compiles NL → typed query, correctness first); prod deploys with
+    # the "default-vlm" alias (→ qwen3.8-27b, thinking disabled via
+    # spt_chat_extra — see deploy/docker-stack.yml); the code default stays a
+    # concrete slug so a bare install works on any SPT Models platform
     spt_chat_model: str = "gemma-4-26b-a4b-it"
+    # JSON object merged into every /v1/chat/completions body — model-specific
+    # knobs (e.g. Qwen3.8's {"chat_template_kwargs": {"enable_thinking": false}})
+    # without hardcoding model names in the gateway. Explicit args always win.
+    spt_chat_extra: str = ""
     spt_embed_model: str = "jina-embeddings-v5-text-small"
     ai_default_monthly_token_budget: int = 2_000_000  # per org; org column overrides
 
