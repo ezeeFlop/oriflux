@@ -64,7 +64,10 @@ x-oriflux-env: &oriflux-env
   ORIFLUX_SPT_MODELS_API_KEY: ${ORIFLUX_SPT_MODELS_API_KEY:-}
   # model slugs from the SPT Models catalogue (chat: strongest instruction
   # follower; swap for qwen3.5-9b / qwen3.5-35b-a3b-gguf if latency matters)
-  ORIFLUX_SPT_CHAT_MODEL: ${ORIFLUX_SPT_CHAT_MODEL:-gemma-4-26b-a4b-it}
+  # default-vlm is an SPT Models alias (→ qwen3.8-27b since 2026-08-27); the
+  # extra body disables Qwen thinking mode — Ask needs fast, direct JSON.
+  ORIFLUX_SPT_CHAT_MODEL: ${ORIFLUX_SPT_CHAT_MODEL:-default-vlm}
+  ORIFLUX_SPT_CHAT_EXTRA: ${ORIFLUX_SPT_CHAT_EXTRA:-{"chat_template_kwargs":{"enable_thinking":false}}}
   ORIFLUX_SPT_EMBED_MODEL: ${ORIFLUX_SPT_EMBED_MODEL:-jina-embeddings-v5-text-small}
   ORIFLUX_ZEUS_URL: ${ORIFLUX_ZEUS_URL:-}  # infra correlation (#29): e.g. https://zeus.sponge-theory.dev
   ORIFLUX_ZEUS_USERNAME: ${ORIFLUX_ZEUS_USERNAME:-}

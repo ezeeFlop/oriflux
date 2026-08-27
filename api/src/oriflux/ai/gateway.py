@@ -7,6 +7,7 @@ lands in the ai_usage ledger (Rayonne lesson: quotas enforced from day
 one). Missing settings raise AiDisabled so surfaces degrade cleanly.
 """
 
+import json
 import uuid
 from datetime import UTC, datetime
 from typing import Any
@@ -105,14 +106,20 @@ class AiGateway:
         if not self.enabled or self._client is None:
             raise AiDisabled("SPT Models is not configured")
         await self._check_budget(org_id)
-        response = await self._client.post(
-            "/v1/chat/completions",
-            headers=self._headers(),
-            json={
+        body: dict[str, Any] = {}
+        if self._settings.spt_chat_extra:
+            body.update(json.loads(self._settings.spt_chat_extra))
+        body.update(
+            {
                 "model": self._settings.spt_chat_model,
                 "messages": messages,
                 "temperature": temperature,
-            },
+            }
+        )
+        response = await self._client.post(
+            "/v1/chat/completions",
+            headers=self._headers(),
+            json=body,
         )
         response.raise_for_status()
         payload: dict[str, Any] = response.json()

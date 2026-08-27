@@ -16,7 +16,8 @@ x-service-env: &service-env
   # AI layer (optional in dev — empty URL keeps it cleanly disabled)
   ORIFLUX_SPT_MODELS_URL: ${ORIFLUX_SPT_MODELS_URL:-}
   ORIFLUX_SPT_MODELS_API_KEY: ${ORIFLUX_SPT_MODELS_API_KEY:-}
-  ORIFLUX_SPT_CHAT_MODEL: ${ORIFLUX_SPT_CHAT_MODEL:-gemma-4-26b-a4b-it}
+  ORIFLUX_SPT_CHAT_MODEL: ${ORIFLUX_SPT_CHAT_MODEL:-default-vlm}
+  ORIFLUX_SPT_CHAT_EXTRA: ${ORIFLUX_SPT_CHAT_EXTRA:-{"chat_template_kwargs":{"enable_thinking":false}}}
   ORIFLUX_SPT_EMBED_MODEL: ${ORIFLUX_SPT_EMBED_MODEL:-jina-embeddings-v5-text-small}
   # billing (optional in dev — empty key keeps it disabled)
   ORIFLUX_STRIPE_SECRET_KEY: ${ORIFLUX_STRIPE_SECRET_KEY:-}

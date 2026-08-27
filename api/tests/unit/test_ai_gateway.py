@@ -137,3 +137,67 @@ class TestEmbed:
         async with db_sessionmaker() as session:
             [usage] = (await session.execute(select(AiUsage))).scalars().all()
         assert usage.tokens_in == 12
+
+
+class TestChatExtraBody:
+    """spt_chat_extra: model-specific request params (e.g. Qwen3.8's
+    chat_template_kwargs.enable_thinking=false) without hardcoding any
+    model name in the gateway — the model swap to default-vlm needs it."""
+
+    async def test_extra_json_is_merged_into_the_request_body(
+        self, db_sessionmaker: async_sessionmaker[AsyncSession]
+    ) -> None:
+        org_id = await seed_org(db_sessionmaker)
+        seen: dict[str, object] = {}
+
+        def handler(request: httpx.Request) -> httpx.Response:
+            import json as _json
+
+            seen.update(_json.loads(request.content))
+            return httpx.Response(200, json=CHAT_RESPONSE)
+
+        gateway = make_gateway(
+            db_sessionmaker,
+            handler,
+            spt_chat_extra='{"chat_template_kwargs": {"enable_thinking": false}}',
+        )
+        await gateway.chat(org_id, feature="ask", messages=[{"role": "user", "content": "x"}])
+
+        assert seen["model"] == "spt-chat"
+        assert seen["chat_template_kwargs"] == {"enable_thinking": False}
+
+    async def test_extra_cannot_override_model_or_messages(
+        self, db_sessionmaker: async_sessionmaker[AsyncSession]
+    ) -> None:
+        org_id = await seed_org(db_sessionmaker)
+        seen: dict[str, object] = {}
+
+        def handler(request: httpx.Request) -> httpx.Response:
+            import json as _json
+
+            seen.update(_json.loads(request.content))
+            return httpx.Response(200, json=CHAT_RESPONSE)
+
+        gateway = make_gateway(
+            db_sessionmaker, handler, spt_chat_extra='{"model": "evil", "temperature": 0.9}'
+        )
+        await gateway.chat(org_id, feature="ask", messages=[{"role": "user", "content": "x"}])
+
+        assert seen["model"] == "spt-chat"  # explicit args always win
+        assert seen["temperature"] == 0.2
+
+    async def test_empty_extra_changes_nothing(
+        self, db_sessionmaker: async_sessionmaker[AsyncSession]
+    ) -> None:
+        org_id = await seed_org(db_sessionmaker)
+        seen: dict[str, object] = {}
+
+        def handler(request: httpx.Request) -> httpx.Response:
+            import json as _json
+
+            seen.update(_json.loads(request.content))
+            return httpx.Response(200, json=CHAT_RESPONSE)
+
+        gateway = make_gateway(db_sessionmaker, handler)
+        await gateway.chat(org_id, feature="ask", messages=[{"role": "user", "content": "x"}])
+        assert "chat_template_kwargs" not in seen
