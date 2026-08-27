@@ -57,6 +57,18 @@ webhook (cliphaven/neokanban pattern).
    Learned the hard way on 2026-08-23 (Redis limit bump in #84 was merged and
    "deployed" but not applied).
 
+   **The Swarm nodes have NO registry credentials — only Portainer does.**
+   `docker service update --image .../oriflux-api:latest` from a manager
+   therefore fails with `No such image` on every node and takes the service
+   to 0/1 (caused a ~2 min ingest+api outage on 2026-08-27). Pulling a new
+   image is Portainer's job, always: push, then fire the webhook, then check
+   the digest actually moved before doing anything else.
+
+   `docker service update --env-add ...` (no `--image`) is safe *only* while
+   the task stays on a node that already holds the image — Portainer pulls
+   onto the nodes it schedules, not the whole cluster. Apply it one service
+   at a time and roll back on anything other than `1/1`.
+
 5. **Ingress — NPM (Nginx Proxy Manager)** is the head of line for this stack.
    NPM sits on the external `webfacing` overlay network, so it reaches the
    services by their Swarm DNS names. Three Proxy Hosts:
