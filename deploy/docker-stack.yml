@@ -64,8 +64,11 @@ x-oriflux-env: &oriflux-env
   ORIFLUX_SPT_MODELS_API_KEY: ${ORIFLUX_SPT_MODELS_API_KEY:-}
   # model slugs from the SPT Models catalogue (chat: strongest instruction
   # follower; swap for qwen3.5-9b / qwen3.5-35b-a3b-gguf if latency matters)
-  # default-vlm is an SPT Models alias (→ qwen3.8-27b since 2026-08-27); the
-  # extra body disables Qwen thinking mode — Ask needs fast, direct JSON.
+  # default-vlm is an SPT Models alias — its target is owned by the SPT Models
+  # platform, not by Oriflux (gemma-4-26b-a4b-it as of 2026-08-27). The extra
+  # body disables thinking mode for reasoning models (Qwen3.8 ships with it ON
+  # at xhigh effort, which is wrong for compile-to-JSON); models that do not
+  # know the flag ignore it, so it is safe whatever the alias points at.
   ORIFLUX_SPT_CHAT_MODEL: ${ORIFLUX_SPT_CHAT_MODEL:-default-vlm}
   ORIFLUX_SPT_CHAT_EXTRA: ${ORIFLUX_SPT_CHAT_EXTRA:-{"chat_template_kwargs":{"enable_thinking":false}}}
   ORIFLUX_SPT_EMBED_MODEL: ${ORIFLUX_SPT_EMBED_MODEL:-jina-embeddings-v5-text-small}

@@ -58,9 +58,10 @@ class Settings(BaseSettings):
     spt_models_api_key: str = ""
     # real catalogue slugs: gemma-4 = strongest instruction follower (Ask
     # Oriflux compiles NL → typed query, correctness first); prod deploys with
-    # the "default-vlm" alias (→ qwen3.8-27b, thinking disabled via
-    # spt_chat_extra — see deploy/docker-stack.yml); the code default stays a
-    # concrete slug so a bare install works on any SPT Models platform
+    # the "default-vlm" alias, whose target is chosen on the SPT Models side
+    # (gemma-4-26b-a4b-it as of 2026-08-27) — see deploy/docker-stack.yml; the
+    # code default stays a concrete slug so a bare install works on any SPT
+    # Models platform
     spt_chat_model: str = "gemma-4-26b-a4b-it"
     # JSON object merged into every /v1/chat/completions body — model-specific
     # knobs (e.g. Qwen3.8's {"chat_template_kwargs": {"enable_thinking": false}})
