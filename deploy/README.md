@@ -16,7 +16,8 @@ webhook (cliphaven/neokanban pattern).
 1. **Data directories** — on the `/data` share (visible from the NODE==2 host):
 
    ```bash
-   mkdir -p /data/oriflux/prod/{clickhouse,postgres,redis,minio,backups,geoip}
+   mkdir -p /data/oriflux/prod/{clickhouse,postgres,redis,minio,backups,geoip,ch-conf}
+   cp deploy/ch-conf/trim-syslogs.xml /data/oriflux/prod/ch-conf/   # mounted read-only into ClickHouse
    ```
 
 2. **Push the image**:

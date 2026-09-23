@@ -217,6 +217,9 @@ services:
       CLICKHOUSE_PASSWORD: ${CLICKHOUSE_PASSWORD:?CLICKHOUSE_PASSWORD is required}
     volumes:
       - /data/oriflux/prod/clickhouse:/var/lib/clickhouse
+      # drops high-churn internal log tables (source: deploy/ch-conf/, copy it
+      # to this path on the NODE == 2 host before deploying — see README)
+      - /data/oriflux/prod/ch-conf/trim-syslogs.xml:/etc/clickhouse-server/config.d/trim-syslogs.xml:ro
     ulimits:
       nofile: 262144
     healthcheck:

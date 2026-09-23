@@ -1,0 +1,29 @@
+<?xml version="1.0"?>
+<!--
+  trim-syslogs.xml — coupe les tables de télémétrie interne à fort churn.
+  Pur self-logging ClickHouse : n'affecte AUCUNE donnée applicative
+  (langfuse default.traces/observations, oriflux.events/api_minutely intacts).
+
+  Gardés volontairement (utiles, coût idle ~nul) : query_log, part_log,
+  error_log, crash_log, backup_log.
+
+  Compatible ClickHouse 24.8 (oriflux) et 26.7 (langfuse). Un <table remove="1"/>
+  ciblant une table absente d'une version est sans effet (inoffensif).
+  S'applique au REDÉMARRAGE du serveur ClickHouse.
+-->
+<clickhouse>
+    <asynchronous_metric_log remove="1"/>
+    <metric_log remove="1"/>
+    <trace_log remove="1"/>
+    <text_log remove="1"/>
+    <processors_profile_log remove="1"/>
+    <opentelemetry_span_log remove="1"/>
+    <query_thread_log remove="1"/>
+    <query_views_log remove="1"/>
+    <asynchronous_insert_log remove="1"/>
+    <session_log remove="1"/>
+    <background_schedule_pool_log remove="1"/>
+
+    <!-- Sampler de métriques asynchrones : 1s (défaut) -> 60s -->
+    <asynchronous_metrics_update_period_s>60</asynchronous_metrics_update_period_s>
+</clickhouse>
