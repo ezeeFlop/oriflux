@@ -23,6 +23,13 @@ class InvalidSignature(Exception):
     pass
 
 
+# The Stripe account is shared with the other Sponge Theory apps (ClipHaven,
+# AudiGEO, Rayonne, NeoKanban, spt.ai): every webhook endpoint receives every
+# app's events. Everything Oriflux creates is tagged so the webhook can tell
+# its own objects apart — same convention as ClipHaven's {"app": "cliphaven"}.
+APP_TAG = "oriflux"
+
+
 @dataclass
 class CheckoutRequest:
     org_id: str
@@ -42,6 +49,11 @@ class PriceInfo:
     amount_cents: int
     currency: str
     interval: str  # "month" | "year"
+
+
+def checkout_metadata(request: CheckoutRequest) -> dict[str, str]:
+    """Metadata stamped on the checkout session AND its subscription."""
+    return {"app": APP_TAG, "org_id": request.org_id, "plan_slug": request.plan_slug}
 
 
 class BillingGateway(Protocol):
@@ -92,10 +104,8 @@ class StripeGateway:
             client_reference_id=request.org_id,
             customer=request.customer_id,
             customer_email=None if request.customer_id else request.customer_email,
-            metadata={"org_id": request.org_id, "plan_slug": request.plan_slug},
-            subscription_data={
-                "metadata": {"org_id": request.org_id, "plan_slug": request.plan_slug}
-            },
+            metadata=checkout_metadata(request),
+            subscription_data={"metadata": checkout_metadata(request)},
             success_url=request.success_url,
             cancel_url=request.cancel_url,
         )
