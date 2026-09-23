@@ -17,7 +17,7 @@ from sqlalchemy.exc import IntegrityError
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from oriflux.api.deps import get_current_user, get_session, require_role
-from oriflux.billing import BillingGateway, CheckoutRequest, InvalidSignature
+from oriflux.billing import APP_TAG, BillingGateway, CheckoutRequest, InvalidSignature
 from oriflux.db.models import Organization, Plan, Role, StripeEvent, User
 
 logger = logging.getLogger(__name__)
@@ -187,6 +187,34 @@ async def _plan_for_price(session: AsyncSession, price_id: str | None) -> Plan |
     ).scalar_one_or_none()
 
 
+def _subscription_price(data: dict[str, Any]) -> str | None:
+    items = ((data.get("items") or {}).get("data")) or []
+    return ((items[0].get("price") or {}).get("id")) if items else None
+
+
+async def _is_ours(session: AsyncSession, data: dict[str, Any]) -> bool:
+    """Shared Stripe account: only objects Oriflux created may touch an org.
+
+    Tagged objects are decided by their tag. Untagged ones (created before
+    the tag existed, or by another app) must prove ownership: an org_id in
+    their metadata that names a real org (Oriflux always wrote it), or a
+    subscription price that belongs to one of our plans. A bare customer id
+    is never proof — the customer may be shared with another app.
+    """
+    metadata = data.get("metadata") or {}
+    app = metadata.get("app")
+    if app:
+        return str(app) == APP_TAG
+    org_id = metadata.get("org_id")
+    if org_id:
+        try:
+            if await session.get(Organization, uuid.UUID(str(org_id))) is not None:
+                return True
+        except ValueError:
+            pass
+    return await _plan_for_price(session, _subscription_price(data)) is not None
+
+
 @router.post("/billing/webhook")
 async def stripe_webhook(
     request: Request,
@@ -204,15 +232,21 @@ async def stripe_webhook(
     event_id = str(event.get("id", ""))
     if event_id == "":
         raise HTTPException(status_code=400, detail="event without id")
+    kind = str(event.get("type", ""))
+    data: dict[str, Any] = (event.get("data") or {}).get("object") or {}
+    if not await _is_ours(session, data):
+        # Another app's event on the shared account: acknowledge (a non-2xx
+        # makes Stripe retry, then disable the endpoint) and leave no trace.
+        logger.debug("stripe webhook %s (%s): not an Oriflux object, ignored", event_id, kind)
+        return {"received": True, "duplicate": False, "ignored": True}
+
     session.add(StripeEvent(id=event_id))
     try:
         await session.flush()
     except IntegrityError:
         await session.rollback()
-        return {"received": True, "duplicate": True}
+        return {"received": True, "duplicate": True, "ignored": False}
 
-    kind = str(event.get("type", ""))
-    data: dict[str, Any] = (event.get("data") or {}).get("object") or {}
     org = await _org_for_event(session, data)
 
     if org is not None:
@@ -223,9 +257,7 @@ async def stripe_webhook(
             if data.get("customer"):
                 org.stripe_customer_id = str(data["customer"])
         elif kind == "customer.subscription.updated":
-            items = ((data.get("items") or {}).get("data")) or []
-            price_id = ((items[0].get("price") or {}).get("id")) if items else None
-            plan = await _plan_for_price(session, price_id)
+            plan = await _plan_for_price(session, _subscription_price(data))
             if plan is not None:
                 org.plan_slug = plan.slug
         elif kind == "customer.subscription.deleted":
@@ -234,4 +266,4 @@ async def stripe_webhook(
         logger.warning("stripe webhook %s (%s): no matching org", event_id, kind)
 
     await session.commit()
-    return {"received": True, "duplicate": False}
+    return {"received": True, "duplicate": False, "ignored": False}

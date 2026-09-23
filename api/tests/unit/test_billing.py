@@ -66,11 +66,18 @@ async def billing_client(
 
 async def seed_pro_plan(factory: async_sessionmaker[AsyncSession]) -> None:
     async with factory() as session:
-        session.add(Plan(
-            slug="pro", name="Pro", monthly_events=1_000_000,
-            stripe_price_id="price_pro_1", stripe_price_id_annual="price_pro_yr",
-            amount_cents=1900, amount_cents_annual=19000, currency="eur",
-        ))
+        session.add(
+            Plan(
+                slug="pro",
+                name="Pro",
+                monthly_events=1_000_000,
+                stripe_price_id="price_pro_1",
+                stripe_price_id_annual="price_pro_yr",
+                amount_cents=1900,
+                amount_cents_annual=19000,
+                currency="eur",
+            )
+        )
         session.add(Plan(slug="free", name="Free", monthly_events=100_000))
         await session.commit()
 
@@ -191,15 +198,19 @@ class TestWebhook:
         owner = await login(billing_client, "alice")
         org_id, _, _ = await create_org_chain(billing_client, owner)
 
-        payload, headers = signed({
-            "id": "evt_1",
-            "type": "checkout.session.completed",
-            "data": {"object": {
-                "client_reference_id": org_id,
-                "customer": "cus_123",
-                "metadata": {"org_id": org_id, "plan_slug": "pro"},
-            }},
-        })
+        payload, headers = signed(
+            {
+                "id": "evt_1",
+                "type": "checkout.session.completed",
+                "data": {
+                    "object": {
+                        "client_reference_id": org_id,
+                        "customer": "cus_123",
+                        "metadata": {"org_id": org_id, "plan_slug": "pro"},
+                    }
+                },
+            }
+        )
         first = await billing_client.post(
             "/api/v1/billing/webhook", content=payload, headers=headers
         )
@@ -231,11 +242,19 @@ class TestWebhook:
             org.stripe_customer_id = "cus_del"
             await session.commit()
 
-        payload, headers = signed({
-            "id": "evt_2",
-            "type": "customer.subscription.deleted",
-            "data": {"object": {"customer": "cus_del", "metadata": {}}},
-        })
+        payload, headers = signed(
+            {
+                "id": "evt_2",
+                "type": "customer.subscription.deleted",
+                "data": {
+                    "object": {
+                        "customer": "cus_del",
+                        "metadata": {},  # legacy, untagged — recognised by its Oriflux price
+                        "items": {"data": [{"price": {"id": "price_pro_1"}}]},
+                    }
+                },
+            }
+        )
         response = await billing_client.post(
             "/api/v1/billing/webhook", content=payload, headers=headers
         )
@@ -263,14 +282,18 @@ class TestWebhook:
             await session.commit()
 
         # subscription carries the ANNUAL price id — must still resolve to "pro"
-        payload, headers = signed({
-            "id": "evt_yr",
-            "type": "customer.subscription.updated",
-            "data": {"object": {
-                "customer": "cus_yr",
-                "items": {"data": [{"price": {"id": "price_pro_yr"}}]},
-            }},
-        })
+        payload, headers = signed(
+            {
+                "id": "evt_yr",
+                "type": "customer.subscription.updated",
+                "data": {
+                    "object": {
+                        "customer": "cus_yr",
+                        "items": {"data": [{"price": {"id": "price_pro_yr"}}]},
+                    }
+                },
+            }
+        )
         response = await billing_client.post(
             "/api/v1/billing/webhook", content=payload, headers=headers
         )
@@ -283,12 +306,163 @@ class TestWebhook:
             ).scalar_one()
             assert org.plan_slug == "pro"
 
-    async def test_bad_signature_is_400(
-        self, billing_client: httpx.AsyncClient
-    ) -> None:
+    async def test_bad_signature_is_400(self, billing_client: httpx.AsyncClient) -> None:
         response = await billing_client.post(
             "/api/v1/billing/webhook",
             content=b'{"id": "evt_x"}',
             headers={"stripe-signature": "t=1,v1=forged", "content-type": "application/json"},
         )
         assert response.status_code == 400
+
+
+async def _pro_org_on_customer(
+    client: httpx.AsyncClient, factory: async_sessionmaker[AsyncSession], customer: str
+) -> str:
+    await seed_pro_plan(factory)
+    owner = await login(client, "alice")
+    org_id, _, _ = await create_org_chain(client, owner)
+    async with factory() as session:
+        org = await session.get(Organization, uuid.UUID(org_id))
+        assert org is not None
+        org.plan_slug = "pro"
+        org.stripe_customer_id = customer
+        await session.commit()
+    return org_id
+
+
+async def _plan_of(factory: async_sessionmaker[AsyncSession], org_id: str) -> str:
+    async with factory() as session:
+        org = await session.get(Organization, uuid.UUID(org_id))
+        assert org is not None
+        return str(org.plan_slug)
+
+
+class TestSharedStripeAccount:
+    """The Stripe account is shared with the other Sponge Theory apps
+    (ClipHaven, AudiGEO, Rayonne, NeoKanban, spt.ai): every endpoint receives
+    every app's events. Only Oriflux's own objects may touch an org."""
+
+    async def test_other_apps_tagged_cancellation_is_ignored(
+        self, billing_client: httpx.AsyncClient, db_sessionmaker: async_sessionmaker[AsyncSession]
+    ) -> None:
+        org_id = await _pro_org_on_customer(billing_client, db_sessionmaker, "cus_shared")
+        payload, headers = signed(
+            {
+                "id": "evt_ch_del",
+                "type": "customer.subscription.deleted",
+                "data": {
+                    "object": {
+                        "customer": "cus_shared",
+                        "metadata": {"app": "cliphaven"},
+                        "items": {"data": [{"price": {"id": "price_cliphaven_pro"}}]},
+                    }
+                },
+            }
+        )
+        response = await billing_client.post(
+            "/api/v1/billing/webhook", content=payload, headers=headers
+        )
+        assert response.status_code == 200  # never non-2xx: Stripe would retry, then disable us
+        assert response.json()["ignored"] is True
+        assert await _plan_of(db_sessionmaker, org_id) == "pro"
+
+    async def test_untagged_foreign_cancellation_on_a_shared_customer_is_ignored(
+        self, billing_client: httpx.AsyncClient, db_sessionmaker: async_sessionmaker[AsyncSession]
+    ) -> None:
+        org_id = await _pro_org_on_customer(billing_client, db_sessionmaker, "cus_shared")
+        payload, headers = signed(
+            {
+                "id": "evt_foreign_del",
+                "type": "customer.subscription.deleted",
+                "data": {
+                    "object": {
+                        "customer": "cus_shared",
+                        "metadata": {},
+                        "items": {"data": [{"price": {"id": "price_someone_else"}}]},
+                    }
+                },
+            }
+        )
+        response = await billing_client.post(
+            "/api/v1/billing/webhook", content=payload, headers=headers
+        )
+        assert response.status_code == 200
+        assert await _plan_of(db_sessionmaker, org_id) == "pro"
+
+    async def test_foreign_checkout_cannot_upgrade_an_org_for_free(
+        self, billing_client: httpx.AsyncClient, db_sessionmaker: async_sessionmaker[AsyncSession]
+    ) -> None:
+        org_id = await _pro_org_on_customer(billing_client, db_sessionmaker, "cus_shared")
+        async with db_sessionmaker() as session:
+            org = await session.get(Organization, uuid.UUID(org_id))
+            assert org is not None
+            org.plan_slug = "free"
+            await session.commit()
+        payload, headers = signed(
+            {
+                "id": "evt_foreign_co",
+                "type": "checkout.session.completed",
+                "data": {"object": {"customer": "cus_shared", "metadata": {"plan_slug": "pro"}}},
+            }
+        )
+        response = await billing_client.post(
+            "/api/v1/billing/webhook", content=payload, headers=headers
+        )
+        assert response.status_code == 200
+        assert await _plan_of(db_sessionmaker, org_id) == "free"
+
+    async def test_oriflux_tagged_cancellation_still_downgrades(
+        self, billing_client: httpx.AsyncClient, db_sessionmaker: async_sessionmaker[AsyncSession]
+    ) -> None:
+        org_id = await _pro_org_on_customer(billing_client, db_sessionmaker, "cus_ofx")
+        payload, headers = signed(
+            {
+                "id": "evt_ofx_del",
+                "type": "customer.subscription.deleted",
+                "data": {
+                    "object": {
+                        "customer": "cus_ofx",
+                        "metadata": {"app": "oriflux", "org_id": org_id, "plan_slug": "pro"},
+                        "items": {"data": [{"price": {"id": "price_pro_1"}}]},
+                    }
+                },
+            }
+        )
+        response = await billing_client.post(
+            "/api/v1/billing/webhook", content=payload, headers=headers
+        )
+        assert response.json()["ignored"] is False
+        assert await _plan_of(db_sessionmaker, org_id) == "free"
+
+    async def test_foreign_events_are_not_recorded(
+        self, billing_client: httpx.AsyncClient, db_sessionmaker: async_sessionmaker[AsyncSession]
+    ) -> None:
+        from oriflux.db.models import StripeEvent
+
+        payload, headers = signed(
+            {
+                "id": "evt_other_app",
+                "type": "invoice.paid",
+                "data": {"object": {"customer": "cus_x", "metadata": {"app": "rayonne"}}},
+            }
+        )
+        await billing_client.post("/api/v1/billing/webhook", content=payload, headers=headers)
+        async with db_sessionmaker() as session:
+            assert await session.get(StripeEvent, "evt_other_app") is None
+
+
+def test_checkout_tags_every_object_as_oriflux() -> None:
+    from oriflux.billing import checkout_metadata
+
+    meta = checkout_metadata(
+        CheckoutRequest(
+            org_id="o1",
+            customer_id=None,
+            customer_email="a@b.c",
+            price_id="price_1",
+            plan_slug="pro",
+            success_url="s",
+            cancel_url="c",
+        )
+    )
+    assert meta == {"app": "oriflux", "org_id": "o1", "plan_slug": "pro"}
