@@ -406,7 +406,11 @@ services:
 
   # ── MinIO — backup target (console not published: Rayonne hardening) ────
   minio:
-    image: minio/minio:latest
+    # pgsty/silo: drop-in MinIO build (same CLI, env, API and data layout —
+    # reads the existing /data as is). MinIO stopped shipping community
+    # images (minio/* pulls denied since 2026-09); silo also bundles `mc`,
+    # so it serves the healthcheck and minio-init below.
+    image: pgsty/silo:latest
     environment:
       MINIO_ROOT_USER: ${MINIO_ACCESS_KEY:-oriflux}
       MINIO_ROOT_PASSWORD: ${MINIO_SECRET_KEY:?MINIO_SECRET_KEY is required}
@@ -434,7 +438,7 @@ services:
         delay: 10s
 
   minio-init:
-    image: minio/mc:latest
+    image: pgsty/silo:latest  # ships mc (see minio above)
     entrypoint: >
       /bin/sh -c "
       sleep 10;
